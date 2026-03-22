@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — HUTKO</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+  <div id="cart-placeholder"></div>
+
+  <div class="auth-page">
+    <div class="auth-deco" style="right:-80px;top:-60px;"><div class="auth-deco-heart"></div></div>
+    <div class="auth-deco" style="left:-80px;bottom:-60px;transform:rotate(180deg);"><div class="auth-deco-heart"></div></div>
+
+    <div class="auth-card anim-fade-up">
+      <div class="auth-logo">
+        <svg width="30" height="30" viewBox="0 0 38 38" fill="none"><circle cx="19" cy="19" r="19" fill="#E8622A" opacity="0.13"/><path d="M19 32C19 32 6 23 6 14.5C6 10.4 9.4 7 13.5 7C15.9 7 18 8.2 19 10C20 8.2 22.1 7 24.5 7C28.6 7 32 10.4 32 14.5C32 23 19 32 19 32Z" fill="#E8622A"/></svg>
+        HUTKO
+      </div>
+
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-sub">Sign in to track your orders and manage your account.</p>
+
+      <div class="auth-error" id="loginError">Incorrect email or password. Please try again.</div>
+
+      <div class="auth-form">
+        <div class="field">
+          <label>Email address</label>
+          <input type="email" id="loginEmail" placeholder="anna@email.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password">
+        </div>
+        <button class="auth-submit" onclick="doLogin()">Sign in</button>
+      </div>
+
+      <div class="auth-divider">
+        Don't have an account? <a href="register.html">Register here</a>
+      </div>
+      <div class="auth-divider" style="margin-top:8px;">
+        <a href="index.html" style="font-weight:400;opacity:0.6;">← Back to homepage</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer-placeholder"></div>
+  <script src="js/components.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    /* Redirect if already logged in */
+    if (getUser()) window.location.href = 'account.html';
+
+    function doLogin() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass  = document.getElementById('loginPassword').value;
+      const err   = document.getElementById('loginError');
+      err.style.display = 'none';
+
+      if (!email || !pass) { err.textContent = 'Please fill in all fields.'; err.style.display = 'block'; return; }
+
+      /* Load registered users from localStorage */
+      const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');
+      const user  = users.find(u => u.email === email && u.password === btoa(pass));
+
+      if (!user) { err.style.display = 'block'; return; }
+
+      /* Save session */
+      localStorage.setItem('hutko_user', JSON.stringify({ id: user.id, name: user.name, email: user.email }));
+      const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
+      window.location.href = redirect;
+    }
+
+    /* Allow Enter key */
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account — HUTKO</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+  <div id="cart-placeholder"></div>
+
+  <div class="page-header" style="padding:2.5rem 2rem;">
+    <div class="page-header-inner">
+      <div class="label">Your HUTKO account</div>
+      <h1 id="pageGreeting">My account</h1>
+    </div>
+  </div>
+
+  <div class="account-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="account-sidebar">
+      <div class="account-avatar" id="accountAvatar">?</div>
+      <div class="account-name" id="accountName">Loading…</div>
+      <div class="account-email" id="accountEmail"></div>
+      <ul class="account-nav">
+        <li><a href="#orders" class="active" onclick="switchTab('orders',this)">📦 My orders</a></li>
+        <li><a href="#profile" onclick="switchTab('profile',this)">👤 Profile</a></li>
+        <li><a href="#address" onclick="switchTab('address',this)">📍 Saved address</a></li>
+        <li><a href="#" onclick="logoutUser()" style="color:var(--orange);opacity:1;">↩ Sign out</a></li>
+      </ul>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="account-main">
+
+      <!-- ORDERS -->
+      <div class="account-section active" id="tab-orders">
+        <div class="account-section-title">My orders</div>
+        <div id="ordersList"></div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="account-section" id="tab-profile">
+        <div class="account-section-title">Profile details</div>
+        <div class="profile-card">
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="field-row">
+              <div class="field"><label>First name</label><input type="text" id="profFirst" placeholder="Anna"></div>
+              <div class="field"><label>Last name</label><input type="text" id="profLast" placeholder="Kovalenko"></div>
+            </div>
+            <div class="field"><label>Email address</label><input type="email" id="profEmail" placeholder="anna@email.com"></div>
+            <div class="field"><label>Phone number</label><input type="tel" id="profPhone" placeholder="+31 6 00 00 00 00"></div>
+            <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:4px;">
+              <div style="font-size:12px;font-weight:500;color:var(--text-muted);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:12px;">Change password</div>
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div class="field"><label>New password <span class="optional">leave blank to keep current</span></label><input type="password" id="profPass" placeholder="New password"></div>
+                <div class="field"><label>Confirm new password</label><input type="password" id="profPass2" placeholder="Repeat new password"></div>
+              </div>
+            </div>
+            <button class="btn btn-dark" style="align-self:flex-start;" onclick="saveProfile()">Save changes</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADDRESS -->
+      <div class="account-section" id="tab-address">
+        <div class="account-section-title">Saved delivery address</div>
+        <div class="profile-card">
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="field"><label>Street address</label><input type="text" id="addrStreet" placeholder="Damrak 1"></div>
+            <div class="field-row">
+              <div class="field"><label>Postcode</label><input type="text" id="addrPost" placeholder="1012 LG"></div>
+              <div class="field"><label>City</label><input type="text" id="addrCity" placeholder="Amsterdam"></div>
+            </div>
+            <div class="field">
+              <label>Province</label>
+              <div class="select-wrap">
+                <select id="addrProvince">
+                  <option value="">Select province…</option>
+                  <option>Noord-Holland</option><option>Zuid-Holland</option><option>Utrecht</option>
+                  <option>Flevoland</option><option>Noord-Brabant</option><option>Gelderland</option>
+                  <option>Overijssel</option><option>Friesland</option><option>Drenthe</option>
+                  <option>Groningen</option><option>Zeeland</option><option>Limburg</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-dark" style="align-self:flex-start;" onclick="saveAddress()">Save address</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div id="footer-placeholder"></div>
+  <script src="js/components.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    /* Guard: must be logged in */
+    const sessionUser = getUser();
+    if (!sessionUser) window.location.href = 'login.html?redirect=account.html';
+
+    function getUserData() {
+      const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');
+      return users.find(u => u.id === sessionUser.id) || null;
+    }
+    function saveUserData(updated) {
+      const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');
+      const idx = users.findIndex(u => u.id === sessionUser.id);
+      if (idx > -1) { users[idx] = updated; localStorage.setItem('hutko_users', JSON.stringify(users)); }
+    }
+
+    function switchTab(name, el) {
+      document.querySelectorAll('.account-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.account-nav a').forEach(a => a.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      if (el) el.classList.add('active');
+    }
+    window.switchTab = switchTab;
+
+    function renderOrders(user) {
+      const list = document.getElementById('ordersList');
+      const orders = user?.orders || [];
+      if (!orders.length) {
+        list.innerHTML = `<div style="background:var(--white);border-radius:12px;border:1px solid var(--border);padding:3rem;text-align:center;">
+          <div style="font-size:40px;margin-bottom:1rem;">📦</div>
+          <p style="color:var(--text-muted);font-size:15px;margin-bottom:1.5rem;">You haven't placed any orders yet.</p>
+          <a href="shop.html" class="btn btn-primary">Start shopping</a>
+        </div>`;
+        return;
+      }
+      const statusColors = { confirmed: 'confirmed', delivered: 'delivered', processing: 'processing' };
+      list.innerHTML = orders.map(o => `
+        <div class="order-card">
+          <div class="order-card-head">
+            <div>
+              <div class="order-id">${o.id}</div>
+              <div class="order-date">${o.date} · ${o.delivery || 'standard'} delivery</div>
+            </div>
+            <span class="order-status ${statusColors[o.status] || 'confirmed'}">${o.status}</span>
+          </div>
+          <div class="order-items-list">${o.items.join(', ')}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">📍 ${o.address || 'Address not saved'}</div>
+          <div class="order-total">Total: €${o.total}</div>
+        </div>`).join('');
+    }
+
+    function saveProfile() {
+      const user = getUserData();
+      if (!user) return;
+      const first = document.getElementById('profFirst').value.trim();
+      const last  = document.getElementById('profLast').value.trim();
+      const pass  = document.getElementById('profPass').value;
+      const pass2 = document.getElementById('profPass2').value;
+      if (!first || !last) { showToast('Name cannot be empty.'); return; }
+      if (pass && pass !== pass2) { showToast('Passwords do not match.'); return; }
+      if (pass && pass.length < 6) { showToast('Password must be at least 6 characters.'); return; }
+      user.name  = `${first} ${last}`;
+      user.email = document.getElementById('profEmail').value.trim() || user.email;
+      user.phone = document.getElementById('profPhone').value.trim();
+      if (pass) user.password = btoa(pass);
+      saveUserData(user);
+      localStorage.setItem('hutko_user', JSON.stringify({ id: user.id, name: user.name, email: user.email }));
+      document.getElementById('accountName').textContent = user.name;
+      document.getElementById('accountAvatar').textContent = user.name.charAt(0).toUpperCase();
+      showToast('✓ Profile updated successfully.');
+    }
+
+    function saveAddress() {
+      const user = getUserData();
+      if (!user) return;
+      user.address = {
+        street:   document.getElementById('addrStreet').value.trim(),
+        postcode: document.getElementById('addrPost').value.trim(),
+        city:     document.getElementById('addrCity').value.trim(),
+        province: document.getElementById('addrProvince').value,
+      };
+      saveUserData(user);
+      showToast('✓ Address saved.');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = getUserData();
+      if (!user) { logoutUser(); return; }
+
+      /* Header */
+      document.getElementById('pageGreeting').textContent = `Hello, ${user.name.split(' ')[0]} 👋`;
+      document.getElementById('accountAvatar').textContent = user.name.charAt(0).toUpperCase();
+      document.getElementById('accountName').textContent   = user.name;
+      document.getElementById('accountEmail').textContent  = user.email;
+
+      /* Profile fields */
+      const parts = user.name.split(' ');
+      document.getElementById('profFirst').value = parts[0] || '';
+      document.getElementById('profLast').value  = parts.slice(1).join(' ') || '';
+      document.getElementById('profEmail').value = user.email || '';
+      document.getElementById('profPhone').value = user.phone || '';
+
+      /* Address fields */
+      if (user.address) {
+        document.getElementById('addrStreet').value = user.address.street || '';
+        document.getElementById('addrPost').value   = user.address.postcode || '';
+        document.getElementById('addrCity').value   = user.address.city || '';
+        document.getElementById('addrProvince').value = user.address.province || '';
+      }
+
+      /* Orders */
+      renderOrders(user);
+
+      /* Hash navigation */
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'profile' || hash === 'address' || hash === 'orders') {
+        switchTab(hash, document.querySelector(`.account-nav a[href="#${hash}"]`));
+      }
+    });
+  </script>
+</body>
+</html>
