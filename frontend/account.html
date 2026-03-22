@@ -101,21 +101,9 @@
   <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
-    /* Guard: must be logged in — uses requireLogin which
-       shows page immediately from cache, verifies in background */
-    const sessionUser = getUser();
-    if (!sessionUser && !getToken()) {
+    /* Redirect if no token at all */
+    if (!getToken || !getToken()) {
       window.location.href = 'login.html?redirect=account.html';
-    }
-
-    function getUserData() {
-      const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');
-      return users.find(u => u.id === sessionUser.id) || null;
-    }
-    function saveUserData(updated) {
-      const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');
-      const idx = users.findIndex(u => u.id === sessionUser.id);
-      if (idx > -1) { users[idx] = updated; localStorage.setItem('hutko_users', JSON.stringify(users)); }
     }
 
     function switchTab(name, el) {
@@ -126,10 +114,9 @@
     }
     window.switchTab = switchTab;
 
-    function renderOrders(user) {
+    function renderOrders(orders) {
       const list = document.getElementById('ordersList');
-      const orders = user?.orders || [];
-      if (!orders.length) {
+      if (!orders || !orders.length) {
         list.innerHTML = `<div style="background:var(--white);border-radius:12px;border:1px solid var(--border);padding:3rem;text-align:center;">
           <div style="font-size:40px;margin-bottom:1rem;">📦</div>
           <p style="color:var(--text-muted);font-size:15px;margin-bottom:1.5rem;">You haven't placed any orders yet.</p>
@@ -137,61 +124,71 @@
         </div>`;
         return;
       }
-      const statusColors = { confirmed: 'confirmed', delivered: 'delivered', processing: 'processing' };
       list.innerHTML = orders.map(o => `
         <div class="order-card">
           <div class="order-card-head">
             <div>
-              <div class="order-id">${o.id}</div>
-              <div class="order-date">${o.date} · ${o.delivery || 'standard'} delivery</div>
+              <div class="order-id">${o.order_ref}</div>
+              <div class="order-date">${o.created_at ? o.created_at.split('T')[0] : ''} · ${o.delivery_method || 'standard'} delivery</div>
             </div>
-            <span class="order-status ${statusColors[o.status] || 'confirmed'}">${o.status}</span>
+            <span class="order-status ${o.status || 'confirmed'}">${o.status || 'confirmed'}</span>
           </div>
-          <div class="order-items-list">${o.items.join(', ')}</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">📍 ${o.address || 'Address not saved'}</div>
+          <div class="order-items-list">${(o.items || []).map(i => i.name + ' x' + i.qty).join(', ')}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">📍 ${o.addr_street ? o.addr_street + ', ' + o.addr_city : 'Address not saved'}</div>
           <div class="order-total">Total: €${o.total}</div>
         </div>`).join('');
     }
 
-    function saveProfile() {
-      const user = getUserData();
-      if (!user) return;
+    async function saveProfile() {
       const first = document.getElementById('profFirst').value.trim();
       const last  = document.getElementById('profLast').value.trim();
+      const phone = document.getElementById('profPhone').value.trim();
       const pass  = document.getElementById('profPass').value;
       const pass2 = document.getElementById('profPass2').value;
       if (!first || !last) { showToast('Name cannot be empty.'); return; }
       if (pass && pass !== pass2) { showToast('Passwords do not match.'); return; }
       if (pass && pass.length < 6) { showToast('Password must be at least 6 characters.'); return; }
-      user.name  = `${first} ${last}`;
-      user.email = document.getElementById('profEmail').value.trim() || user.email;
-      user.phone = document.getElementById('profPhone').value.trim();
-      if (pass) user.password = btoa(pass);
-      saveUserData(user);
-      localStorage.setItem('hutko_user', JSON.stringify({ id: user.id, name: user.name, email: user.email }));
-      document.getElementById('accountName').textContent = user.name;
-      document.getElementById('accountAvatar').textContent = user.name.charAt(0).toUpperCase();
+      const res = await Api.Auth.updateProfile(`${first} ${last}`, phone, pass || '');
+      if (!res.ok) { showToast(res.data.error || 'Failed to save.'); return; }
+      localStorage.setItem('hutko_user', JSON.stringify({ id: res.data.user.id, name: res.data.user.name, email: res.data.user.email }));
+      document.getElementById('accountName').textContent = res.data.user.name;
+      document.getElementById('accountAvatar').textContent = res.data.user.name.charAt(0).toUpperCase();
+      document.getElementById('pageGreeting').textContent = `Hello, ${res.data.user.name.split(' ')[0]} 👋`;
       showToast('✓ Profile updated successfully.');
     }
+    window.saveProfile = saveProfile;
 
-    function saveAddress() {
-      const user = getUserData();
-      if (!user) return;
-      user.address = {
-        street:   document.getElementById('addrStreet').value.trim(),
-        postcode: document.getElementById('addrPost').value.trim(),
-        city:     document.getElementById('addrCity').value.trim(),
-        province: document.getElementById('addrProvince').value,
-      };
-      saveUserData(user);
+    async function saveAddress() {
+      const street   = document.getElementById('addrStreet').value.trim();
+      const postcode = document.getElementById('addrPost').value.trim();
+      const city     = document.getElementById('addrCity').value.trim();
+      const province = document.getElementById('addrProvince').value;
+      const res = await Api.Auth.saveAddress(street, postcode, city, province);
+      if (!res.ok) { showToast(res.data.error || 'Failed to save address.'); return; }
       showToast('✓ Address saved.');
     }
+    window.saveAddress = saveAddress;
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const user = getUserData();
-      if (!user) { logoutUser(); return; }
+    document.addEventListener('DOMContentLoaded', async () => {
+      /* Load user from cache first for instant render */
+      const cached = getUser();
+      if (cached) {
+        document.getElementById('pageGreeting').textContent = `Hello, ${cached.name.split(' ')[0]} 👋`;
+        document.getElementById('accountAvatar').textContent = cached.name.charAt(0).toUpperCase();
+        document.getElementById('accountName').textContent   = cached.name;
+        document.getElementById('accountEmail').textContent  = cached.email;
+      }
 
-      /* Header */
+      /* Fetch fresh data from server */
+      const res = await Api.Auth.me();
+      if (!res.ok) {
+        if (res.status === 401) { clearAuth(); window.location.href = 'login.html'; }
+        return;
+      }
+      const user = res.data.user;
+      localStorage.setItem('hutko_user', JSON.stringify({ id: user.id, name: user.name, email: user.email }));
+
+      /* Update header */
       document.getElementById('pageGreeting').textContent = `Hello, ${user.name.split(' ')[0]} 👋`;
       document.getElementById('accountAvatar').textContent = user.name.charAt(0).toUpperCase();
       document.getElementById('accountName').textContent   = user.name;
@@ -205,19 +202,18 @@
       document.getElementById('profPhone').value = user.phone || '';
 
       /* Address fields */
-      if (user.address) {
-        document.getElementById('addrStreet').value = user.address.street || '';
-        document.getElementById('addrPost').value   = user.address.postcode || '';
-        document.getElementById('addrCity').value   = user.address.city || '';
-        document.getElementById('addrProvince').value = user.address.province || '';
-      }
+      document.getElementById('addrStreet').value   = user.addr_street   || '';
+      document.getElementById('addrPost').value     = user.addr_postcode || '';
+      document.getElementById('addrCity').value     = user.addr_city     || '';
+      document.getElementById('addrProvince').value = user.addr_province || '';
 
       /* Orders */
-      renderOrders(user);
+      const ordersRes = await Api.Orders.myOrders();
+      renderOrders(ordersRes.ok ? ordersRes.data.orders : []);
 
       /* Hash navigation */
       const hash = window.location.hash.replace('#', '');
-      if (hash === 'profile' || hash === 'address' || hash === 'orders') {
+      if (['profile', 'address', 'orders'].includes(hash)) {
         switchTab(hash, document.querySelector(`.account-nav a[href="#${hash}"]`));
       }
     });
