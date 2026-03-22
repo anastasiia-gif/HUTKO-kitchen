@@ -16,7 +16,11 @@ const NAV_LINKS = [
 function getUser() {
   try { return JSON.parse(localStorage.getItem('hutko_user')) || null; } catch { return null; }
 }
-function logoutUser() { localStorage.removeItem('hutko_user'); window.location.href = 'index.html'; }
+async function logoutUser() {
+  if (window.Api) await window.Api.Auth.logout();
+  else { localStorage.removeItem('hutko_user'); localStorage.removeItem('hutko_token'); }
+  window.location.href = 'index.html';
+}
 function toggleUserMenu() { document.getElementById('userDropdown')?.classList.toggle('open'); }
 window.logoutUser = logoutUser;
 window.toggleUserMenu = toggleUserMenu;

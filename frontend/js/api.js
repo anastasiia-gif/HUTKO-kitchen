@@ -1,16 +1,22 @@
-/* ── HUTKO — api.js ──────────────────────────────────────
-   Single source of truth for all backend API calls.
-   Replace API_BASE with your Render URL when deployed.
-   ─────────────────────────────────────────────────────── */
+/* HUTKO — api.js
+   Token-based auth. Token stored in localStorage, sent as
+   Authorization: Bearer <token> on every request.
+   No cross-origin cookie issues.
+*/
 
 const API_BASE = 'https://hutko-kitchen.onrender.com';
+const TOKEN_KEY = 'hutko_token';
+
+function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
+function saveToken(token) { localStorage.setItem(TOKEN_KEY, token); }
+function clearToken() { localStorage.removeItem(TOKEN_KEY); }
 
 async function apiCall(method, path, body = null) {
-  const opts = {
-    method,
-    credentials: 'include',          // send session cookie cross-origin
-    headers: { 'Content-Type': 'application/json' },
-  };
+  const headers = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const opts = { method, headers };
   if (body) opts.body = JSON.stringify(body);
 
   try {
@@ -23,20 +29,24 @@ async function apiCall(method, path, body = null) {
   }
 }
 
-/* ── AUTH ────────────────────────────────────────────── */
 const Auth = {
   async register(name, email, password, phone = '') {
-    return apiCall('POST', '/api/register', { name, email, password, phone });
+    const res = await apiCall('POST', '/api/register', { name, email, password, phone });
+    if (res.ok && res.data.token) saveToken(res.data.token);
+    return res;
   },
   async login(email, password) {
-    return apiCall('POST', '/api/login', { email, password });
+    const res = await apiCall('POST', '/api/login', { email, password });
+    if (res.ok && res.data.token) saveToken(res.data.token);
+    return res;
   },
   async logout() {
-    return apiCall('POST', '/api/logout');
+    const res = await apiCall('POST', '/api/logout');
+    clearToken();
+    localStorage.removeItem('hutko_user');
+    return res;
   },
-  async me() {
-    return apiCall('GET', '/api/me');
-  },
+  async me() { return apiCall('GET', '/api/me'); },
   async updateProfile(name, phone, password = '') {
     return apiCall('PUT', '/api/profile', { name, phone, password });
   },
@@ -45,55 +55,41 @@ const Auth = {
   },
 };
 
-/* ── ORDERS ──────────────────────────────────────────── */
 const Orders = {
-  async checkout(payload) {
-    return apiCall('POST', '/api/checkout', payload);
-  },
-  async myOrders() {
-    return apiCall('GET', '/api/orders');
-  },
-  async getOrder(ref) {
-    return apiCall('GET', `/api/orders/${ref}`);
-  },
+  async checkout(payload) { return apiCall('POST', '/api/checkout', payload); },
+  async myOrders()        { return apiCall('GET', '/api/orders'); },
+  async getOrder(ref)     { return apiCall('GET', `/api/orders/${ref}`); },
 };
 
-/* ── CONTACT ─────────────────────────────────────────── */
 const Contact = {
   async send(name, email, phone, social, topic, title, body) {
     return apiCall('POST', '/api/contact', { name, email, phone, social, topic, title, body });
   },
-  async subscribe(email) {
-    return apiCall('POST', '/api/newsletter', { email });
-  },
+  async subscribe(email) { return apiCall('POST', '/api/newsletter', { email }); },
 };
 
-/* ── ADMIN ───────────────────────────────────────────── */
 const Admin = {
   async login(password) {
-    return apiCall('POST', '/api/admin/login', { password });
+    const res = await apiCall('POST', '/api/admin/login', { password });
+    if (res.ok && res.data.token) saveToken(res.data.token);
+    return res;
   },
-  async stats() {
-    return apiCall('GET', '/api/admin/stats');
-  },
-  exportUrl() {
-    return `${API_BASE}/api/admin/export`;
-  },
+  async stats()     { return apiCall('GET',  '/api/admin/stats'); },
+  exportUrl()       { return `${API_BASE}/api/admin/export`; },
 };
 
-/* ── SESSION HELPER ──────────────────────────────────── */
-/* Checks /api/me on page load — updates navbar if logged in */
+/* On every page load: verify token is still valid, sync user data */
 async function syncSession() {
+  const token = getToken();
+  if (!token) { localStorage.removeItem('hutko_user'); return; }
+
   const res = await Auth.me();
   if (res.ok && res.data.user) {
     const user = res.data.user;
-    /* Store minimal info for navbar rendering */
     localStorage.setItem('hutko_user', JSON.stringify({
-      id:    user.id,
-      name:  user.name,
-      email: user.email,
+      id: user.id, name: user.name, email: user.email,
     }));
-    /* Pre-fill saved address if on checkout page */
+    /* Pre-fill checkout address fields if present */
     if (user.addr_street) {
       const fill = (id, val) => { const el = document.getElementById(id); if (el && !el.value) el.value = val || ''; };
       fill('coStreet',   user.addr_street);
@@ -102,12 +98,14 @@ async function syncSession() {
       fill('coProvince', user.addr_province);
     }
   } else {
+    /* Token expired or invalid — clear it */
+    clearToken();
     localStorage.removeItem('hutko_user');
   }
 }
 
-window.Api     = { Auth, Orders, Contact, Admin };
+window.Api = { Auth, Orders, Contact, Admin };
 window.syncSession = syncSession;
+window.getToken    = getToken;
 
-/* Run on every page load */
 document.addEventListener('DOMContentLoaded', syncSession);
