@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — HUTKO</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/contact.css">
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+  <div id="cart-placeholder"></div>
+
+  <div class="page-header">
+    <div class="page-header-deco" aria-hidden="true">
+      <div class="deco-heart"></div><div class="deco-heart" style="margin-top:40px;"></div>
+    </div>
+    <div class="page-header-inner">
+      <div class="label">Get in touch</div>
+      <h1>We'd love to <em style="color:var(--orange);font-style:italic;">hear</em> from you</h1>
+      <p>Whether you have a question about an order, want to collaborate, or just want to say hello — we're here.</p>
+    </div>
+  </div>
+
+  <!-- SOCIAL STRIP -->
+  <div class="social-strip">
+    <span class="strip-label">Follow us on social</span>
+    <a href="https://facebook.com" target="_blank" rel="noopener" class="strip-link">
+      <span class="strip-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+      </span>
+      Facebook
+    </a>
+    <a href="https://instagram.com" target="_blank" rel="noopener" class="strip-link">
+      <span class="strip-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><defs><radialGradient id="ig" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs><rect width="24" height="24" rx="5" fill="url(#ig)"/><rect x="6.5" y="6.5" width="11" height="11" rx="3" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="12" cy="12" r="2.8" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="17" cy="7" r="1" fill="#fff"/></svg>
+      </span>
+      Instagram
+    </a>
+  </div>
+
+  <!-- CONTACT BODY -->
+  <div class="contact-layout">
+
+    <!-- FORM -->
+    <div class="contact-form-side">
+      <div class="label reveal">Send a message</div>
+      <h2 class="section-title reveal delay-1">How can we help?</h2>
+
+      <form class="contact-form reveal delay-2" id="contactForm" novalidate>
+        <div class="field-row">
+          <div class="field"><label>Full name</label><input type="text" id="cName" placeholder="Anna Kovalenko" autocomplete="name"></div>
+          <div class="field"><label>Email address</label><input type="email" id="cEmail" placeholder="anna@email.com" autocomplete="email"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Phone number <span class="optional">optional</span></label><input type="tel" placeholder="+31 6 00 00 00 00" autocomplete="tel"></div>
+          <div class="field"><label>Social media <span class="optional">optional</span></label><input type="text" placeholder="@hutko.nl or facebook.com/…"></div>
+        </div>
+        <div class="field">
+          <label>Question regarding</label>
+          <div class="select-wrap">
+            <select id="cTopic">
+              <option value="" disabled selected>Select a topic…</option>
+              <option value="media">Media & press</option>
+              <option value="order">Ordering or cancelling</option>
+              <option value="work">Apply for work</option>
+              <option value="partner">Become a partner</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Message title</label>
+          <input type="text" id="cTitle" placeholder="Give your message a short title…">
+        </div>
+        <div class="field">
+          <label>Your message</label>
+          <textarea id="cBody" placeholder="Write your message here. We read every message and reply within 2 business days…"></textarea>
+        </div>
+        <button type="button" class="btn btn-dark" onclick="submitContact()" style="align-self:flex-start;">Send message →</button>
+      </form>
+
+      <div class="form-success" id="formSuccess">
+        <div style="font-size:42px;margin-bottom:0.75rem;">💌</div>
+        <h3>Message sent!</h3>
+        <p>Thank you for reaching out. We've received your message and will get back to you within 2 business days.</p>
+      </div>
+    </div>
+
+    <!-- INFO PANEL -->
+    <aside class="contact-info-side reveal delay-2">
+      <div class="info-group">
+        <div class="info-group-title">Contact details</div>
+        <div class="info-item"><div class="info-dot">✉️</div><div><div class="info-lbl">Email</div><div class="info-val">info@hutko.nl</div></div></div>
+        <div class="info-item"><div class="info-dot">📞</div><div><div class="info-lbl">Phone</div><div class="info-val">+31 6 00 00 00 00</div></div></div>
+        <div class="info-item"><div class="info-dot">📍</div><div><div class="info-lbl">Based in</div><div class="info-val">Amsterdam, Netherlands</div></div></div>
+      </div>
+      <div class="info-group">
+        <div class="info-group-title">Office hours</div>
+        <div class="hours-box">
+          <div class="hours-row"><span>Monday – Friday</span><strong>9:00 – 18:00</strong></div>
+          <div class="hours-row"><span>Saturday</span><strong>10:00 – 15:00</strong></div>
+          <div class="hours-row"><span>Sunday</span><strong>Closed</strong></div>
+        </div>
+      </div>
+      <div class="response-note">We typically respond within <strong>2 business days</strong>. For urgent order issues, WhatsApp is fastest.</div>
+      <div class="info-group">
+        <div class="info-group-title">Follow us</div>
+        <div class="info-item">
+          <div class="info-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg></div>
+          <div><div class="info-lbl">Facebook</div><div class="info-val">facebook.com/hutko.nl</div></div>
+        </div>
+        <div class="info-item">
+          <div class="info-dot">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><defs><radialGradient id="ig2" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs><rect width="24" height="24" rx="5" fill="url(#ig2)"/><rect x="6.5" y="6.5" width="11" height="11" rx="3" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="12" cy="12" r="2.8" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="17" cy="7" r="1" fill="#fff"/></svg>
+          </div>
+          <div><div class="info-lbl">Instagram</div><div class="info-val">@hutko.nl</div></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div id="footer-placeholder"></div>
+  <script src="js/components.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    function submitContact() {
+      const required = [
+        document.getElementById('cName'),
+        document.getElementById('cEmail'),
+        document.getElementById('cTopic'),
+        document.getElementById('cTitle'),
+        document.getElementById('cBody'),
+      ];
+      let ok = true;
+      required.forEach(el => {
+        el.classList.remove('error');
+        if (!el.value.trim()) { el.classList.add('error'); ok = false; }
+      });
+      const em = document.getElementById('cEmail');
+      if (em.value && !em.value.includes('@')) { em.classList.add('error'); ok = false; }
+      if (!ok) { showToast('Please fill in all required fields.'); return; }
+      document.getElementById('contactForm').style.display = 'none';
+      document.getElementById('formSuccess').style.display = 'flex';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+/* ── ABOUT PAGE ──────────────────────────────────── */
+.story-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+.story-p { font-size: 15px; color: var(--text-muted); line-height: 1.88; margin-bottom: 1.4rem; }
+.story-right { padding-top: 0.5rem; }
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.stat { background: var(--cream); padding: 1.4rem; text-align: center; }
+.stat-num { display: block; font-family: var(--serif); font-size: 34px; font-weight: 700; color: var(--orange); }
+.stat-lbl { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.values { display: flex; flex-direction: column; gap: 12px; }
+.value-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--cream);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+}
+.value-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+.value-title { font-size: 14px; font-weight: 500; color: var(--navy); margin-bottom: 2px; }
+.value-text { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+.food-hist-p { font-size: 16px; color: rgba(255,255,255,0.65); line-height: 1.9; max-width: 800px; }
+.pull-quote {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-style: italic;
+  color: var(--orange);
+  border-left: 3px solid var(--orange);
+  padding-left: 1.5rem;
+  margin-top: 2.5rem;
+  line-height: 1.55;
+  max-width: 600px;
+}
+
+.dish-list { display: flex; flex-direction: column; }
+.dish-item {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 2rem;
+  padding: 2.5rem 0;
+  border-bottom: 1px solid var(--border);
+  align-items: start;
+}
+.dish-item:last-child { border-bottom: none; }
+.dish-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  border: 1px solid var(--border);
+}
+.dish-name { font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+.dish-origin { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--orange); font-weight: 500; margin-bottom: 0.75rem; }
+.dish-text { font-size: 14px; color: var(--text-muted); line-height: 1.85; }
+
+@media (max-width: 1024px) {
+  .story-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+}
+@media (max-width: 768px) {
+  .dish-item { grid-template-columns: 1fr; gap: 1rem; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+}

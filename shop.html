@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop & Order — HUTKO</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/shop.css">
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+  <div id="cart-placeholder"></div>
+
+  <div class="page-header">
+    <div class="page-header-deco" aria-hidden="true">
+      <div class="deco-heart"></div>
+      <div class="deco-heart" style="margin-top:40px;opacity:0.6;"></div>
+    </div>
+    <div class="page-header-inner">
+      <div class="label">Frozen food</div>
+      <h1>Shop & Order</h1>
+      <p id="resultCount">6 products</p>
+    </div>
+  </div>
+
+  <div class="shop-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="shop-sidebar">
+      <div class="sidebar-group">
+        <h3 class="sidebar-heading">Category</h3>
+        <button class="cat-btn active" data-cat="all">All products</button>
+        <button class="cat-btn" data-cat="soups">Soups</button>
+        <button class="cat-btn" data-cat="snacks">Snacks & Bites</button>
+        <button class="cat-btn" data-cat="breakfast">Breakfast</button>
+        <button class="cat-btn" data-cat="mains">Main dishes</button>
+      </div>
+      <div class="sidebar-group">
+        <h3 class="sidebar-heading">Sort by</h3>
+        <div class="select-wrap">
+          <select id="sortSelect">
+            <option value="default">Featured</option>
+            <option value="price-asc">Price: low to high</option>
+            <option value="price-desc">Price: high to low</option>
+            <option value="name-asc">Name: A–Z</option>
+          </select>
+        </div>
+      </div>
+      <div class="sidebar-group">
+        <h3 class="sidebar-heading">Search</h3>
+        <input type="text" id="shopSearch" placeholder="Search products…" style="width:100%;border:1.5px solid rgba(26,35,86,0.14);border-radius:8px;padding:10px 12px;font-size:13px;font-family:var(--sans);color:var(--navy);background:#fff;outline:none;">
+      </div>
+    </aside>
+
+    <!-- GRID -->
+    <main class="shop-main">
+      <div class="shop-toolbar">
+        <span class="filter-info" id="filterInfo">Showing all products</span>
+      </div>
+      <div class="shop-grid" id="shopGrid"></div>
+    </main>
+  </div>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="js/components.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/shop.js"></script>
+</body>
+</html>
