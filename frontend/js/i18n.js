@@ -107,7 +107,37 @@ const TRANSLATIONS = {
     contact_send:'Send message', contact_success_title:'Message sent!',
     contact_success_desc:'Thank you for reaching out. We\'ll get back to you within 2 business days.',
     search_title:'Search results', search_for:'Results for',
-    search_none:'No products found for', search_all:'Browse all products',
+    search_none:'No products found for', search_all:'Browse all products'
+
+    /* Index hero */
+    hero_title:'Made with love,<br>delivered <em>fast</em>',
+    hero_sub:'Authentic Ukrainian dishes frozen fresh, delivered across the Netherlands. Borscht, syrnyky, zrazy and more, straight to your door.',
+    hero_order:'Order now', hero_story:'Our story',
+    delivery_title_map:'We deliver across<br>the Netherlands',
+    delivery_sub_map:'Order your favourite Ukrainian frozen dishes and receive them anywhere in the Netherlands.',
+    delivery_cta:'Check delivery info',
+    view_all:'View all products',
+    /* About */
+    about_story_p1:'HUTKO was born out of a simple longing - the taste of home. After relocating to the Netherlands, our founder found that nothing in a Dutch supermarket could quite replace the flavour of a proper bowl of borscht or a plate of freshly made syrnyky. So she started cooking. First for family, then for friends, then for the growing Ukrainian community in Amsterdam.',
+    about_story_p2:'Today HUTKO is a small but passionate team of cooks, packers, and delivery drivers united by a belief that food is the most powerful way to carry culture across borders. Every dish follows the original family recipe. Nothing artificial, nothing rushed.',
+    /* Steps */
+    step1_name:'Place your order', step1_desc:'Browse our shop, pick your favourite dishes and add them to the cart.',
+    step2_name:'Order confirmed', step2_desc:'You\'ll receive a confirmation via email or WhatsApp within 1 hour.',
+    step3_name:'Packed & frozen', step3_desc:'Your food is carefully packed in insulated boxes to stay frozen throughout delivery.',
+    step4_name:'At your door', step4_desc:'Your order arrives fresh-frozen. Store in the freezer and cook when ready.',
+    /* Min order etc */
+    min_order_title:'Minimum order', min_order_text:'Minimum order value is €25.',
+    delivery_cost_title:'Delivery cost', delivery_cost_text:'Flat rate €5. Free delivery on orders over €60.',
+    cutoff_title:'Order cutoff', cutoff_text:'Orders placed before 14:00 are processed the same day.',
+    /* Apply */
+    driver_desc:'Help us bring authentic Ukrainian food to families across the Netherlands. Flexible hours, fair pay, and a warm team to work with.',
+    partner_desc:'Are you a shop, cafe or event organiser? Partner with HUTKO to offer our frozen products to your audience.',
+    apply_driver_perk1:'Flexible schedule — you choose your hours',
+    apply_driver_perk2:'Competitive per-delivery pay',
+    apply_driver_perk3:'Car or cargo bike welcome',
+    apply_partner_perk1:'Wholesale pricing for bulk orders',
+    apply_partner_perk2:'Co-branding and marketing support',
+    apply_partner_perk3:'Flexible delivery schedules',,
   },
 
   ua: {
@@ -391,7 +421,32 @@ const TRANSLATIONS = {
     contact_send:'Versturen', contact_success_title:'Bericht verzonden!',
     contact_success_desc:'Bedankt voor uw bericht. Wij reageren binnen 2 werkdagen.',
     search_title:'Zoekresultaten', search_for:'Resultaten voor',
-    search_none:'Geen producten gevonden voor', search_all:'Bekijk alle producten',
+    search_none:'Geen producten gevonden voor', search_all:'Bekijk alle producten'
+
+    hero_title:'Met liefde gemaakt,<br><em>snel</em> bezorgd',
+    hero_sub:'Authentieke Oekraiense gerechten - vers ingevroren, bezorgd door heel Nederland. Borsjt, syrnyky, zrazy en meer.',
+    hero_order:'Bestel nu', hero_story:'Ons verhaal',
+    delivery_title_map:'Wij bezorgen door heel Nederland',
+    delivery_sub_map:'Bestel uw favoriete Oekraiense gerechten en ontvang ze overal in Nederland.',
+    delivery_cta:'Bezorginformatie',
+    view_all:'Bekijk alle producten',
+    about_story_p1:'HUTKO ontstond uit een simpel verlangen - de smaak van thuis. Na haar verhuizing naar Nederland merkte onze oprichter dat niets in een Nederlandse supermarkt de smaak van een echte borsjt kon vervangen.',
+    about_story_p2:'Vandaag is HUTKO een klein maar gepassioneerd team dat gelooft dat eten de krachtigste manier is om cultuur over grenzen te dragen.',
+    step1_name:'Bestelling plaatsen', step1_desc:'Blader door onze winkel, kies uw favoriete gerechten en voeg ze toe aan de winkelwagen.',
+    step2_name:'Bestelling bevestigd', step2_desc:'U ontvangt binnen 1 uur een bevestiging per e-mail of WhatsApp.',
+    step3_name:'Verpakt en ingevroren', step3_desc:'Uw bestelling wordt zorgvuldig verpakt in gesoleerde dozen.',
+    step4_name:'Voor uw deur', step4_desc:'Uw bestelling arriveert vers ingevroren. Bewaar in de vriezer.',
+    min_order_title:'Minimale bestelling', min_order_text:'Minimale bestelwaarde is 25 euro.',
+    delivery_cost_title:'Bezorgkosten', delivery_cost_text:'Vast tarief 5 euro. Gratis bezorging bij bestellingen boven 60 euro.',
+    cutoff_title:'Besteldeadline', cutoff_text:'Bestellingen voor 14:00 worden dezelfde dag verwerkt.',
+    driver_desc:'Help ons authentiek Oekraiens eten te bezorgen door heel Nederland. Flexibele werktijden en eerlijk loon.',
+    partner_desc:'Bent u eigenaar van een winkel of cafe? Word partner van HUTKO.',
+    apply_driver_perk1:'Flexibele werktijden - u kiest uw uren',
+    apply_driver_perk2:'Competitief loon per bezorging',
+    apply_driver_perk3:'Auto of bakfiets welkom',
+    apply_partner_perk1:'Groothandelsprijzen voor bulkbestellingen',
+    apply_partner_perk2:'Co-branding en marketingondersteuning',
+    apply_partner_perk3:'Flexibele bezorgschema s',,
   }
 };
 
