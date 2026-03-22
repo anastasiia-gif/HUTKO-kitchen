@@ -92,3 +92,15 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('sortSelect')?.addEventListener('change', filter);
   document.getElementById('shopSearch')?.addEventListener('input', filter);
 });
+
+/* ── URL search param (?q=...) ────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('q');
+  if (q) {
+    const searchEl = document.getElementById('shopSearch');
+    if (searchEl) { searchEl.value = q; }
+    /* slight delay to let filter() be available */
+    setTimeout(filter, 50);
+  }
+});
