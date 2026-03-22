@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create account — HUTKO</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+  <div id="cart-placeholder"></div>
+
+  <div class="auth-page">
+    <div class="auth-deco" style="right:-80px;top:-60px;"><div class="auth-deco-heart"></div></div>
+    <div class="auth-deco" style="left:-80px;bottom:-60px;transform:rotate(180deg);"><div class="auth-deco-heart"></div></div>
+
+    <div class="auth-card anim-fade-up">
+      <div class="auth-logo">
+        <svg width="30" height="30" viewBox="0 0 38 38" fill="none"><circle cx="19" cy="19" r="19" fill="#E8622A" opacity="0.13"/><path d="M19 32C19 32 6 23 6 14.5C6 10.4 9.4 7 13.5 7C15.9 7 18 8.2 19 10C20 8.2 22.1 7 24.5 7C28.6 7 32 10.4 32 14.5C32 23 19 32 19 32Z" fill="#E8622A"/></svg>
+        HUTKO
+      </div>
+
+      <h1 class="auth-title">Create account</h1>
+      <p class="auth-sub">Join HUTKO to track orders and save your delivery details.</p>
+
+      <div class="auth-error" id="regError"></div>
+
+      <div class="auth-form">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="field"><label>First name</label><input type="text" id="regFirst" placeholder="Anna" autocomplete="given-name"></div>
+          <div class="field"><label>Last name</label><input type="text" id="regLast" placeholder="Kovalenko" autocomplete="family-name"></div>
+        </div>
+        <div class="field">
+          <label>Email address</label>
+          <input type="email" id="regEmail" placeholder="anna@email.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label>Phone number <span class="optional">optional</span></label>
+          <input type="tel" id="regPhone" placeholder="+31 6 00 00 00 00" autocomplete="tel">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="regPass" placeholder="At least 6 characters" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label>Confirm password</label>
+          <input type="password" id="regPass2" placeholder="Repeat your password" autocomplete="new-password">
+        </div>
+        <button class="auth-submit" onclick="doRegister()">Create account</button>
+      </div>
+
+      <div class="auth-divider">
+        Already have an account? <a href="login.html">Sign in</a>
+      </div>
+      <div class="auth-divider" style="margin-top:8px;">
+        <a href="index.html" style="font-weight:400;opacity:0.6;">← Back to homepage</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer-placeholder"></div>
+  <script src="js/components.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    if (getUser()) window.location.href = 'account.html';
+
+    function doRegister() {
+      const first  = document.getElementById('regFirst').value.trim();
+      const last   = document.getElementById('regLast').value.trim();
+      const email  = document.getElementById('regEmail').value.trim();
+      const phone  = document.getElementById('regPhone').value.trim();
+      const pass   = document.getElementById('regPass').value;
+      const pass2  = document.getElementById('regPass2').value;
+      const err    = document.getElementById('regError');
+      err.style.display = 'none';
+
+      if (!first || !last || !email || !pass) { err.textContent = 'Please fill in all required fields.'; err.style.display = 'block'; return; }
+      if (!email.includes('@')) { err.textContent = 'Please enter a valid email address.'; err.style.display = 'block'; return; }
+      if (pass.length < 6) { err.textContent = 'Password must be at least 6 characters.'; err.style.display = 'block'; return; }
+      if (pass !== pass2) { err.textContent = 'Passwords do not match.'; err.style.display = 'block'; return; }
+
+      const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');
+      if (users.find(u => u.email === email)) { err.textContent = 'An account with this email already exists.'; err.style.display = 'block'; return; }
+
+      const newUser = { id: Date.now(), name: `${first} ${last}`, email, phone, password: btoa(pass), orders: [], createdAt: new Date().toISOString() };
+      users.push(newUser);
+      localStorage.setItem('hutko_users', JSON.stringify(users));
+      localStorage.setItem('hutko_user', JSON.stringify({ id: newUser.id, name: newUser.name, email: newUser.email }));
+
+      showToast('✓ Account created! Welcome to HUTKO.');
+      setTimeout(() => window.location.href = 'account.html', 800);
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+  </script>
+</body>
+</html>
