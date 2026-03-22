@@ -47,6 +47,7 @@
   </div>
 
   <div id="footer-placeholder"></div>
+  <script src="js/api.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/search.js"></script>
   <script src="js/components.js"></script>
@@ -55,28 +56,42 @@
     /* Redirect if already logged in */
     if (getUser()) window.location.href = 'account.html';
 
-    function doLogin() {
-      const email = document.getElementById('loginEmail').value.trim();
-      const pass  = document.getElementById('loginPassword').value;
-      const err   = document.getElementById('loginError');
-      err.style.display = 'none';
+    async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPassword').value;
+  const err   = document.getElementById('loginError');
+  err.style.display = 'none';
 
-      if (!email || !pass) { err.textContent = 'Please fill in all fields.'; err.style.display = 'block'; return; }
+  if (!email || !pass) {
+    err.textContent = t('login_error');
+    err.style.display = 'block';
+    return;
+  }
 
-      /* Load registered users from localStorage */
-      const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');
-      const user  = users.find(u => u.email === email && u.password === btoa(pass));
+  const btn = document.querySelector('.auth-submit');
+  btn.textContent = 'Signing in…';
+  btn.disabled = true;
 
-      if (!user) { err.style.display = 'block'; return; }
+  const res = await Api.Auth.login(email, pass);
 
-      /* Save session */
-      localStorage.setItem('hutko_user', JSON.stringify({ id: user.id, name: user.name, email: user.email }));
-      const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
-      window.location.href = redirect;
-    }
+  if (!res.ok) {
+    err.textContent = res.data.error || t('login_error');
+    err.style.display = 'block';
+    btn.textContent = t('login_btn');
+    btn.disabled = false;
+    return;
+  }
 
-    /* Allow Enter key */
-    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-  </script>
+  localStorage.setItem('hutko_user', JSON.stringify({
+    id:    res.data.user.id,
+    name:  res.data.user.name,
+    email: res.data.user.email,
+  }));
+  const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
+  window.location.href = redirect;
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
 </body>
 </html>

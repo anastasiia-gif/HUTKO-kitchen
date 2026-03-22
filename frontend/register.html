@@ -59,6 +59,7 @@
   </div>
 
   <div id="footer-placeholder"></div>
+  <script src="js/api.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/search.js"></script>
   <script src="js/components.js"></script>
@@ -66,34 +67,53 @@
   <script>
     if (getUser()) window.location.href = 'account.html';
 
-    function doRegister() {
-      const first  = document.getElementById('regFirst').value.trim();
-      const last   = document.getElementById('regLast').value.trim();
-      const email  = document.getElementById('regEmail').value.trim();
-      const phone  = document.getElementById('regPhone').value.trim();
-      const pass   = document.getElementById('regPass').value;
-      const pass2  = document.getElementById('regPass2').value;
-      const err    = document.getElementById('regError');
-      err.style.display = 'none';
+    async function doRegister() {
+  const first = document.getElementById('regFirst').value.trim();
+  const last  = document.getElementById('regLast').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const pass  = document.getElementById('regPass').value;
+  const pass2 = document.getElementById('regPass2').value;
+  const err   = document.getElementById('regError');
+  err.style.display = 'none';
 
-      if (!first || !last || !email || !pass) { err.textContent = 'Please fill in all required fields.'; err.style.display = 'block'; return; }
-      if (!email.includes('@')) { err.textContent = 'Please enter a valid email address.'; err.style.display = 'block'; return; }
-      if (pass.length < 6) { err.textContent = 'Password must be at least 6 characters.'; err.style.display = 'block'; return; }
-      if (pass !== pass2) { err.textContent = 'Passwords do not match.'; err.style.display = 'block'; return; }
+  if (!first || !last || !email || !pass) {
+    err.textContent = 'Please fill in all required fields.';
+    err.style.display = 'block'; return;
+  }
+  if (pass.length < 6) {
+    err.textContent = 'Password must be at least 6 characters.';
+    err.style.display = 'block'; return;
+  }
+  if (pass !== pass2) {
+    err.textContent = 'Passwords do not match.';
+    err.style.display = 'block'; return;
+  }
 
-      const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');
-      if (users.find(u => u.email === email)) { err.textContent = 'An account with this email already exists.'; err.style.display = 'block'; return; }
+  const btn = document.querySelector('.auth-submit');
+  btn.textContent = 'Creating account…';
+  btn.disabled = true;
 
-      const newUser = { id: Date.now(), name: `${first} ${last}`, email, phone, password: btoa(pass), orders: [], createdAt: new Date().toISOString() };
-      users.push(newUser);
-      localStorage.setItem('hutko_users', JSON.stringify(users));
-      localStorage.setItem('hutko_user', JSON.stringify({ id: newUser.id, name: newUser.name, email: newUser.email }));
+  const res = await Api.Auth.register(`${first} ${last}`, email, pass, phone);
 
-      showToast('✓ Account created! Welcome to HUTKO.');
-      setTimeout(() => window.location.href = 'account.html', 800);
-    }
+  if (!res.ok) {
+    err.textContent = res.data.error || 'Registration failed. Please try again.';
+    err.style.display = 'block';
+    btn.textContent = t('reg_btn');
+    btn.disabled = false;
+    return;
+  }
 
-    document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+  localStorage.setItem('hutko_user', JSON.stringify({
+    id:    res.data.user.id,
+    name:  res.data.user.name,
+    email: res.data.user.email,
+  }));
+  showToast('✓ Account created! Welcome to HUTKO.');
+  setTimeout(() => window.location.href = 'account.html', 800);
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
   </script>
 </body>
 </html>
