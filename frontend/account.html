@@ -95,15 +95,17 @@
   </div>
 
   <div id="footer-placeholder"></div>
-  <script src="js/api.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/search.js"></script>
   <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
-    /* Guard: must be logged in */
+    /* Guard: must be logged in — uses requireLogin which
+       shows page immediately from cache, verifies in background */
     const sessionUser = getUser();
-    if (!sessionUser) window.location.href = 'login.html?redirect=account.html';
+    if (!sessionUser && !getToken()) {
+      window.location.href = 'login.html?redirect=account.html';
+    }
 
     function getUserData() {
       const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');

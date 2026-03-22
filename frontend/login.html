@@ -47,51 +47,44 @@
   </div>
 
   <div id="footer-placeholder"></div>
-  <script src="js/api.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/search.js"></script>
   <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
     /* Redirect if already logged in */
-    if (getUser()) window.location.href = 'account.html';
+    if (getToken && getToken() && getUser()) window.location.href = 'account.html';
 
     async function doLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass  = document.getElementById('loginPassword').value;
-  const err   = document.getElementById('loginError');
-  err.style.display = 'none';
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass  = document.getElementById('loginPassword').value;
+      const err   = document.getElementById('loginError');
+      err.style.display = 'none';
 
-  if (!email || !pass) {
-    err.textContent = t('login_error');
-    err.style.display = 'block';
-    return;
-  }
+      if (!email || !pass) {
+        err.textContent = 'Please fill in all fields.';
+        err.style.display = 'block'; return;
+      }
 
-  const btn = document.querySelector('.auth-submit');
-  btn.textContent = 'Signing in…';
-  btn.disabled = true;
+      const btn = document.querySelector('.auth-submit');
+      btn.textContent = 'Signing in…';
+      btn.disabled = true;
 
-  const res = await Api.Auth.login(email, pass);
+      const res = await Api.Auth.login(email, pass);
 
-  if (!res.ok) {
-    err.textContent = res.data.error || t('login_error');
-    err.style.display = 'block';
-    btn.textContent = t('login_btn');
-    btn.disabled = false;
-    return;
-  }
+      if (!res.ok) {
+        err.textContent = res.data.error || 'Incorrect email or password.';
+        err.style.display = 'block';
+        btn.textContent = 'Sign in';
+        btn.disabled = false;
+        return;
+      }
 
-  localStorage.setItem('hutko_user', JSON.stringify({
-    id:    res.data.user.id,
-    name:  res.data.user.name,
-    email: res.data.user.email,
-  }));
-  const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
-  window.location.href = redirect;
-}
+      const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
+      window.location.href = redirect;
+    }
 
-document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-</script>
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  </script>
 </body>
 </html>

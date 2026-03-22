@@ -166,7 +166,6 @@
   </div>
 
   <div id="footer-placeholder"></div>
-  <script src="js/api.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/search.js"></script>
   <script src="js/components.js"></script>
@@ -221,52 +220,94 @@
       btn.disabled = false;
     }
 
-    async function placeOrder() {
-  const required = ['coFirst','coLast','coEmail','coPhone','coStreet','coPost','coCity','coProvince'];
-  let ok = true;
-  required.forEach(id => {
-    const el = document.getElementById(id);
-    el.classList.remove('error');
-    if (!el.value.trim()) { el.classList.add('error'); ok = false; }
-  });
-  if (!ok) { showToast('Please fill in all required fields.'); return; }
+    function placeOrder() {
+      /* Validate required fields */
+      const required = ['coFirst','coLast','coEmail','coPhone','coStreet','coPost','coCity','coProvince'];
+      let ok = true;
+      required.forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('error');
+        if (!el.value.trim()) { el.classList.add('error'); ok = false; }
+      });
+      if (!ok) { showToast('Please fill in all required fields.'); return; }
 
-  const cart  = getCart();
-  const items = Object.values(cart);
-  if (!items.length) return;
+      const cart  = getCart();
+      const items = Object.values(cart);
+      if (!items.length) return;
 
-  const payload = {
-    first_name:      document.getElementById('coFirst').value.trim(),
-    last_name:       document.getElementById('coLast').value.trim(),
-    email:           document.getElementById('coEmail').value.trim(),
-    phone:           document.getElementById('coPhone').value.trim(),
-    street:          document.getElementById('coStreet').value.trim(),
-    postcode:        document.getElementById('coPost').value.trim(),
-    city:            document.getElementById('coCity').value.trim(),
-    province:        document.getElementById('coProvince').value,
-    notes:           document.getElementById('coNotes').value.trim(),
-    delivery_method: selectedDelivery,
-    items:           items,
-  };
+      const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
+      const delivery = subtotal >= 60 ? 0 : DELIVERY_PRICES[selectedDelivery];
 
-  const btn = document.getElementById('placeOrderBtn');
-  btn.disabled = true;
-  btn.textContent = 'Placing order…';
+      /* Save order to user history */
+      const user = getUser();
+      if (user) {
+        const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');
+        const u = users.find(u => u.id === user.id);
+        if (u) {
+          const order = {
+            id: 'HK-' + Date.now().toString().slice(-6),
+            date: new Date().toLocaleDateString('en-GB'),
+            items: items.map(i => `${i.name} ×${i.qty}`),
+            total: subtotal + delivery,
+            status: 'confirmed',
+            delivery: selectedDelivery,
+            address: `${document.getElementById('coStreet').value}, ${document.getElementById('coPost').value} ${document.getElementById('coCity').value}`
+          };
+          u.orders = u.orders || [];
+          u.orders.unshift(order);
+          localStorage.setItem('hutko_users', JSON.stringify(users));
+        }
+      }
 
-  const res = await Api.Orders.checkout(payload);
+      /* Save to all orders (for export later) */
+      const allOrders = JSON.parse(localStorage.getItem('hutko_all_orders') || '[]');
+      allOrders.unshift({
+        id: 'HK-' + Date.now().toString().slice(-6),
+        date: new Date().toISOString(),
+        name: `${document.getElementById('coFirst').value} ${document.getElementById('coLast').value}`,
+        email: document.getElementById('coEmail').value,
+        phone: document.getElementById('coPhone').value,
+        address: `${document.getElementById('coStreet').value}, ${document.getElementById('coPost').value} ${document.getElementById('coCity').value}, ${document.getElementById('coProvince').value}`,
+        notes: document.getElementById('coNotes').value,
+        items: items.map(i => `${i.name} ×${i.qty} (€${i.price})`).join(' | '),
+        subtotal, delivery: delivery, total: subtotal + delivery,
+        delivery_method: selectedDelivery,
+        status: 'confirmed'
+      });
+      localStorage.setItem('hutko_all_orders', JSON.stringify(allOrders));
 
-  if (!res.ok) {
-    showToast(res.data.error || 'Something went wrong. Please try again.');
-    btn.disabled = false;
-    btn.textContent = t('checkout_place');
-    return;
-  }
+      /* Clear cart */
+      localStorage.removeItem('hutko_cart');
 
-  localStorage.removeItem('hutko_cart');
-  document.getElementById('checkoutBody').style.display = 'none';
-  document.getElementById('successScreen').style.display = 'block';
-  window.scrollTo(0, 0);
-}
+      /* Show success */
+      document.getElementById('checkoutBody').style.display = 'none';
+      document.getElementById('successScreen').style.display = 'block';
+      window.scrollTo(0, 0);
+    }
+
+    /* Pre-fill if logged in */
+    document.addEventListener('DOMContentLoaded', () => {
+      const cart = getCart();
+      if (!Object.keys(cart).length) {
+        document.getElementById('emptyGuard').style.display = 'block';
+        document.getElementById('checkoutBody').style.display = 'none';
+        return;
+      }
+
+      const user = getUser();
+      if (user) {
+        const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');
+        const u = users.find(u => u.id === user.id);
+        if (u) {
+          const parts = u.name.split(' ');
+          document.getElementById('coFirst').value = parts[0] || '';
+          document.getElementById('coLast').value  = parts.slice(1).join(' ') || '';
+          document.getElementById('coEmail').value = u.email || '';
+          document.getElementById('coPhone').value = u.phone || '';
+        }
+      }
+      renderSummary();
+    });
   </script>
 </body>
 </html>

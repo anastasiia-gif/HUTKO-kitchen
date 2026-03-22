@@ -16,15 +16,15 @@
       <div class="deco-heart"></div><div class="deco-heart" style="margin-top:40px;"></div>
     </div>
     <div class="page-header-inner">
-      <div class="label">Get in touch</div>
-      <h1>We'd love to <em style="color:var(--orange);font-style:italic;">hear</em> from you</h1>
-      <p>Whether you have a question about an order, want to collaborate, or just want to say hello — we're here.</p>
+      <div class="label" data-i18n="contact_label">Get in touch</div>
+      <h1 data-i18n="contact_title">We'd love to <em style="color:var(--orange);font-style:italic;">hear</em> from you</h1>
+      <p data-i18n="contact_sub">Whether you have a question about an order, want to collaborate, or just want to say hello — we're here.</p>
     </div>
   </div>
 
   <!-- SOCIAL STRIP -->
   <div class="social-strip">
-    <span class="strip-label">Follow us on social</span>
+    <span class="strip-label" data-i18n="contact_follow">Follow us on social</span>
     <a href="https://facebook.com" target="_blank" rel="noopener" class="strip-link">
       <span class="strip-icon">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
@@ -44,8 +44,8 @@
 
     <!-- FORM -->
     <div class="contact-form-side">
-      <div class="label reveal">Send a message</div>
-      <h2 class="section-title reveal delay-1">How can we help?</h2>
+      <div class="label reveal" data-i18n="contact_form_label">Send a message</div>
+      <h2 class="section-title reveal delay-1" data-i18n="contact_form_title">How can we help?</h2>
 
       <form class="contact-form reveal delay-2" id="contactForm" novalidate>
         <div class="field-row">
@@ -121,51 +121,30 @@
   </div>
 
   <div id="footer-placeholder"></div>
-  <script src="js/api.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/search.js"></script>
   <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
-    async function submitContact() {
-  const required = [
-    document.getElementById('cName'),
-    document.getElementById('cEmail'),
-    document.getElementById('cTopic'),
-    document.getElementById('cTitle'),
-    document.getElementById('cBody'),
-  ];
-  let ok = true;
-  required.forEach(el => {
-    el.classList.remove('error');
-    if (!el.value.trim()) { el.classList.add('error'); ok = false; }
-  });
-  if (!ok) { showToast('Please fill in all required fields.'); return; }
-
-  const btn = document.querySelector('.btn-dark');
-  btn.textContent = 'Sending…';
-  btn.disabled = true;
-
-  const res = await Api.Contact.send(
-    document.getElementById('cName').value.trim(),
-    document.getElementById('cEmail').value.trim(),
-    document.getElementById('cPhone')?.value.trim() || '',
-    document.getElementById('cSocial')?.value.trim() || '',
-    document.getElementById('cTopic').value,
-    document.getElementById('cTitle').value.trim(),
-    document.getElementById('cBody').value.trim(),
-  );
-
-  if (!res.ok) {
-    showToast(res.data.error || 'Something went wrong. Please try again.');
-    btn.textContent = t('contact_send');
-    btn.disabled = false;
-    return;
-  }
-
-  document.getElementById('contactForm').style.display = 'none';
-  document.getElementById('formSuccess').style.display = 'flex';
-}
+    function submitContact() {
+      const required = [
+        document.getElementById('cName'),
+        document.getElementById('cEmail'),
+        document.getElementById('cTopic'),
+        document.getElementById('cTitle'),
+        document.getElementById('cBody'),
+      ];
+      let ok = true;
+      required.forEach(el => {
+        el.classList.remove('error');
+        if (!el.value.trim()) { el.classList.add('error'); ok = false; }
+      });
+      const em = document.getElementById('cEmail');
+      if (em.value && !em.value.includes('@')) { em.classList.add('error'); ok = false; }
+      if (!ok) { showToast('Please fill in all required fields.'); return; }
+      document.getElementById('contactForm').style.display = 'none';
+      document.getElementById('formSuccess').style.display = 'flex';
+    }
   </script>
 </body>
 </html>
