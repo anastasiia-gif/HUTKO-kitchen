@@ -209,7 +209,7 @@
 
       si.innerHTML = items.map(i => `
         <div class="summary-item">
-          <span class="summary-item-emoji">${i.emoji}</span>
+          <span class="summary-item-emoji">${i.emoji || '🍽️'}</span>
           <span class="summary-item-name">${i.name}</span>
           <span class="summary-item-qty">×${i.qty}</span>
           <span class="summary-item-price">€${i.qty * i.price}</span>
@@ -282,8 +282,14 @@
       }
     }
 
-    /* Pre-fill if logged in */
+    /* Require login + pre-fill if logged in */
     document.addEventListener('DOMContentLoaded', () => {
+      // Require login
+      if (typeof getToken !== 'function' || !getToken()) {
+        window.location.href = 'login.html?redirect=checkout.html';
+        return;
+      }
+
       const cart = getCart();
       if (!Object.keys(cart).length) {
         document.getElementById('emptyGuard').style.display = 'block';
