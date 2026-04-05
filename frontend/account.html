@@ -182,7 +182,7 @@
       /* Fetch fresh data from server */
       const res = await Api.Auth.me();
       if (!res.ok) {
-        if (res.status === 401) { clearAuth(); window.location.href = 'login.html'; }
+        if (res.status === 401) { clearToken(); window.location.href = 'login.html'; }
         return;
       }
       const user = res.data.user;

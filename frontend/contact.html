@@ -61,11 +61,11 @@
         <div class="form-row">
           <div class="form-field">
             <label>Phone number <span class="optional">optional</span></label>
-            <input type="tel" placeholder="+31 6 00 00 00 00" autocomplete="tel">
+            <input type="tel" id="cPhone" placeholder="+31 6 00 00 00 00" autocomplete="tel">
           </div>
           <div class="form-field">
             <label>Social media <span class="optional">optional</span></label>
-            <input type="text" placeholder="@hutko.kitchen">
+            <input type="text" id="cSocial" placeholder="@hutko.kitchen">
           </div>
         </div>
         <div class="form-field">
@@ -140,7 +140,7 @@
   <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
-    function submitContact() {
+    async function submitContact() {
       const required = [
         document.getElementById('cName'),
         document.getElementById('cEmail'),
@@ -156,8 +156,33 @@
       const em = document.getElementById('cEmail');
       if (em.value && !em.value.includes('@')) { em.classList.add('error'); ok = false; }
       if (!ok) { showToast('Please fill in all required fields.'); return; }
-      document.getElementById('contactForm').style.display = 'none';
-      document.getElementById('formSuccess').style.display = 'flex';
+
+      // Show loading state
+      const btn = document.querySelector('.contact-submit');
+      const origText = btn.innerHTML;
+      btn.innerHTML = 'Sending…'; btn.disabled = true;
+
+      try {
+        const res = await window.Api.Contact.send(
+          document.getElementById('cName').value.trim(),
+          document.getElementById('cEmail').value.trim(),
+          document.getElementById('cPhone')?.value.trim() || '',
+          document.getElementById('cSocial')?.value.trim() || '',
+          document.getElementById('cTopic').value,
+          document.getElementById('cTitle').value.trim(),
+          document.getElementById('cBody').value.trim()
+        );
+        if (res.ok) {
+          document.getElementById('contactForm').style.display = 'none';
+          document.getElementById('formSuccess').style.display = 'flex';
+        } else {
+          showToast(res.data.error || 'Something went wrong. Please try again.');
+          btn.innerHTML = origText; btn.disabled = false;
+        }
+      } catch (e) {
+        showToast('Network error. Please try again.');
+        btn.innerHTML = origText; btn.disabled = false;
+      }
     }
   </script>
 </body>

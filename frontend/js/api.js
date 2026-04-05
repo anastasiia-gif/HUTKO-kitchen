@@ -1,17 +1,17 @@
-/* HUTKO — api.js
-   Token-based auth. Token stored in localStorage.
-   Sent as Authorization: Bearer <token> on every request.
-*/
+/* ── HUTKO — api.js ──────────────────────────────────────
+   Single source of truth for all backend API calls.
+   ─────────────────────────────────────────────────────── */
 
 const API_BASE = 'https://hutko-kitchen.onrender.com';
-const TOKEN_KEY = 'hutko_token';
-const USER_KEY  = 'hutko_user';
 
-function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
-function saveToken(t) { localStorage.setItem(TOKEN_KEY, t); }
-function clearAuth() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
+function getToken() {
+  try { return localStorage.getItem('hutko_token') || ''; } catch { return ''; }
+}
+function saveToken(token) {
+  try { localStorage.setItem('hutko_token', token); } catch {}
+}
+function clearToken() {
+  try { localStorage.removeItem('hutko_token'); localStorage.removeItem('hutko_user'); } catch {}
 }
 
 async function apiCall(method, path, body = null) {
@@ -27,47 +27,31 @@ async function apiCall(method, path, body = null) {
     const data = await res.json();
     return { ok: res.ok, status: res.status, data };
   } catch (err) {
-    /* Network error or timeout (e.g. Render cold start) —
-       return a network error but DO NOT clear the token.
-       The user is still logged in, the server just isn't awake yet. */
-    console.warn(`API network error [${method} ${path}]:`, err.message);
-    return { ok: false, status: 0, data: { error: 'network_error' } };
+    console.error(`API error [${method} ${path}]:`, err);
+    return { ok: false, status: 0, data: { error: 'Network error. Please try again.' } };
   }
 }
 
-/* getUser — reads cached user from localStorage (used by components.js) */
-function getUser() {
-  try { return JSON.parse(localStorage.getItem(USER_KEY)) || null; }
-  catch { return null; }
-}
-window.getUser = getUser;
-
+/* ── AUTH ────────────────────────────────────────────── */
 const Auth = {
   async register(name, email, password, phone = '') {
     const res = await apiCall('POST', '/api/register', { name, email, password, phone });
-    if (res.ok && res.data.token) {
-      saveToken(res.data.token);
-      localStorage.setItem(USER_KEY, JSON.stringify({
-        id: res.data.user.id, name: res.data.user.name, email: res.data.user.email
-      }));
-    }
+    if (res.ok && res.data.token) saveToken(res.data.token);
     return res;
   },
   async login(email, password) {
     const res = await apiCall('POST', '/api/login', { email, password });
-    if (res.ok && res.data.token) {
-      saveToken(res.data.token);
-      localStorage.setItem(USER_KEY, JSON.stringify({
-        id: res.data.user.id, name: res.data.user.name, email: res.data.user.email
-      }));
-    }
+    if (res.ok && res.data.token) saveToken(res.data.token);
     return res;
   },
   async logout() {
-    await apiCall('POST', '/api/logout');
-    clearAuth();
+    const res = await apiCall('POST', '/api/logout');
+    clearToken();
+    return res;
   },
-  async me() { return apiCall('GET', '/api/me'); },
+  async me() {
+    return apiCall('GET', '/api/me');
+  },
   async updateProfile(name, phone, password = '') {
     return apiCall('PUT', '/api/profile', { name, phone, password });
   },
@@ -76,95 +60,77 @@ const Auth = {
   },
 };
 
+/* ── ORDERS ──────────────────────────────────────────── */
 const Orders = {
-  async checkout(payload) { return apiCall('POST', '/api/checkout', payload); },
-  async myOrders()        { return apiCall('GET', '/api/orders'); },
-  async getOrder(ref)     { return apiCall('GET', `/api/orders/${ref}`); },
+  async checkout(payload) {
+    return apiCall('POST', '/api/checkout', payload);
+  },
+  async myOrders() {
+    return apiCall('GET', '/api/orders');
+  },
+  async getOrder(ref) {
+    return apiCall('GET', `/api/orders/${ref}`);
+  },
 };
 
+/* ── CONTACT ─────────────────────────────────────────── */
 const Contact = {
   async send(name, email, phone, social, topic, title, body) {
     return apiCall('POST', '/api/contact', { name, email, phone, social, topic, title, body });
   },
-  async subscribe(email) { return apiCall('POST', '/api/newsletter', { email }); },
+  async subscribe(email) {
+    return apiCall('POST', '/api/newsletter', { email });
+  },
 };
 
+/* ── ADMIN ───────────────────────────────────────────── */
 const Admin = {
   async login(password) {
     const res = await apiCall('POST', '/api/admin/login', { password });
-    if (res.ok && res.data.token) saveToken(res.data.token);
+    if (res.ok && res.data.token) saveToken('admin_' + res.data.token);
     return res;
   },
-  async stats()  { return apiCall('GET', '/api/admin/stats'); },
-  exportUrl()    { return `${API_BASE}/api/admin/export`; },
+  async stats() {
+    return apiCall('GET', '/api/admin/stats');
+  },
+  exportUrl() {
+    return `${API_BASE}/api/admin/export`;
+  },
 };
 
-/* syncSession — runs on every page load.
-   Only clears auth on a real 401 (token invalid/expired).
-   Ignores network errors so a sleeping Render doesn't log the user out. */
+/* ── SESSION HELPER ──────────────────────────────────── */
 async function syncSession() {
   const token = getToken();
-  if (!token) return;   /* not logged in, nothing to do */
-
-  const res = await Auth.me();
-
-  if (res.status === 401) {
-    /* Token is genuinely invalid — clear it */
-    clearAuth();
+  if (!token) {
+    localStorage.removeItem('hutko_user');
     return;
   }
-
+  const res = await Auth.me();
   if (res.ok && res.data.user) {
-    /* Update stored user data with fresh data from server */
     const user = res.data.user;
-    localStorage.setItem(USER_KEY, JSON.stringify({
-      id: user.id, name: user.name, email: user.email
+    localStorage.setItem('hutko_user', JSON.stringify({
+      id:    user.id,
+      name:  user.name,
+      email: user.email,
     }));
-    /* Pre-fill checkout address fields if on checkout page */
+    // Pre-fill saved address if on checkout page
     if (user.addr_street) {
-      const fill = (id, val) => {
-        const el = document.getElementById(id);
-        if (el && !el.value) el.value = val || '';
-      };
+      const fill = (id, val) => { const el = document.getElementById(id); if (el && !el.value) el.value = val || ''; };
       fill('coStreet',   user.addr_street);
       fill('coPost',     user.addr_postcode);
       fill('coCity',     user.addr_city);
       fill('coProvince', user.addr_province);
     }
+  } else {
+    clearToken();
   }
-  /* If status === 0 (network error / Render sleeping):
-     do nothing — keep existing localStorage user data intact */
 }
 
-/* Guard for pages that require login (account.html, checkout.html).
-   Call this instead of syncSession on protected pages. */
-async function requireLogin(redirectTo = 'login.html') {
-  const token = getToken();
-  const user  = localStorage.getItem(USER_KEY);
+window.Api         = { Auth, Orders, Contact, Admin };
+window.syncSession = syncSession;
+window.getToken    = getToken;
 
-  /* If we have both token and cached user — show the page immediately
-     using cached data, then verify in background */
-  if (token && user) {
-    /* Background verify — don't block the page */
-    Auth.me().then(res => {
-      if (res.status === 401) {
-        clearAuth();
-        window.location.href = redirectTo + '?redirect=' + encodeURIComponent(window.location.pathname.split('/').pop());
-      }
-    });
-    return true;   /* page can render */
-  }
-
-  /* No token at all — redirect to login */
-  clearAuth();
-  window.location.href = redirectTo + '?redirect=' + encodeURIComponent(window.location.pathname.split('/').pop());
-  return false;
-}
-
-window.Api          = { Auth, Orders, Contact, Admin };
-window.syncSession  = syncSession;
-window.requireLogin = requireLogin;
-window.getToken     = getToken;
-window.clearAuth    = clearAuth;
-
-document.addEventListener('DOMContentLoaded', syncSession);
+/* Run on every page load — only if token exists to avoid unnecessary requests */
+document.addEventListener('DOMContentLoaded', () => {
+  if (getToken()) syncSession();
+});

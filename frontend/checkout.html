@@ -157,6 +157,8 @@
     <div class="checkout-success">
       <div class="checkout-success-icon">🎉</div>
       <h2>Order placed!</h2>
+      <p style="font-size:13px;color:var(--ink-soft);margin-bottom:.25rem;">Order reference</p>
+      <p style="font-family:var(--display);font-size:22px;color:var(--blue);margin-bottom:1rem;" id="orderRef">—</p>
       <p>Thank you for your order. We've received it and will send you a confirmation email within 1 hour with your invoice and delivery details.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
         <a href="account.html#orders" class="btn btn-dark">View my orders</a>
@@ -221,7 +223,7 @@
       btn.disabled = false;
     }
 
-    function placeOrder() {
+    async function placeOrder() {
       /* Validate required fields */
       const required = ['coFirst','coLast','coEmail','coPhone','coStreet','coPost','coCity','coProvince'];
       let ok = true;
@@ -236,54 +238,48 @@
       const items = Object.values(cart);
       if (!items.length) return;
 
-      const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
-      const delivery = subtotal >= 60 ? 0 : DELIVERY_PRICES[selectedDelivery];
+      const btn = document.getElementById('placeOrderBtn');
+      btn.textContent = 'Placing order…';
+      btn.disabled = true;
 
-      /* Save order to user history */
-      const user = getUser();
-      if (user) {
-        const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');
-        const u = users.find(u => u.id === user.id);
-        if (u) {
-          const order = {
-            id: 'HK-' + Date.now().toString().slice(-6),
-            date: new Date().toLocaleDateString('en-GB'),
-            items: items.map(i => `${i.name} ×${i.qty}`),
-            total: subtotal + delivery,
-            status: 'confirmed',
-            delivery: selectedDelivery,
-            address: `${document.getElementById('coStreet').value}, ${document.getElementById('coPost').value} ${document.getElementById('coCity').value}`
-          };
-          u.orders = u.orders || [];
-          u.orders.unshift(order);
-          localStorage.setItem('hutko_users', JSON.stringify(users));
-        }
-      }
-
-      /* Save to all orders (for export later) */
-      const allOrders = JSON.parse(localStorage.getItem('hutko_all_orders') || '[]');
-      allOrders.unshift({
-        id: 'HK-' + Date.now().toString().slice(-6),
-        date: new Date().toISOString(),
-        name: `${document.getElementById('coFirst').value} ${document.getElementById('coLast').value}`,
-        email: document.getElementById('coEmail').value,
-        phone: document.getElementById('coPhone').value,
-        address: `${document.getElementById('coStreet').value}, ${document.getElementById('coPost').value} ${document.getElementById('coCity').value}, ${document.getElementById('coProvince').value}`,
-        notes: document.getElementById('coNotes').value,
-        items: items.map(i => `${i.name} ×${i.qty} (€${i.price})`).join(' | '),
-        subtotal, delivery: delivery, total: subtotal + delivery,
+      const payload = {
+        first_name:      document.getElementById('coFirst').value.trim(),
+        last_name:       document.getElementById('coLast').value.trim(),
+        email:           document.getElementById('coEmail').value.trim(),
+        phone:           document.getElementById('coPhone').value.trim(),
+        street:          document.getElementById('coStreet').value.trim(),
+        postcode:        document.getElementById('coPost').value.trim(),
+        city:            document.getElementById('coCity').value.trim(),
+        province:        document.getElementById('coProvince').value.trim(),
+        notes:           document.getElementById('coNotes')?.value.trim() || '',
         delivery_method: selectedDelivery,
-        status: 'confirmed'
-      });
-      localStorage.setItem('hutko_all_orders', JSON.stringify(allOrders));
+        items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+      };
 
-      /* Clear cart */
-      localStorage.removeItem('hutko_cart');
+      try {
+        const res = await window.Api.Orders.checkout(payload);
+        if (!res.ok) {
+          showToast(res.data.error || 'Order failed. Please try again.');
+          btn.textContent = 'Place order →';
+          btn.disabled = false;
+          return;
+        }
+        /* Store order ref for success screen */
+        const ref = res.data.order_ref;
+        document.getElementById('orderRef').textContent = ref || '';
 
-      /* Show success */
-      document.getElementById('checkoutBody').style.display = 'none';
-      document.getElementById('successScreen').style.display = 'block';
-      window.scrollTo(0, 0);
+        /* Clear cart */
+        localStorage.removeItem('hutko_cart');
+
+        /* Show success */
+        document.getElementById('checkoutBody').style.display = 'none';
+        document.getElementById('successScreen').style.display = 'block';
+        window.scrollTo(0, 0);
+      } catch(e) {
+        showToast('Network error. Please try again.');
+        btn.textContent = 'Place order →';
+        btn.disabled = false;
+      }
     }
 
     /* Pre-fill if logged in */
@@ -297,15 +293,10 @@
 
       const user = getUser();
       if (user) {
-        const users = JSON.parse(localStorage.getItem('hutko_users') || '[]');
-        const u = users.find(u => u.id === user.id);
-        if (u) {
-          const parts = u.name.split(' ');
-          document.getElementById('coFirst').value = parts[0] || '';
-          document.getElementById('coLast').value  = parts.slice(1).join(' ') || '';
-          document.getElementById('coEmail').value = u.email || '';
-          document.getElementById('coPhone').value = u.phone || '';
-        }
+        const parts = (user.name || '').split(' ');
+        document.getElementById('coFirst').value = parts[0] || '';
+        document.getElementById('coLast').value  = parts.slice(1).join(' ') || '';
+        document.getElementById('coEmail').value = user.email || '';
       }
       renderSummary();
     });

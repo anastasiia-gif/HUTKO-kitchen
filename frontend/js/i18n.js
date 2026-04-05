@@ -107,7 +107,7 @@ const TRANSLATIONS = {
     contact_send:'Send message', contact_success_title:'Message sent!',
     contact_success_desc:'Thank you for reaching out. We\'ll get back to you within 2 business days.',
     search_title:'Search results', search_for:'Results for',
-    search_none:'No products found for', search_all:'Browse all products'
+    search_none:'No products found for', search_all:'Browse all products',
 
     /* Index hero */
     hero_title:'Made with love,<br>delivered <em>fast</em>',
@@ -137,7 +137,7 @@ const TRANSLATIONS = {
     apply_driver_perk3:'Car or cargo bike welcome',
     apply_partner_perk1:'Wholesale pricing for bulk orders',
     apply_partner_perk2:'Co-branding and marketing support',
-    apply_partner_perk3:'Flexible delivery schedules',,
+    apply_partner_perk3:'Flexible delivery schedules',
   },
 
   ua: {
@@ -421,7 +421,7 @@ const TRANSLATIONS = {
     contact_send:'Versturen', contact_success_title:'Bericht verzonden!',
     contact_success_desc:'Bedankt voor uw bericht. Wij reageren binnen 2 werkdagen.',
     search_title:'Zoekresultaten', search_for:'Resultaten voor',
-    search_none:'Geen producten gevonden voor', search_all:'Bekijk alle producten'
+    search_none:'Geen producten gevonden voor', search_all:'Bekijk alle producten',
 
     hero_title:'Met liefde gemaakt,<br><em>snel</em> bezorgd',
     hero_sub:'Authentieke Oekraiense gerechten - vers ingevroren, bezorgd door heel Nederland. Borsjt, syrnyky, zrazy en meer.',
@@ -446,7 +446,7 @@ const TRANSLATIONS = {
     apply_driver_perk3:'Auto of bakfiets welkom',
     apply_partner_perk1:'Groothandelsprijzen voor bulkbestellingen',
     apply_partner_perk2:'Co-branding en marketingondersteuning',
-    apply_partner_perk3:'Flexibele bezorgschema s',,
+    apply_partner_perk3:"Flexibele bezorgschema's",
   }
 };
 
@@ -460,7 +460,11 @@ function applyTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const val = t(el.dataset.i18n);
     if (!val || val === el.dataset.i18n) return;
-    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') { el.placeholder = val; } else { el.innerHTML = val; }
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = val;
+    } else {
+      el.innerHTML = val;
+    }
   });
 }
 function updateLangSwitcher() {
@@ -471,14 +475,23 @@ function updateLangSwitcher() {
 }
 function setLang(lang) {
   localStorage.setItem(I18N_KEY, lang);
-  if (typeof renderNavbar === 'function') { document.getElementById('navbar-placeholder').innerHTML = ''; renderNavbar(); }
-  if (typeof renderFooter === 'function') { document.getElementById('footer-placeholder').innerHTML = ''; renderFooter(); }
+  // Re-render injected components with new language
+  if (typeof renderNavbar === 'function') {
+    document.getElementById('navbar-placeholder').innerHTML = '';
+    renderNavbar();
+  }
+  if (typeof renderFooter === 'function') {
+    document.getElementById('footer-placeholder').innerHTML = '';
+    renderFooter();
+  }
   if (typeof renderCartPanel === 'function') {
-    document.getElementById('cart-placeholder').innerHTML = ''; renderCartPanel();
+    document.getElementById('cart-placeholder').innerHTML = '';
+    renderCartPanel();
     document.getElementById('cartOverlay')?.addEventListener('click', () => { if (typeof toggleCart === 'function') toggleCart(); });
     document.getElementById('cartClose')?.addEventListener('click', () => { if (typeof toggleCart === 'function') toggleCart(); });
     if (typeof updateCartUI === 'function') updateCartUI();
   }
+  // Apply to all data-i18n elements on the page (body content)
   applyTranslations();
   updateLangSwitcher();
   if (typeof initSearch === 'function') setTimeout(initSearch, 50);
