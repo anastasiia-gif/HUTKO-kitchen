@@ -5,7 +5,7 @@
   gap: 4rem;
   align-items: start;
 }
-.story-p { font-size: 15px; color: var(--text-muted); line-height: 1.88; margin-bottom: 1.4rem; }
+.story-p { font-size: 15px; color: var(--ink-soft); line-height: 1.88; margin-bottom: 1.4rem; }
 .story-right { padding-top: 0.5rem; }
 .stat-grid {
   display: grid;
@@ -17,8 +17,8 @@
   margin-bottom: 1.5rem;
 }
 .stat { background: var(--cream); padding: 1.4rem; text-align: center; }
-.stat-num { display: block; font-family: var(--serif); font-size: 34px; font-weight: 700; color: var(--orange); }
-.stat-lbl { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.stat-num { display: block; font-family: var(--display); font-size: 34px; color: var(--orange); }
+.stat-lbl { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
 .values { display: flex; flex-direction: column; gap: 12px; }
 .value-item {
   display: flex;
@@ -29,12 +29,12 @@
   padding: 1rem 1.2rem;
 }
 .value-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
-.value-title { font-size: 14px; font-weight: 500; color: var(--navy); margin-bottom: 2px; }
-.value-text { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.value-title { font-size: 14px; font-weight: 500; color: var(--blue); margin-bottom: 2px; }
+.value-text { font-size: 12px; color: var(--ink-soft); line-height: 1.5; }
 
 .food-hist-p { font-size: 16px; color: rgba(255,255,255,0.65); line-height: 1.9; max-width: 800px; }
 .pull-quote {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 20px;
   font-style: italic;
   color: var(--orange);
@@ -66,9 +66,9 @@
   font-size: 32px;
   border: 1px solid var(--border);
 }
-.dish-name { font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+.dish-name { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--blue); margin-bottom: 2px; }
 .dish-origin { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--orange); font-weight: 500; margin-bottom: 0.75rem; }
-.dish-text { font-size: 14px; color: var(--text-muted); line-height: 1.85; }
+.dish-text { font-size: 14px; color: var(--ink-soft); line-height: 1.85; }
 
 @media (max-width: 1024px) {
   .story-grid { grid-template-columns: 1fr; gap: 2.5rem; }
@@ -76,4 +76,109 @@
 @media (max-width: 768px) {
   .dish-item { grid-template-columns: 1fr; gap: 1rem; }
   .stat-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── VISION / MOMENTS SECTION ────────────────────── */
+.about-moments-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+.moment-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.moment-time {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+.moment-title {
+  font-family: var(--display);
+  font-size: 20px;
+  color: var(--ink);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.moment-body {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+  flex: 1;
+}
+.moment-product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--cream);
+  border-radius: 12px;
+  padding: 10px;
+  margin-top: .25rem;
+}
+.moment-product img {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.moment-product-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.moment-product-sub {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+/* Uniqueness grid */
+.uniqueness-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+.uniq-item {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 1.75rem 1.5rem;
+  border: 1px solid var(--border);
+}
+.uniq-num {
+  font-family: var(--display);
+  font-size: 28px;
+  color: var(--blue);
+  opacity: .2;
+  margin-bottom: .75rem;
+  line-height: 1;
+}
+.uniq-title {
+  font-family: var(--display);
+  font-size: 16px;
+  color: var(--ink);
+  margin-bottom: .6rem;
+  letter-spacing: -0.01em;
+}
+.uniq-text {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+
+@media (max-width: 1024px) {
+  .about-moments-grid { grid-template-columns: 1fr 1fr; }
+  .uniqueness-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .about-moments-grid { grid-template-columns: 1fr; }
+  .uniqueness-grid { grid-template-columns: 1fr; }
 }

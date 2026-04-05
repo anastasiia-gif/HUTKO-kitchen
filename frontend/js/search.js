@@ -61,7 +61,7 @@ function initSearch() {
           " onmouseover="this.style.background='#F2EDE4'" onmouseout="this.style.background='transparent'">
             <span style="font-size:24px;width:32px;text-align:center;">${p.emoji}</span>
             <div>
-              <div style="font-size:13px;font-weight:500;color:#1a2356;">${getProductName(p)}</div>
+              <div style="font-size:13px;font-weight:500;color:#111111;">${getProductName(p)}</div>
               <div style="font-size:11px;color:rgba(26,35,86,0.45);text-transform:uppercase;letter-spacing:0.8px;">${p.cat}</div>
             </div>
           </a>`).join('') +
