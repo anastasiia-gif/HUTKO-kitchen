@@ -10,6 +10,7 @@ from flask import Blueprint, request, jsonify, g
 from database import get_db
 from auth import optional_token, token_required
 from emails import send_order_confirmation, send_order_notification
+from trello import create_order_card, move_card, add_comment, get_card_by_order_ref
 
 orders_bp = Blueprint('orders', __name__)
 
@@ -63,7 +64,7 @@ def checkout():
     conn.commit()
     conn.close()
 
-    # Send emails
+    # Send emails + create Trello card
     customer_name  = f"{data['first_name']} {data['last_name']}"
     customer_addr  = f"{data['street']}, {data['postcode']} {data['city']}, {data['province']}"
     try:
@@ -79,6 +80,31 @@ def checkout():
         )
     except Exception as e:
         print(f"[ORDER EMAIL ERROR] {e}")
+
+    # Create Trello card
+    try:
+        card_id = create_order_card(
+            order_ref, customer_name, data['email'], data['phone'],
+            items, subtotal, delivery_cost, total,
+            customer_addr, delivery_method, data.get('notes', '')
+        )
+        # Save card_id to order in DB
+        if card_id:
+            conn2 = get_db()
+            # Add trello_card_id column if not exists (safe)
+            try:
+                conn2.execute("ALTER TABLE orders ADD COLUMN trello_card_id TEXT")
+                conn2.commit()
+            except Exception:
+                pass  # Column already exists
+            conn2.execute(
+                "UPDATE orders SET trello_card_id=? WHERE order_ref=?",
+                (card_id, order_ref)
+            )
+            conn2.commit()
+            conn2.close()
+    except Exception as e:
+        print(f"[TRELLO ERROR] {e}")
 
     return jsonify({
         'order_ref': order_ref, 'total': total,
@@ -115,3 +141,81 @@ def get_order(ref):
     o['items'] = json.loads(o['items_json'])
     del o['items_json']
     return jsonify({'order': o}), 200
+
+
+# ── UPDATE ORDER STATUS (called manually or by webhook) ──
+@orders_bp.route('/api/orders/<ref>/status', methods=['PUT'])
+def update_order_status(ref):
+    data       = request.get_json()
+    new_status = data.get('status', '')
+    comment    = data.get('comment', '')
+
+    valid = ['confirmed', 'cooking', 'storage', 'delivery', 'delivered', 'cancelled']
+    if new_status not in valid:
+        return jsonify({'error': f'Invalid status. Use: {valid}'}), 400
+
+    # Status → Trello list mapping
+    trello_map = {
+        'confirmed':  'confirmed',
+        'cooking':    'confirmed',
+        'storage':    'in_storage',
+        'delivery':   'out_for_delivery',
+        'delivered':  'delivered',
+        'cancelled':  'cancelled',
+    }
+
+    conn = get_db()
+    row  = conn.execute("SELECT * FROM orders WHERE order_ref=?", (ref,)).fetchone()
+    if not row:
+        conn.close()
+        return jsonify({'error': 'Order not found'}), 404
+
+    conn.execute("UPDATE orders SET status=? WHERE order_ref=?", (new_status, ref))
+    conn.commit()
+
+    # Move Trello card
+    try:
+        card_id = row['trello_card_id'] if 'trello_card_id' in row.keys() else None
+        if not card_id:
+            card_id = get_card_by_order_ref(ref)
+        if card_id:
+            move_card(card_id, trello_map[new_status])
+            if comment:
+                add_comment(card_id, f"Status → **{new_status}**\n{comment}")
+    except Exception as e:
+        print(f"[TRELLO STATUS ERROR] {e}")
+
+    conn.close()
+    return jsonify({'order_ref': ref, 'status': new_status}), 200
+
+
+# ── DELIVERY CONFIRMATION (customer confirms receipt) ────
+@orders_bp.route('/api/orders/<ref>/confirm-delivery', methods=['POST'])
+def confirm_delivery(ref):
+    data    = request.get_json()
+    message = (data.get('message') or '').strip()
+    rating  = data.get('rating', 5)
+
+    conn = get_db()
+    row  = conn.execute("SELECT * FROM orders WHERE order_ref=?", (ref,)).fetchone()
+    if not row:
+        conn.close()
+        return jsonify({'error': 'Order not found'}), 404
+
+    conn.execute("UPDATE orders SET status='delivered' WHERE order_ref=?", (ref,))
+    conn.commit()
+    conn.close()
+
+    # Move card to Delivered + add customer comment
+    try:
+        card_id = get_card_by_order_ref(ref)
+        if card_id:
+            move_card(card_id, 'delivered')
+            comment_text = f"✅ Customer confirmed delivery!\n⭐ Rating: {rating}/5"
+            if message:
+                comment_text += f"\n💬 Message: {message}"
+            add_comment(card_id, comment_text)
+    except Exception as e:
+        print(f"[TRELLO CONFIRM ERROR] {e}")
+
+    return jsonify({'message': 'Delivery confirmed. Thank you!'}), 200
