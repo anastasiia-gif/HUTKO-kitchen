@@ -11,6 +11,7 @@ import secrets
 from flask import Blueprint, request, jsonify, g
 from database import get_db
 from functools import wraps
+from emails import send_welcome
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -115,6 +116,13 @@ def register():
     conn.close()
 
     token = make_token(user['id'])
+
+    # Send welcome email
+    try:
+        send_welcome(user['name'], user['email'])
+    except Exception as e:
+        print(f"[WELCOME EMAIL ERROR] {e}")
+
     return jsonify({'user': user_to_dict(user), 'token': token}), 201
 
 
