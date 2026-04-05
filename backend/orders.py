@@ -9,6 +9,7 @@ import string
 from flask import Blueprint, request, jsonify, g
 from database import get_db
 from auth import optional_token, token_required
+from emails import send_order_confirmation, send_order_notification
 
 orders_bp = Blueprint('orders', __name__)
 
@@ -61,6 +62,23 @@ def checkout():
     ))
     conn.commit()
     conn.close()
+
+    # Send emails
+    customer_name  = f"{data['first_name']} {data['last_name']}"
+    customer_addr  = f"{data['street']}, {data['postcode']} {data['city']}, {data['province']}"
+    try:
+        send_order_confirmation(
+            order_ref, customer_name, data['email'],
+            items, subtotal, delivery_cost, total,
+            customer_addr, delivery_method
+        )
+        send_order_notification(
+            order_ref, customer_name, data['email'],
+            data['phone'], items, total,
+            customer_addr, delivery_method, data.get('notes', '')
+        )
+    except Exception as e:
+        print(f"[ORDER EMAIL ERROR] {e}")
 
     return jsonify({
         'order_ref': order_ref, 'total': total,
