@@ -206,14 +206,14 @@ def confirm_delivery(ref):
     conn.commit()
     conn.close()
 
-    # Move card to Delivered + add customer comment
+    # Move card to Ok: Confirmed + add customer comment
     try:
         card_id = get_card_by_order_ref(ref)
         if card_id:
-            move_card(card_id, 'delivered')
+            move_card(card_id, 'ok_confirmed')
             comment_text = f"✅ Customer confirmed delivery!\n⭐ Rating: {rating}/5"
             if message:
-                comment_text += f"\n💬 Message: {message}"
+                comment_text += f"\n\n💬 Customer says:\n{message}"
             add_comment(card_id, comment_text)
     except Exception as e:
         print(f"[TRELLO CONFIRM ERROR] {e}")
