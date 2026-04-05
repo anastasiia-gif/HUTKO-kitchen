@@ -81,6 +81,14 @@
         return;
       }
 
+      // Save user info before redirect
+      if (res.data.user) {
+        localStorage.setItem('hutko_user', JSON.stringify({
+          id: res.data.user.id,
+          name: res.data.user.name,
+          email: res.data.user.email,
+        }));
+      }
       const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
       window.location.href = redirect;
     }
