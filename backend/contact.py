@@ -56,15 +56,27 @@ def contact():
     conn.commit()
     conn.close()
 
-    # Auto-reply to sender
-    send_email(email, "We received your message — HUTKO", f"""
-        <p>Hi {name},</p>
-        <p>Thanks for reaching out! We've received your message about <strong>{topic}</strong> and will get back to you within 2 business days.</p>
-        <p>Your message: <em>{body[:200]}{'...' if len(body) > 200 else ''}</em></p>
-        <br><p>Warm regards,<br>The HUTKO team</p>
+    # Notify owner
+    owner_email = os.environ.get('OWNER_EMAIL', 'nastiapolimasheva@hutko-kitchen.com')
+    send_email(owner_email, f"New message: {title}", f"""
+        <h2>New contact form message</h2>
+        <p><strong>From:</strong> {name} ({email})</p>
+        <p><strong>Phone:</strong> {data.get('phone', '—')}</p>
+        <p><strong>Topic:</strong> {topic}</p>
+        <p><strong>Title:</strong> {title}</p>
+        <hr>
+        <p>{body}</p>
     """)
 
-    return jsonify({'message': 'Message received. Thank you!'}), 201
+    # Auto-reply to sender
+    send_email(email, "We received your message — HUTKO Kitchen", f"""
+        <p>Hi {name},</p>
+        <p>Thanks for reaching out! We have received your message about <strong>{topic}</strong> and will get back to you within 2 business days.</p>
+        <p>Your message: <em>{body[:200]}{'...' if len(body) > 200 else ''}</em></p>
+        <br><p>Warm regards,<br>The HUTKO Kitchen team</p>
+    """)
+
+    return jsonify({{'message': 'Message received. Thank you!'}}), 201
 
 
 # ── NEWSLETTER ───────────────────────────────────────────
