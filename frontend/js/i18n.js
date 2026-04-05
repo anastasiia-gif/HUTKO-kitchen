@@ -107,7 +107,7 @@ const TRANSLATIONS = {
     contact_send:'Send message', contact_success_title:'Message sent!',
     contact_success_desc:'Thank you for reaching out. We\'ll get back to you within 2 business days.',
     search_title:'Search results', search_for:'Results for',
-    search_none:'No products found for', search_all:'Browse all products'
+    search_none:'No products found for', search_all:'Browse all products',
 
     /* Index hero */
     hero_title:'Made with love,<br>delivered <em>fast</em>',
@@ -137,7 +137,7 @@ const TRANSLATIONS = {
     apply_driver_perk3:'Car or cargo bike welcome',
     apply_partner_perk1:'Wholesale pricing for bulk orders',
     apply_partner_perk2:'Co-branding and marketing support',
-    apply_partner_perk3:'Flexible delivery schedules',,
+    apply_partner_perk3:'Flexible delivery schedules',
   },
 
   ua: {
@@ -421,7 +421,7 @@ const TRANSLATIONS = {
     contact_send:'Versturen', contact_success_title:'Bericht verzonden!',
     contact_success_desc:'Bedankt voor uw bericht. Wij reageren binnen 2 werkdagen.',
     search_title:'Zoekresultaten', search_for:'Resultaten voor',
-    search_none:'Geen producten gevonden voor', search_all:'Bekijk alle producten'
+    search_none:'Geen producten gevonden voor', search_all:'Bekijk alle producten',
 
     hero_title:'Met liefde gemaakt,<br><em>snel</em> bezorgd',
     hero_sub:'Authentieke Oekraiense gerechten - vers ingevroren, bezorgd door heel Nederland. Borsjt, syrnyky, zrazy en meer.',
@@ -446,7 +446,7 @@ const TRANSLATIONS = {
     apply_driver_perk3:'Auto of bakfiets welkom',
     apply_partner_perk1:'Groothandelsprijzen voor bulkbestellingen',
     apply_partner_perk2:'Co-branding en marketingondersteuning',
-    apply_partner_perk3:'Flexibele bezorgschema s',,
+    apply_partner_perk3:"Flexibele bezorgschema's",
   }
 };
 
