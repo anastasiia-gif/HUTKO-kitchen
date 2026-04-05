@@ -20,6 +20,9 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret')
 
 ALLOWED_ORIGINS = [
+    "https://hutko-kitchen.pages.dev",
+    "https://hutko-kitchen.com",
+    "https://www.hutko-kitchen.com",
     "https://hutko.netlify.app",
     "https://testing--hutko.netlify.app",
     "http://localhost:3000",
@@ -52,10 +55,8 @@ def not_found(e):
 def server_error(e):
     return jsonify({'error': 'Internal server error.'}), 500
 
-# Always init DB — works with both gunicorn and direct run
-init_db()
-
 if __name__ == '__main__':
+    init_db()
     port = int(os.environ.get('PORT', 5000))
     print(f"HUTKO API running on http://localhost:{port}")
     app.run(host='0.0.0.0', port=port, debug=os.environ.get('FLASK_ENV') == 'development')
