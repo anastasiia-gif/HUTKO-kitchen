@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HUTKO — Ukrainian Frozen Food</title>
+  <title>HUTKO Kitchen — Ukrainian Frozen Food</title>
   <meta name="description" content="Authentic Ukrainian frozen food delivered across the Netherlands. Borscht, syrnyky, zrazy and more.">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/home.css">
@@ -15,168 +15,442 @@
 
   <!-- ── HERO ──────────────────────────────────────── -->
   <section class="hero">
-    <div class="hero-hearts" aria-hidden="true">
-      <div class="hero-heart h1"></div>
-      <div class="hero-heart h2"></div>
-      <div class="hero-heart h3"></div>
-      <div class="hero-heart h4"></div>
+    <div class="hero-content anim-fade-up">
+      <div class="hero-tag" data-i18n="home_hero_tag">
+        <span>🇺🇦</span> Ukrainian Frozen Food · Netherlands
+      </div>
+      <h1 class="hero-title">
+        <span data-i18n="home_hero_line1">Ready in</span><br>
+        <span class="accent" data-i18n="home_hero_line2">10 minutes.</span><br>
+        <span data-i18n="home_hero_line3">Made with love.</span>
+      </h1>
+      <p class="hero-sub anim-fade-up delay-1" data-i18n="home_hero_sub">
+        Homemade Ukrainian dishes — frozen right after cooking. For a calm morning, an easy dinner, or unexpected guests.
+      </p>
+      <div class="hero-actions anim-fade-up delay-2">
+        <a href="shop.html" class="btn btn-primary" data-i18n="home_order_now">Order now</a>
+        <a href="about.html" class="btn btn-outline" data-i18n="home_our_story">Our story</a>
+      </div>
+      <div class="hero-badges anim-fade-up delay-3">
+        <div class="hero-badge"><div class="hero-badge-dot"></div><span data-i18n="home_badge_1">Homemade batches</span></div>
+        <div class="hero-badge"><div class="hero-badge-dot"></div><span data-i18n="home_badge_2">Thu & Sat delivery</span></div>
+        <div class="hero-badge"><div class="hero-badge-dot"></div><span data-i18n="home_badge_3">All Netherlands</span></div>
+      </div>
     </div>
-    <div class="hero-inner">
-      <div class="hero-content">
-        <div class="label anim-fade-up" data-i18n="home_hero_tag">Ukrainian Frozen Food</div>
-        <h1 class="hero-title anim-fade-up delay-1" data-i18n="home_hero_title">
-          Made with love,<br>delivered <em>fast</em>
-        </h1>
-        <p class="hero-sub anim-fade-up delay-2" data-i18n="home_hero_sub">
-          Authentic Ukrainian dishes — frozen fresh, delivered across the Netherlands.<br>
-          Borscht, syrnyky, zrazy and more, straight to your door.
-        </p>
-        <div class="hero-actions anim-fade-up delay-3">
-          <a href="shop.html" class="btn btn-primary" data-i18n="home_order_now">Order now</a>
-          <a href="about.html" class="btn btn-outline" data-i18n="home_our_story">Our story</a>
+    <div class="hero-visual">
+      <img
+        src="assets/IMG_7982.JPEG"
+        alt="Syrnyky — Ukrainian cottage cheese pancakes"
+        class="hero-img-main"
+        loading="eager"
+      >
+      <div class="hero-img-float hero-float-1">
+        <img src="assets/IMG_7940.JPEG" alt="Frozen borscht heart">
+      </div>
+      <div class="hero-img-float hero-float-2">
+        <img src="assets/IMG_9092.JPEG" alt="Kyiv Chicken Balls">
+      </div>
+      <div class="hero-price-badge">
+        <div class="from" data-i18n="home_from">from</div>
+        <div class="price">€13</div>
+        <div class="unit" data-i18n="home_price_unit">per portion</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MARQUEE STRIP ──────────────────────────────── -->
+  <div class="marquee-strip" aria-hidden="true">
+    <div class="marquee-inner">
+      <span class="marquee-item"><span class="dot">♥</span> Syrnyky</span>
+      <span class="marquee-item"><span class="dot">♥</span> Borscht</span>
+      <span class="marquee-item"><span class="dot">♥</span> Solyanka</span>
+      <span class="marquee-item"><span class="dot">♥</span> Kyiv Chicken Balls</span>
+      <span class="marquee-item"><span class="dot">♥</span> Zrazy</span>
+      <span class="marquee-item"><span class="dot">♥</span> Shakshuka</span>
+      <span class="marquee-item"><span class="dot">♥</span> Thu &amp; Sat delivery</span>
+      <span class="marquee-item"><span class="dot">♥</span> Made with love</span>
+      <!-- duplicate for seamless loop -->
+      <span class="marquee-item"><span class="dot">♥</span> Syrnyky</span>
+      <span class="marquee-item"><span class="dot">♥</span> Borscht</span>
+      <span class="marquee-item"><span class="dot">♥</span> Solyanka</span>
+      <span class="marquee-item"><span class="dot">♥</span> Kyiv Chicken Balls</span>
+      <span class="marquee-item"><span class="dot">♥</span> Zrazy</span>
+      <span class="marquee-item"><span class="dot">♥</span> Shakshuka</span>
+      <span class="marquee-item"><span class="dot">♥</span> Thu &amp; Sat delivery</span>
+      <span class="marquee-item"><span class="dot">♥</span> Made with love</span>
+    </div>
+  </div>
+
+  <!-- ── PRODUCTS ───────────────────────────────────── -->
+  <section class="section-white">
+    <div class="section-inner">
+      <div class="products-header">
+        <div class="products-header-left">
+          <div class="label reveal" data-i18n="home_menu_label">Our menu</div>
+          <h2 class="section-title reveal delay-1" data-i18n="home_menu_title">Frozen &amp; ready to love</h2>
+        </div>
+        <a href="shop.html" class="btn btn-outline reveal delay-1" data-i18n="home_view_all">View all products</a>
+      </div>
+
+      <div class="product-grid">
+
+        <!-- Syrnyky -->
+        <div class="prod-card reveal delay-1">
+          <div class="prod-img-wrap">
+            <img src="assets/IMG_7982.JPEG" alt="Syrnyky" loading="lazy">
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat" data-i18n="cat_breakfast">Breakfast</div>
+            <div class="prod-name" data-i18n="prod_syrnyky">Syrnyky</div>
+            <div class="prod-desc" data-i18n="prod_syrnyky_desc">Ukrainian cottage cheese pancakes with sauces. Your breakfast sorted — warm, real, no fuss.</div>
+            <div class="prod-price">from <strong>€13</strong> <span>/ 8 pcs</span></div>
+          </div>
+          <div class="prod-footer">
+            <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:12px;" data-i18n="btn_order">Order</a>
+          </div>
+        </div>
+
+        <!-- Kyiv Chicken Balls -->
+        <div class="prod-card reveal delay-2">
+          <div class="prod-img-wrap">
+            <img src="assets/IMG_7710.JPEG" alt="Kyiv Chicken Balls" loading="lazy">
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat" data-i18n="cat_snacks">Snacks &amp; Bites</div>
+            <div class="prod-name" data-i18n="prod_chicken">Kyiv Chicken Balls</div>
+            <div class="prod-desc" data-i18n="prod_chicken_desc">Crispy outside, herb butter inside. Perfect for guests or a film evening — no planning needed.</div>
+            <div class="prod-price">from <strong>€15</strong> <span>/ 8 pcs</span></div>
+          </div>
+          <div class="prod-footer">
+            <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:12px;" data-i18n="btn_order">Order</a>
+          </div>
+        </div>
+
+        <!-- Borscht -->
+        <div class="prod-card reveal delay-3">
+          <div class="prod-img-wrap">
+            <img src="assets/IMG_7940.JPEG" alt="Borscht frozen heart" loading="lazy">
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat" data-i18n="cat_soups">Soups</div>
+            <div class="prod-name" data-i18n="prod_borscht">Borscht</div>
+            <div class="prod-desc" data-i18n="prod_borscht_desc">Classic Ukrainian beetroot soup, slow-cooked and rich. Just heat — 8 min on the stove.</div>
+            <div class="prod-price"><strong>€13</strong> <span>/ 900 ml</span></div>
+          </div>
+          <div class="prod-footer">
+            <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:12px;" data-i18n="btn_order">Order</a>
+          </div>
+        </div>
+
+        <!-- Solyanka -->
+        <div class="prod-card reveal delay-1">
+          <div class="prod-img-wrap">
+            <img src="assets/IMG_7952.JPEG" alt="Solyanka" loading="lazy" style="object-position:center 35%;">
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat" data-i18n="cat_soups">Soups</div>
+            <div class="prod-name" data-i18n="prod_solyanka">Solyanka</div>
+            <div class="prod-desc" data-i18n="prod_solyanka_desc">Rich meat soup with olives and lemon. Deep homemade taste, easy to store in the freezer.</div>
+            <div class="prod-price"><strong>€16</strong> <span>/ 900 ml</span></div>
+          </div>
+          <div class="prod-footer">
+            <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:12px;" data-i18n="btn_order">Order</a>
+          </div>
+        </div>
+
+        <!-- Zrazy -->
+        <div class="prod-card reveal delay-2">
+          <div class="prod-img-wrap">
+            <img src="assets/IMG_7979.JPEG" alt="Zrazy" loading="lazy">
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat" data-i18n="cat_snacks">Snacks &amp; Bites</div>
+            <div class="prod-name" data-i18n="prod_zrazy">Zrazy</div>
+            <div class="prod-desc" data-i18n="prod_zrazy_desc">Pan-fried potato patties with mushroom &amp; cheese filling. Ready in 15 min, minimal washing up.</div>
+            <div class="prod-price">from <strong>€15</strong> <span>/ 6 pcs</span></div>
+          </div>
+          <div class="prod-footer">
+            <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:12px;" data-i18n="btn_order">Order</a>
+          </div>
+        </div>
+
+        <!-- Shakshuka -->
+        <div class="prod-card reveal delay-3">
+          <span class="prod-badge" data-i18n="badge_new">New</span>
+          <div class="prod-img-wrap">
+            <img src="assets/IMG_1988.PNG" alt="Shakshuka" loading="lazy">
+          </div>
+          <div class="prod-body">
+            <div class="prod-cat" data-i18n="cat_main">Main dishes</div>
+            <div class="prod-name" data-i18n="prod_shakshuka">Shakshuka</div>
+            <div class="prod-desc" data-i18n="prod_shakshuka_desc">Spiced tomato base, bold and warming. 1 portion = 2 hearts × 100g. Fry in a pan — done.</div>
+            <div class="prod-price"><strong>€6</strong> <span>/ 200g</span></div>
+          </div>
+          <div class="prod-footer">
+            <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:12px;" data-i18n="btn_order">Order</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PACKS SECTION ──────────────────────────────── -->
+  <section class="section-cream">
+    <div class="section-inner">
+      <div class="label reveal" data-i18n="home_packs_label">Ready packs</div>
+      <h2 class="section-title reveal delay-1" data-i18n="home_packs_title">Bundle up &amp; save</h2>
+      <p class="section-sub reveal delay-2" data-i18n="home_packs_sub">Special offer only in March and April — priced for the whole family.</p>
+
+      <div class="packs-grid">
+
+        <!-- Pack S -->
+        <div class="pack-card reveal delay-1">
+          <div class="pack-img-wrap">
+            <img src="assets/IMG_1259.JPG" alt="Pack S" loading="lazy">
+          </div>
+          <div class="pack-body">
+            <div class="pack-size-badge">PACK S</div>
+            <div class="pack-name" data-i18n="pack_s_name">Starter Pack</div>
+            <div class="pack-items">
+              <span class="pack-item-chip">Syrnyky 8 pcs</span>
+              <span class="pack-item-chip">Borscht 1 L</span>
+              <span class="pack-item-chip">Zrazy 6 pcs</span>
+              <span class="pack-item-chip">or Chicken balls 8 pcs</span>
+            </div>
+            <div class="pack-price-row">
+              <span class="pack-price-old">€41</span>
+              <span class="pack-price-new">€37</span>
+            </div>
+            <div class="pack-per">~€3 per portion</div>
+          </div>
+          <div class="pack-footer">
+            <a href="shop.html" class="btn btn-blue" style="width:100%;justify-content:center;" data-i18n="btn_order_pack">Order this pack</a>
+          </div>
+        </div>
+
+        <!-- Pack M — featured -->
+        <div class="pack-card featured reveal delay-2">
+          <div class="pack-img-wrap">
+            <img src="assets/hf_20260308_102232_0b1e6e0deade4ce2934cc28ee2635165.png" alt="Pack M" loading="lazy">
+          </div>
+          <div class="pack-body">
+            <div class="pack-size-badge">PACK M · Most popular</div>
+            <div class="pack-name" data-i18n="pack_m_name">Family Pack</div>
+            <div class="pack-items">
+              <span class="pack-item-chip">Syrnyky 16 pcs</span>
+              <span class="pack-item-chip">Borscht 2 L</span>
+              <span class="pack-item-chip">Zrazy 12 pcs</span>
+              <span class="pack-item-chip">or Chicken balls 16 pcs</span>
+            </div>
+            <div class="pack-price-row">
+              <span class="pack-price-old">€77</span>
+              <span class="pack-price-new">€69</span>
+            </div>
+            <div class="pack-per">~€4 per portion</div>
+          </div>
+          <div class="pack-footer">
+            <a href="shop.html" class="btn btn-primary" style="width:100%;justify-content:center;" data-i18n="btn_order_pack">Order this pack</a>
+          </div>
+        </div>
+
+        <!-- Pack L -->
+        <div class="pack-card reveal delay-3">
+          <div class="pack-img-wrap">
+            <img src="assets/hf_20260308_102551_7e65581e179545a7a46d6504b44e7e7b.png" alt="Pack L" loading="lazy">
+          </div>
+          <div class="pack-body">
+            <div class="pack-size-badge">PACK L</div>
+            <div class="pack-name" data-i18n="pack_l_name">Big Pack</div>
+            <div class="pack-items">
+              <span class="pack-item-chip">Syrnyky 24 pcs</span>
+              <span class="pack-item-chip">Borscht 2 L + Solyanka 1 L</span>
+              <span class="pack-item-chip">Zrazy 16 pcs</span>
+              <span class="pack-item-chip">or Chicken balls 20 pcs</span>
+            </div>
+            <div class="pack-price-row">
+              <span class="pack-price-old">€107</span>
+              <span class="pack-price-new">€97</span>
+            </div>
+            <div class="pack-per">~€5 per portion</div>
+          </div>
+          <div class="pack-footer">
+            <a href="shop.html" class="btn btn-blue" style="width:100%;justify-content:center;" data-i18n="btn_order_pack">Order this pack</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── WHY US ──────────────────────────────────────── -->
+  <section class="section-white">
+    <div class="section-inner">
+      <div class="label reveal" style="text-align:center;" data-i18n="home_why_label">Why Hutko</div>
+      <h2 class="section-title reveal delay-1" style="text-align:center;max-width:500px;margin:0 auto 0.5rem;" data-i18n="home_why_title">Food for real life moments</h2>
+      <div class="why-grid">
+        <div class="why-card reveal delay-1">
+          <div class="why-icon">🌅</div>
+          <div class="why-title" data-i18n="why_1_title">Calm mornings</div>
+          <div class="why-desc" data-i18n="why_1_desc">You want a real breakfast, not just a snack. Syrnyky are ready in 10 minutes — no mess, no stress.</div>
+        </div>
+        <div class="why-card reveal delay-2">
+          <div class="why-icon">🌙</div>
+          <div class="why-title" data-i18n="why_2_title">Easy evenings</div>
+          <div class="why-desc" data-i18n="why_2_desc">Guests showed up? Film night? Pull out something real — without cooking from scratch or ordering takeout.</div>
+        </div>
+        <div class="why-card reveal delay-3">
+          <div class="why-icon">❄️</div>
+          <div class="why-title" data-i18n="why_3_title">Frozen = fresh</div>
+          <div class="why-desc" data-i18n="why_3_desc">Everything is frozen right after cooking to lock in flavour. Your freezer always has something good.</div>
+        </div>
+        <div class="why-card reveal delay-1">
+          <div class="why-icon">🏠</div>
+          <div class="why-title" data-i18n="why_4_title">Small batches</div>
+          <div class="why-desc" data-i18n="why_4_desc">Made in small quantities at home, with real ingredients. You cook the final step — you're still involved.</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── PRODUCTS PREVIEW ───────────────────────────── -->
-  <section class="section-white">
+  <!-- ── VISION / STORY SECTION ────────────────────── -->
+  <section class="section-cream">
     <div class="section-inner">
-      <div class="label reveal" data-i18n="home_menu_label">Our menu</div>
-      <h2 class="section-title reveal delay-1" data-i18n="home_menu_title">Frozen & ready to love</h2>
-      <div class="product-grid">
-        <div class="prod-card reveal delay-1">
-          <div class="prod-img">🥞</div>
-          <div class="prod-body">
-            <div class="prod-cat">Breakfast</div>
-            <div class="prod-name">Syrnyky</div>
-            <div class="prod-desc">Ukrainian cottage cheese pancakes, golden and fluffy</div>
-            <div class="prod-price">from <strong>€13</strong> <span>/ 8 pcs</span></div>
+      <div class="vision-split">
+        <div class="vision-photos reveal">
+          <div class="vision-photo large">
+            <img src="assets/IMG_1703.JPG" alt="Kyiv Chicken Balls production" loading="lazy">
           </div>
-          <div class="prod-footer">
-            <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:13px;">Order</a>
+          <div class="vision-photo">
+            <img src="assets/IMG_7940.JPEG" alt="Frozen Borscht heart" loading="lazy">
+          </div>
+          <div class="vision-photo">
+            <img src="assets/IMG_7982.JPEG" alt="Syrnyky on plates" loading="lazy">
           </div>
         </div>
-        <div class="prod-card reveal delay-2">
-          <div class="prod-img">🍗</div>
-          <div class="prod-body">
-            <div class="prod-cat">Snacks & Bites</div>
-            <div class="prod-name">Kyiv Chicken Balls</div>
-            <div class="prod-desc">Crispy outside, herb butter inside</div>
-            <div class="prod-price">from <strong>€15</strong> <span>/ 8 pcs</span></div>
+        <div class="vision-text">
+          <div class="label reveal" data-i18n="home_vision_label">Our vision</div>
+          <div class="big-quote reveal delay-1" data-i18n="home_vision_quote">
+            We make frozen food for the moments when you want to eat <span class="orange">real food</span> — without the effort.
           </div>
-          <div class="prod-footer">
-            <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:13px;">Order</a>
-          </div>
-        </div>
-        <div class="prod-card reveal delay-3">
-          <div class="prod-img prod-heart">🫕</div>
-          <div class="prod-body">
-            <div class="prod-cat">Soups</div>
-            <div class="prod-name">Borscht</div>
-            <div class="prod-desc">Classic Ukrainian beetroot soup, rich and hearty</div>
-            <div class="prod-price"><strong>€13</strong> <span>/ 900 ml</span></div>
-          </div>
-          <div class="prod-footer">
-            <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:13px;">Order</a>
-          </div>
-        </div>
-        <div class="prod-card reveal delay-1">
-          <div class="prod-img">🍲</div>
-          <div class="prod-body">
-            <div class="prod-cat">Soups</div>
-            <div class="prod-name">Solyanka</div>
-            <div class="prod-desc">Rich meat & vegetable soup with lemon twist</div>
-            <div class="prod-price"><strong>€16</strong> <span>/ 900 ml</span></div>
-          </div>
-          <div class="prod-footer">
-            <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:13px;">Order</a>
+          <p class="section-sub reveal delay-2" data-i18n="home_vision_body">
+            Not a replacement for cooking — a backup for the days when life is too full. One less decision. One warm meal waiting.
+          </p>
+          <ul class="vision-bullets">
+            <li class="reveal delay-2">
+              <div class="vision-bullet-marker">1</div>
+              <span data-i18n="vision_1">Ready-made portions frozen fresh — just heat on a pan or in the microwave.</span>
+            </li>
+            <li class="reveal delay-3">
+              <div class="vision-bullet-marker">2</div>
+              <span data-i18n="vision_2">Adapted for home appliances — works with a frying pan, oven, or air fryer. Recipe insert included.</span>
+            </li>
+            <li class="reveal delay-3">
+              <div class="vision-bullet-marker">3</div>
+              <span data-i18n="vision_3">Scenario-based products — Syrnyky for mornings, Chicken Balls for evenings and guests.</span>
+            </li>
+          </ul>
+          <div style="margin-top:2rem;" class="reveal delay-3">
+            <a href="about.html" class="btn btn-dark" data-i18n="home_vision_cta">Read our story</a>
           </div>
         </div>
-        <div class="prod-card reveal delay-2">
-          <span class="prod-badge">New</span>
-          <div class="prod-img">🍳</div>
-          <div class="prod-body">
-            <div class="prod-cat">Main dishes</div>
-            <div class="prod-name">Shakshuka</div>
-            <div class="prod-desc">Spiced tomato egg dish, bold and warming</div>
-            <div class="prod-price"><strong>€6</strong> <span>/ 200g</span></div>
-          </div>
-          <div class="prod-footer">
-            <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:13px;">Order</a>
-          </div>
-        </div>
-        <div class="prod-card reveal delay-3">
-          <div class="prod-img">🥟</div>
-          <div class="prod-body">
-            <div class="prod-cat">Snacks & Bites</div>
-            <div class="prod-name">Zrazy</div>
-            <div class="prod-desc">Pan-fried patties, mushrooms & cheese</div>
-            <div class="prod-price">from <strong>€15</strong> <span>/ 6 pcs</span></div>
-          </div>
-          <div class="prod-footer">
-            <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:13px;">Order</a>
-          </div>
-        </div>
-      </div>
-      <div style="text-align:center;margin-top:2.5rem;" class="reveal">
-        <a href="shop.html" class="btn btn-dark" data-i18n="home_view_all">View all products</a>
       </div>
     </div>
   </section>
 
   <!-- ── DELIVERY MAP ───────────────────────────────── -->
-  <section class="section-dark">
-    <div class="section-inner map-inner">
-      <div class="map-text">
-        <div class="label" data-i18n="home_delivery_label">Delivery area</div>
-        <h2 class="section-title reveal" data-i18n="home_delivery_title">We deliver across<br>the Netherlands</h2>
-        <p class="reveal delay-1" data-i18n="home_delivery_sub" style="color:rgba(255,255,255,0.6;font-size:15px;line-height:1.8;margin-bottom:1.5rem;">
-          Order your favourite Ukrainian frozen dishes and receive them anywhere in the Netherlands — from Amsterdam to Maastricht.
-        </p>
-        <div class="province-chips reveal delay-2">
-          <span>Noord-Holland</span><span>Zuid-Holland</span><span>Utrecht</span>
-          <span>Noord-Brabant</span><span>Gelderland</span><span>+ All provinces</span>
+  <section class="section-blue">
+    <div class="section-inner">
+      <div class="map-inner">
+        <div class="map-text">
+          <div class="label reveal" data-i18n="home_delivery_label">Delivery area</div>
+          <h2 class="section-title reveal delay-1" data-i18n="home_delivery_title">We deliver across<br>the Netherlands</h2>
+          <p class="section-sub reveal delay-2" data-i18n="home_delivery_sub">
+            Order by Wednesday for Thursday, or by Friday for Saturday. Frozen and insulated packaging — arrives fresh.
+          </p>
+          <div class="delivery-days reveal delay-2">
+            <div class="delivery-day-chip" data-i18n="delivery_thu">Thursday</div>
+            <div class="delivery-day-chip" data-i18n="delivery_sat">Saturday</div>
+          </div>
+          <div class="province-chips reveal delay-3">
+            <span>Noord-Holland</span>
+            <span>Zuid-Holland</span>
+            <span>Utrecht</span>
+            <span>Noord-Brabant</span>
+            <span>Gelderland</span>
+            <span>+ All provinces</span>
+          </div>
+          <div style="margin-top:2rem;" class="reveal delay-3">
+            <a href="delivery.html" class="btn btn-outline-white" data-i18n="home_delivery_cta">Check delivery info</a>
+          </div>
         </div>
-        <a href="delivery.html" class="btn btn-primary reveal delay-3" data-i18n="home_delivery_cta" style="margin-top:1.5rem;">Check delivery info</a>
-      </div>
-      <div class="map-visual reveal delay-2">
-        <svg viewBox="0 0 280 300" xmlns="http://www.w3.org/2000/svg" class="nl-map">
-          <g opacity="0.7">
-            <path d="M165 20L210 18L215 35L200 50L170 55L155 38Z" fill="#E8622A" stroke="#1a2356" stroke-width="1.2"/>
-            <path d="M90 25L155 22L155 38L130 55L100 60L80 45Z" fill="#E8622A" opacity="0.75" stroke="#1a2356" stroke-width="1.2"/>
-            <path d="M170 55L200 50L210 80L185 95L160 80L155 60Z" fill="#E8622A" opacity="0.85" stroke="#1a2356" stroke-width="1.2"/>
-            <path d="M160 80L185 95L190 125L155 130L140 110L150 90Z" fill="#E8622A" stroke="#1a2356" stroke-width="1.2"/>
-            <path d="M110 80L140 75L145 105L120 115L100 100Z" fill="#E8622A" opacity="0.8" stroke="#1a2356" stroke-width="1.2"/>
-            <path d="M80 45L100 60L100 100L80 110L55 95L50 65L65 45Z" fill="#E8622A" opacity="0.95" stroke="#1a2356" stroke-width="1.2"/>
-            <path d="M110 100L140 105L135 130L110 135L100 115Z" fill="#E8622A" opacity="0.85" stroke="#1a2356" stroke-width="1.2"/>
-            <path d="M140 110L155 130L190 125L195 160L155 170L125 160L120 135L135 130Z" fill="#E8622A" opacity="0.9" stroke="#1a2356" stroke-width="1.2"/>
-            <path d="M55 105L100 100L100 115L110 135L90 155L60 160L40 140L45 115Z" fill="#E8622A" stroke="#1a2356" stroke-width="1.2"/>
-            <path d="M40 160L70 155L75 190L55 200L30 185L25 170Z" fill="#E8622A" opacity="0.65" stroke="#1a2356" stroke-width="1.2"/>
-            <path d="M75 165L120 160L155 170L160 200L120 215L80 210L60 190Z" fill="#E8622A" stroke="#1a2356" stroke-width="1.2"/>
-            <path d="M155 170L195 160L200 195L185 230L160 235L148 205L150 180Z" fill="#E8622A" opacity="0.8" stroke="#1a2356" stroke-width="1.2"/>
-          </g>
-          <circle cx="82" cy="98" r="5" fill="#fff" stroke="#E8622A" stroke-width="2"/>
-          <text x="90" y="102" font-size="9" fill="#fff" font-family="DM Sans,sans-serif" font-weight="500">Amsterdam</text>
-          <circle cx="72" cy="145" r="4" fill="#fff" stroke="#E8622A" stroke-width="1.5"/>
-          <text x="80" y="149" font-size="8" fill="rgba(255,255,255,0.65)" font-family="DM Sans,sans-serif">Rotterdam</text>
-        </svg>
+        <div class="map-visual reveal delay-2">
+          <svg viewBox="0 0 280 320" xmlns="http://www.w3.org/2000/svg" class="nl-map">
+            <g opacity="0.85">
+              <path d="M165 20L210 18L215 35L200 50L170 55L155 38Z" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+              <path d="M90 25L155 22L155 38L130 55L100 60L80 45Z" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+              <path d="M170 55L200 50L210 80L185 95L160 80L155 60Z" fill="rgba(255,255,255,0.22)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+              <path d="M160 80L185 95L190 125L155 130L140 110L150 90Z" fill="rgba(255,255,255,0.28)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+              <path d="M110 80L140 75L145 105L120 115L100 100Z" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+              <path d="M80 45L100 60L100 100L80 110L55 95L50 65L65 45Z" fill="rgba(255,255,255,0.30)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+              <path d="M110 100L140 105L135 130L110 135L100 115Z" fill="rgba(255,255,255,0.22)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+              <path d="M140 110L155 130L190 125L195 160L155 170L125 160L120 135L135 130Z" fill="rgba(255,255,255,0.26)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+              <path d="M55 105L100 100L100 115L110 135L90 155L60 160L40 140L45 115Z" fill="rgba(255,255,255,0.22)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+              <path d="M40 160L70 155L75 190L55 200L30 185L25 170Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+              <path d="M75 165L120 160L155 170L160 200L120 215L80 210L60 190Z" fill="rgba(255,255,255,0.28)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+              <path d="M155 170L195 160L200 195L185 230L160 235L148 205L150 180Z" fill="rgba(255,255,255,0.20)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+            </g>
+            <!-- Amsterdam marker -->
+            <circle cx="82" cy="98" r="6" fill="var(--orange)" stroke="#fff" stroke-width="2"/>
+            <text x="92" y="102" font-size="9" fill="#fff" font-family="'Dela Gothic One',sans-serif" font-weight="400">Amsterdam</text>
+            <!-- Rotterdam marker -->
+            <circle cx="72" cy="145" r="4" fill="#fff" stroke="var(--orange)" stroke-width="1.5"/>
+            <text x="80" y="149" font-size="8" fill="rgba(255,255,255,0.7)" font-family="'DM Sans',sans-serif">Rotterdam</text>
+          </svg>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ── PARTNERS ───────────────────────────────────── -->
-  <section class="section-white">
-    <div class="section-inner">
-      <div class="label reveal" style="text-align:center;" data-i18n="home_partners_label">Our partners</div>
-      <h2 class="section-title reveal delay-1" style="text-align:center;" data-i18n="home_partners_title">Trusted by</h2>
-      <div class="partner-row reveal delay-2">
-        <div class="partner-logo">PARTNER ONE</div>
-        <div class="partner-logo">PARTNER TWO</div>
-        <div class="partner-logo">PARTNER THREE</div>
-        <div class="partner-logo">PARTNER FOUR</div>
-        <div class="partner-logo">PARTNER FIVE</div>
+  <!-- ── PHOTO STRIP (Instagram-style) ─────────────── -->
+  <section class="section-cream" style="padding:0;">
+    <div class="insta-grid">
+      <div class="insta-item">
+        <img src="assets/IMG_7940.JPEG" alt="Borscht" loading="lazy">
+        <div class="insta-overlay">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </div>
       </div>
+      <div class="insta-item">
+        <img src="assets/IMG_7952.JPEG" alt="Solyanka" loading="lazy">
+        <div class="insta-overlay">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </div>
+      </div>
+      <div class="insta-item">
+        <img src="assets/IMG_7978.JPEG" alt="Zrazy" loading="lazy">
+        <div class="insta-overlay">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </div>
+      </div>
+      <div class="insta-item">
+        <img src="assets/IMG_7982.JPEG" alt="Syrnyky" loading="lazy">
+        <div class="insta-overlay">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </div>
+      </div>
+      <div class="insta-item">
+        <img src="assets/IMG_2529_clean.PNG" alt="Kyiv Chicken Balls spread" loading="lazy">
+        <div class="insta-overlay">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;padding:1.5rem;background:var(--cream);border-top:1px solid var(--border);">
+      <a href="https://www.instagram.com/hutko.kitchen/" target="_blank" rel="noopener" class="btn btn-outline" style="font-size:12px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/></svg>
+        @hutko.kitchen
+      </a>
     </div>
   </section>
 
@@ -187,5 +461,13 @@
   <script src="js/search.js"></script>
   <script src="js/components.js"></script>
   <script src="js/main.js"></script>
+  <script>
+    // Reveal on scroll
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+    }, { threshold: 0.12 });
+    reveals.forEach(el => observer.observe(el));
+  </script>
 </body>
 </html>

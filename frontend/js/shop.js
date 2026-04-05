@@ -1,11 +1,11 @@
 /* ── SHOP — shop.js ──────────────────────────────── */
 const PRODUCTS = [
-  { id: 1, name: 'Syrnyky',            cat: 'breakfast', emoji: '🥞', desc: 'Ukrainian cottage cheese pancakes, golden and fluffy',         basePrice: 13, unit: '8 pcs',  badge: '',        variants: [{l:'8 pcs',p:13},{l:'16 pcs',p:23},{l:'24 pcs',p:31}] },
-  { id: 2, name: 'Kyiv Chicken Balls', cat: 'snacks',    emoji: '🍗', desc: 'Crispy breaded balls with herb butter inside',                 basePrice: 15, unit: '8 pcs',  badge: 'Popular', variants: [{l:'8 pcs',p:15},{l:'16 pcs',p:28},{l:'20 pcs',p:34}] },
-  { id: 3, name: 'Borscht',            cat: 'soups',     emoji: '🫕', desc: 'Classic Ukrainian beetroot soup, rich and hearty',             basePrice: 13, unit: '900 ml', badge: '',        variants: [{l:'900 ml',p:13}] },
-  { id: 4, name: 'Solyanka',           cat: 'soups',     emoji: '🍲', desc: 'Thick meat & vegetable soup with lemon twist',                 basePrice: 16, unit: '900 ml', badge: '',        variants: [{l:'900 ml',p:16}] },
-  { id: 5, name: 'Shakshuka',          cat: 'mains',     emoji: '🍳', desc: 'Spiced tomato egg dish with Mediterranean flavour',            basePrice:  6, unit: '200g',   badge: 'New',     variants: [{l:'200g',p:6}] },
-  { id: 6, name: 'Zrazy',             cat: 'snacks',    emoji: '🥟', desc: 'Pan-fried stuffed patties with mushrooms & cheese',            basePrice: 15, unit: '6 pcs',  badge: '',        variants: [{l:'6 pcs',p:15},{l:'12 pcs',p:28}] },
+  { id: 1, name: 'Syrnyky',            cat: 'breakfast', img: 'assets/products/syrnyky.png', desc: 'Ukrainian cottage cheese pancakes with sauces. Your calm breakfast — warm, real, no fuss.',  basePrice: 13, unit: '8 pcs',  badge: '',        variants: [{l:'8 pcs',p:13},{l:'16 pcs',p:23},{l:'24 pcs',p:31}] },
+  { id: 2, name: 'Kyiv Chicken Balls', cat: 'snacks',    img: 'assets/products/chicken.png', desc: 'Crispy outside, herb butter inside. Perfect for guests or a film evening.',                   basePrice: 15, unit: '8 pcs',  badge: 'Popular', variants: [{l:'8 pcs',p:15},{l:'16 pcs',p:28},{l:'20 pcs',p:34}] },
+  { id: 3, name: 'Borscht',            cat: 'soups',     img: 'assets/products/borscht.png',  desc: 'Classic Ukrainian beetroot soup, slow-cooked and rich. Just heat — 8 min on the stove.',     basePrice: 13, unit: '900 ml', badge: '',        variants: [{l:'900 ml',p:13}] },
+  { id: 4, name: 'Solyanka',           cat: 'soups',     img: 'assets/products/solyanka.png', desc: 'Rich meat soup with olives and lemon. Deep homemade taste, easy to store in the freezer.',   basePrice: 16, unit: '900 ml', badge: '',        variants: [{l:'900 ml',p:16}] },
+  { id: 5, name: 'Shakshuka',          cat: 'mains',     img: 'assets/products/shakshuka.png',  desc: 'Spiced tomato base, bold and warming. 1 portion = 2 hearts × 100g. Fry in a pan — done.',   basePrice:  6, unit: '200g',   badge: 'New',     variants: [{l:'200g',p:6}] },
+  { id: 6, name: 'Zrazy',             cat: 'snacks',    img: 'assets/products/zrazy.png', desc: 'Pan-fried potato patties with mushroom & cheese. Ready in 15 min, minimal washing up.',       basePrice: 15, unit: '6 pcs',  badge: '',        variants: [{l:'6 pcs',p:15},{l:'12 pcs',p:28}] },
 ];
 
 let currentCat = 'all';
@@ -29,7 +29,7 @@ function renderGrid(list) {
     return `
     <div class="shop-card reveal">
       ${p.badge ? `<span class="shop-card-badge">${p.badge}</span>` : ''}
-      <div class="shop-card-img">${p.emoji}</div>
+      <div class="shop-card-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
       <div class="shop-card-body">
         <div class="shop-card-cat">${p.cat}</div>
         <div class="shop-card-name">${p.name}</div>

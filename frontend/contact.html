@@ -48,36 +48,49 @@
       <h2 class="section-title reveal delay-1" data-i18n="contact_form_title">How can we help?</h2>
 
       <form class="contact-form reveal delay-2" id="contactForm" novalidate>
-        <div class="field-row">
-          <div class="field"><label>Full name</label><input type="text" id="cName" placeholder="Anna Kovalenko" autocomplete="name"></div>
-          <div class="field"><label>Email address</label><input type="email" id="cEmail" placeholder="anna@email.com" autocomplete="email"></div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label>Phone number <span class="optional">optional</span></label><input type="tel" placeholder="+31 6 00 00 00 00" autocomplete="tel"></div>
-          <div class="field"><label>Social media <span class="optional">optional</span></label><input type="text" placeholder="@hutko.nl or facebook.com/…"></div>
-        </div>
-        <div class="field">
-          <label>Question regarding</label>
-          <div class="select-wrap">
-            <select id="cTopic">
-              <option value="" disabled selected>Select a topic…</option>
-              <option value="media">Media & press</option>
-              <option value="order">Ordering or cancelling</option>
-              <option value="work">Apply for work</option>
-              <option value="partner">Become a partner</option>
-              <option value="other">Other</option>
-            </select>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Full name</label>
+            <input type="text" id="cName" placeholder="Anna Kovalenko" autocomplete="name">
+          </div>
+          <div class="form-field">
+            <label>Email address</label>
+            <input type="email" id="cEmail" placeholder="anna@email.com" autocomplete="email">
           </div>
         </div>
-        <div class="field">
+        <div class="form-row">
+          <div class="form-field">
+            <label>Phone number <span class="optional">optional</span></label>
+            <input type="tel" placeholder="+31 6 00 00 00 00" autocomplete="tel">
+          </div>
+          <div class="form-field">
+            <label>Social media <span class="optional">optional</span></label>
+            <input type="text" placeholder="@hutko.kitchen">
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Question regarding</label>
+          <select id="cTopic">
+            <option value="" disabled selected>Select a topic…</option>
+            <option value="order">Order or delivery question</option>
+            <option value="partner">Become a partner</option>
+            <option value="media">Media &amp; press</option>
+            <option value="work">Apply for work</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-field">
           <label>Message title</label>
           <input type="text" id="cTitle" placeholder="Give your message a short title…">
         </div>
-        <div class="field">
+        <div class="form-field">
           <label>Your message</label>
           <textarea id="cBody" placeholder="Write your message here. We read every message and reply within 2 business days…"></textarea>
         </div>
-        <button type="button" class="btn btn-dark" onclick="submitContact()" style="align-self:flex-start;">Send message →</button>
+        <button type="button" class="contact-submit" onclick="submitContact()">
+          Send message
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </form>
 
       <div class="form-success" id="formSuccess">

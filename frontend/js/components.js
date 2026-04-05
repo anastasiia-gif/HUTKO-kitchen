@@ -1,16 +1,16 @@
 /* ── HUTKO — components.js ────────────────────────── */
 
-const LOGO_SVG = `<svg width="34" height="34" viewBox="0 0 38 38" fill="none"><circle cx="19" cy="19" r="19" fill="#E8622A" opacity="0.13"/><path d="M19 32C19 32 6 23 6 14.5C6 10.4 9.4 7 13.5 7C15.9 7 18 8.2 19 10C20 8.2 22.1 7 24.5 7C28.6 7 32 10.4 32 14.5C32 23 19 32 19 32Z" fill="#E8622A"/></svg>`;
+const LOGO_SVG = `<img src="assets/logo_nav.png" alt="Hutko logo" class="nav-logo-img">`;
 const CART_SVG = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 1h2.5l2 8h7l1.5-5.5H4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="13.5" r="1.2" fill="currentColor"/><circle cx="11.5" cy="13.5" r="1.2" fill="currentColor"/></svg>`;
 const USER_SVG = `<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="4.5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M1 14c0-3.314 2.91-6 6.5-6s6.5 2.686 6.5 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
-const SEARCH_ICON = `<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="#1a2356" stroke-width="1.3" opacity="0.5"/><path d="M9 9L12 12" stroke="#1a2356" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/></svg>`;
+const SEARCH_ICON = `<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="#111111" stroke-width="1.3" opacity="0.5"/><path d="M9 9L12 12" stroke="#111111" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/></svg>`;
 
 const NAV_LINKS = [
-  { href:'index.html',    key:'nav_home' },
-  { href:'shop.html',     key:'nav_shop' },
-  { href:'about.html',    key:'nav_about' },
-  { href:'delivery.html', key:'nav_delivery' },
-  { href:'contact.html',  key:'nav_contact' },
+  { href:'index.html',    key:'nav_home',     label:'Home' },
+  { href:'shop.html',     key:'nav_shop',     label:'Shop & Order' },
+  { href:'about.html',    key:'nav_about',    label:'About Us' },
+  { href:'delivery.html', key:'nav_delivery', label:'Delivery' },
+  { href:'contact.html',  key:'nav_contact',  label:'Contact' },
 ];
 
 function getUser() {
@@ -29,8 +29,8 @@ function renderNavbar() {
   const lang = (typeof getLang === 'function') ? getLang() : 'en';
   const tr   = (key) => (typeof t === 'function') ? t(key) : key;
 
-  const links = NAV_LINKS.map(l => `<li><a href="${l.href}">${tr(l.key)}</a></li>`).join('');
-  const drawerLinks = NAV_LINKS.map(l => `<a href="${l.href}">${tr(l.key)}</a>`).join('');
+  const links = NAV_LINKS.map(l => `<li><a href="${l.href}">${tr(l.key) || l.label}</a></li>`).join('');
+  const drawerLinks = NAV_LINKS.map(l => `<a href="${l.href}">${tr(l.key) || l.label}</a>`).join('');
   const user = getUser();
 
   const authBtn = user
@@ -54,7 +54,7 @@ function renderNavbar() {
   document.getElementById('navbar-placeholder').innerHTML = `
   <nav class="navbar">
     <div class="navbar-inner">
-      <a href="index.html" class="nav-logo">${LOGO_SVG} HUTKO</a>
+      <a href="index.html" class="nav-logo">${LOGO_SVG}<span class="nav-logo-text">HUTKO</span></a>
       <ul class="nav-links">${links}</ul>
       <div class="nav-right">
         <div class="nav-search">
@@ -65,7 +65,7 @@ function renderNavbar() {
         ${authBtn}
         <button class="btn btn-dark" style="padding:9px 16px;gap:8px;font-size:13px;" onclick="toggleCart()">
           ${CART_SVG} <span data-i18n="nav_cart">${tr('nav_cart')}</span>
-          <span class="cart-count" style="background:#E8622A;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:700;">0</span>
+          <span class="cart-count" style="background:#E84B22;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:700;">0</span>
         </button>
         <button class="nav-hamburger" id="navHamburger" aria-label="Menu"><span></span><span></span><span></span></button>
       </div>
@@ -127,7 +127,7 @@ function renderFooter() {
   document.getElementById('footer-placeholder').innerHTML = `
   <footer class="footer"><div class="footer-inner">
     <div class="footer-grid">
-      <div><div class="footer-brand">${LOGO_SVG} HUTKO</div><p class="footer-tagline" data-i18n="footer_tagline">${tr('footer_tagline')}</p></div>
+      <div><div class="footer-brand"><img src="assets/logo_nav.png" alt="Hutko" class="footer-logo-img"><span class="footer-brand-name">HUTKO</span></div><p class="footer-tagline" data-i18n="footer_tagline">${tr('footer_tagline')}</p></div>
       <div class="footer-col"><h4 data-i18n="footer_pages">${tr('footer_pages')}</h4>${links}</div>
       <div class="footer-col"><h4 data-i18n="footer_products">${tr('footer_products')}</h4>
         <a href="shop.html">Syrnyky</a><a href="shop.html">Borscht</a>
@@ -153,4 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
   renderNavbar();
   renderCartPanel();
   renderFooter();
+  // Re-apply translations after components inject their HTML
+  if (typeof applyTranslations === 'function') applyTranslations();
 });

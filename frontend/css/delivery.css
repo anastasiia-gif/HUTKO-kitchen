@@ -25,17 +25,17 @@
 .step-num {
   width: 52px; height: 52px;
   border-radius: 50%;
-  background: var(--navy);
+  background: var(--blue);
   color: var(--cream);
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 20px;
   font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 0.75rem;
 }
 .step-icon { font-size: 26px; margin-bottom: 0.6rem; }
-.step-name { font-family: var(--serif); font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 0.4rem; }
-.step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+.step-name { font-family: var(--display); font-size: 15px; font-weight: 700; color: var(--blue); margin-bottom: 0.4rem; }
+.step-desc { font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
 
 .area-grid {
   display: grid;
@@ -44,22 +44,43 @@
   align-items: start;
 }
 .province-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 1.5rem;
+  display: none; /* replaced by coverage-nl */
 }
-.province {
-  background: var(--cream);
-  border-radius: 8px;
-  padding: 9px 12px;
+/* New Netherlands-wide coverage block */
+.coverage-nl { margin-bottom: 2rem; }
+.nl-big-statement {
   display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 13px;
+  align-items: flex-start;
+  gap: 1rem;
+  background: var(--cream);
+  border-radius: 16px;
+  padding: 1.75rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--border);
 }
-.p-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
-.p-time { margin-left: auto; font-size: 11px; color: var(--text-muted); }
+.nl-flag-icon { font-size: 2.5rem; flex-shrink: 0; line-height: 1; }
+.nl-big-text {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink);
+  opacity: .75;
+}
+.nl-big-text strong { color: var(--ink); opacity: 1; font-weight: 700; }
+.delivery-time-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.dt-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+}
+.dt-icon { font-size: 1.5rem; margin-bottom: .5rem; }
+.dt-label { font-family: var(--display); font-size: 15px; color: var(--ink); margin-bottom: .2rem; }
+.dt-sub { font-size: 12px; color: var(--ink-soft); }
 .info-cards { display: flex; flex-direction: column; gap: 12px; }
 .info-card {
   background: var(--cream);
@@ -70,8 +91,8 @@
   align-items: flex-start;
 }
 .info-icon { font-size: 22px; flex-shrink: 0; }
-.ic-title { font-size: 14px; font-weight: 500; color: var(--navy); margin-bottom: 2px; }
-.ic-text  { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+.ic-title { font-size: 14px; font-weight: 500; color: var(--blue); margin-bottom: 2px; }
+.ic-text  { font-size: 12px; color: var(--ink-soft); line-height: 1.55; }
 .map-box {
   background: var(--cream);
   border-radius: 16px;
@@ -92,7 +113,7 @@
 }
 .apply-card:hover { background: rgba(255,255,255,0.11); }
 .apply-icon { font-size: 36px; }
-.apply-title { font-family: var(--serif); font-size: 22px; font-weight: 700; color: #fff; }
+.apply-title { font-family: var(--display); font-size: 22px; font-weight: 700; color: #fff; }
 .apply-desc { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.75; flex: 1; }
 .apply-perks { list-style: none; display: flex; flex-direction: column; gap: 7px; }
 .apply-perks li {
@@ -113,10 +134,10 @@
 .modal-wrap.open { display: flex; }
 .modal { background: #fff; border-radius: 16px; width: 100%; max-width: 500px; overflow: hidden; }
 .modal-head {
-  background: var(--navy); padding: 1.4rem 1.5rem;
+  background: var(--blue); padding: 1.4rem 1.5rem;
   display: flex; align-items: center; justify-content: space-between;
 }
-.modal-head h2 { font-family: var(--serif); font-size: 20px; color: #fff; }
+.modal-head h2 { font-family: var(--display); font-size: 20px; color: #fff; }
 .modal-close { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 20px; line-height: 1; }
 .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 14px; }
 .modal-foot { padding: 1rem 1.5rem; border-top: 1px solid var(--border); }
