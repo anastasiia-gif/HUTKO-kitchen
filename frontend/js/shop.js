@@ -58,7 +58,7 @@ function shopAdd(id) {
   const sel = document.getElementById(`v${id}`);
   const price = sel ? parseInt(sel.value) : p.basePrice;
   const label = sel ? sel.options[sel.selectedIndex].dataset.l : p.unit;
-  addToCart(id, p.name, p.emoji, price, label);
+  addToCart(id, p.name, p.emoji || '🍽️', price, label);
   const btn = document.getElementById(`ab${id}`);
   if (btn) { btn.textContent = 'Added ✓'; btn.classList.add('added'); setTimeout(() => { btn.textContent = 'Add to cart'; btn.classList.remove('added'); }, 2000); }
 }
