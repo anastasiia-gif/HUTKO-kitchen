@@ -29,8 +29,8 @@ function renderNavbar() {
   const lang = (typeof getLang === 'function') ? getLang() : 'en';
   const tr   = (key) => (typeof t === 'function') ? t(key) : key;
 
-  const links = NAV_LINKS.map(l => `<li><a href="${l.href}">${tr(l.key) || l.label}</a></li>`).join('');
-  const drawerLinks = NAV_LINKS.map(l => `<a href="${l.href}">${tr(l.key) || l.label}</a>`).join('');
+  const links = NAV_LINKS.map(l => `<li><a href="${l.href}" data-i18n="${l.key}">${tr(l.key) || l.label}</a></li>`).join('');
+  const drawerLinks = NAV_LINKS.map(l => `<a href="${l.href}" data-i18n="${l.key}">${tr(l.key) || l.label}</a>`).join('');
   const user = getUser();
 
   const authBtn = user
@@ -123,7 +123,7 @@ function renderCartPanel() {
 
 function renderFooter() {
   const tr = (key) => (typeof t === 'function') ? t(key) : key;
-  const links = NAV_LINKS.map(l => `<a href="${l.href}" data-i18n="${l.key}">${tr(l.key)}</a>`).join('');
+  const links = NAV_LINKS.map(l => `<a href="${l.href}" data-i18n="${l.key}">${tr(l.key) || l.label}</a>`).join('');
   document.getElementById('footer-placeholder').innerHTML = `
   <footer class="footer"><div class="footer-inner">
     <div class="footer-grid">
