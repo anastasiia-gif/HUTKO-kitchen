@@ -460,7 +460,11 @@ function applyTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const val = t(el.dataset.i18n);
     if (!val || val === el.dataset.i18n) return;
-    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') { el.placeholder = val; } else { el.innerHTML = val; }
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = val;
+    } else {
+      el.innerHTML = val;
+    }
   });
 }
 function updateLangSwitcher() {
@@ -471,14 +475,23 @@ function updateLangSwitcher() {
 }
 function setLang(lang) {
   localStorage.setItem(I18N_KEY, lang);
-  if (typeof renderNavbar === 'function') { document.getElementById('navbar-placeholder').innerHTML = ''; renderNavbar(); }
-  if (typeof renderFooter === 'function') { document.getElementById('footer-placeholder').innerHTML = ''; renderFooter(); }
+  // Re-render injected components with new language
+  if (typeof renderNavbar === 'function') {
+    document.getElementById('navbar-placeholder').innerHTML = '';
+    renderNavbar();
+  }
+  if (typeof renderFooter === 'function') {
+    document.getElementById('footer-placeholder').innerHTML = '';
+    renderFooter();
+  }
   if (typeof renderCartPanel === 'function') {
-    document.getElementById('cart-placeholder').innerHTML = ''; renderCartPanel();
+    document.getElementById('cart-placeholder').innerHTML = '';
+    renderCartPanel();
     document.getElementById('cartOverlay')?.addEventListener('click', () => { if (typeof toggleCart === 'function') toggleCart(); });
     document.getElementById('cartClose')?.addEventListener('click', () => { if (typeof toggleCart === 'function') toggleCart(); });
     if (typeof updateCartUI === 'function') updateCartUI();
   }
+  // Apply to all data-i18n elements on the page (body content)
   applyTranslations();
   updateLangSwitcher();
   if (typeof initSearch === 'function') setTimeout(initSearch, 50);
