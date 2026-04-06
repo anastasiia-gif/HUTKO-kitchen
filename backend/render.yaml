@@ -2,7 +2,6 @@ services:
   - type: web
     name: hutko-api
     runtime: python
-    rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --workers 2 --bind 0.0.0.0:$PORT
     envVars:
@@ -14,5 +13,7 @@ services:
         sync: false       # set manually in Render dashboard
       - key: RESEND_API_KEY
         sync: false       # set manually in Render dashboard
+      - key: WEBHOOK_SECRET
+        sync: false       # set manually in Render dashboard
       - key: FRONTEND_URL
-        value: https://hutko.netlify.app
+        value: https://hutko-kitchen.com

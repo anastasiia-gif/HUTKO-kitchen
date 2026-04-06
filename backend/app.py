@@ -18,12 +18,17 @@ from trello_webhook import webhook_bp
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret')
+secret = os.environ.get('SECRET_KEY', '')
+if not secret:
+    import warnings
+    warnings.warn("⚠️  SECRET_KEY env var not set — using insecure default. Set it in Render dashboard!")
+    secret = 'dev-secret-change-me'
+app.config['SECRET_KEY'] = secret
 
 ALLOWED_ORIGINS = [
-    "https://hutko-kitchen.pages.dev",
     "https://hutko-kitchen.com",
     "https://www.hutko-kitchen.com",
+    "https://hutko-kitchen.pages.dev",
     "https://hutko.netlify.app",
     "https://testing--hutko.netlify.app",
     "http://localhost:3000",

@@ -6,11 +6,13 @@ Sends via Resend. Silently skips if RESEND_API_KEY not set.
 
 import os
 import resend
+from datetime import datetime
 
 BRAND_BLUE   = '#1B3FCE'
 BRAND_ORANGE = '#E84B22'
 BRAND_CREAM  = '#E8E2D5'
 SITE_URL     = 'https://hutko-kitchen.com'
+_YEAR        = datetime.now().year
 
 
 def _base_template(content: str, preview: str = '') -> str:
@@ -60,7 +62,7 @@ def _base_template(content: str, preview: str = '') -> str:
                 <a href="https://instagram.com/hutko.kitchen" style="color:{BRAND_BLUE};text-decoration:none;">@hutko.kitchen</a>
               </p>
               <p style="margin:0;font-size:11px;color:#999;">
-                © 2025 HUTKO Kitchen · Amsterdam, Netherlands<br>
+                © {_YEAR} HUTKO Kitchen · Amsterdam, Netherlands<br>
                 This is an automated message — please do not reply to this email.
               </p>
             </td>

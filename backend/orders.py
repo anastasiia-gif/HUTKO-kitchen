@@ -91,12 +91,6 @@ def checkout():
         # Save card_id to order in DB
         if card_id:
             conn2 = get_db()
-            # Add trello_card_id column if not exists (safe)
-            try:
-                conn2.execute("ALTER TABLE orders ADD COLUMN trello_card_id TEXT")
-                conn2.commit()
-            except Exception:
-                pass  # Column already exists
             conn2.execute(
                 "UPDATE orders SET trello_card_id=? WHERE order_ref=?",
                 (card_id, order_ref)
@@ -146,6 +140,15 @@ def get_order(ref):
 # ── UPDATE ORDER STATUS (called manually or by webhook) ──
 @orders_bp.route('/api/orders/<ref>/status', methods=['PUT'])
 def update_order_status(ref):
+    # Allow either an admin token OR a webhook secret header
+    from admin import _admin_tokens
+    token = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
+    webhook_secret = request.headers.get('X-Webhook-Secret', '')
+    import os
+    expected_secret = os.environ.get('WEBHOOK_SECRET', '')
+    if token not in _admin_tokens and not (expected_secret and webhook_secret == expected_secret):
+        return jsonify({'error': 'Admin access required.'}), 403
+
     data       = request.get_json()
     new_status = data.get('status', '')
     comment    = data.get('comment', '')

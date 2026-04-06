@@ -15,9 +15,16 @@ from emails import send_welcome
 
 auth_bp = Blueprint('auth', __name__)
 
-# In-memory token store: { token: user_id }
-# Fine for this scale. For production use Redis or a DB table.
-_tokens = {}
+
+def _ensure_tokens_table(conn):
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS auth_tokens (
+            token      TEXT PRIMARY KEY,
+            user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+    conn.commit()
 
 
 def hash_password(plain: str) -> str:
@@ -30,20 +37,25 @@ def check_password(plain: str, hashed: str) -> bool:
 
 def make_token(user_id: int) -> str:
     token = secrets.token_hex(32)
-    _tokens[token] = user_id
+    conn = get_db()
+    _ensure_tokens_table(conn)
+    conn.execute("INSERT INTO auth_tokens (token, user_id) VALUES (?, ?)", (token, user_id))
+    conn.commit()
+    conn.close()
     return token
 
 
 def get_user_from_token(token: str):
     if not token:
         return None
-    user_id = _tokens.get(token)
-    if not user_id:
-        return None
     conn = get_db()
-    user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    _ensure_tokens_table(conn)
+    row = conn.execute(
+        "SELECT u.* FROM users u JOIN auth_tokens t ON t.user_id = u.id WHERE t.token = ?",
+        (token,)
+    ).fetchone()
     conn.close()
-    return user
+    return row
 
 
 def token_required(f):
@@ -152,7 +164,11 @@ def login():
 def logout():
     auth_header = request.headers.get('Authorization', '')
     token = auth_header.replace('Bearer ', '').strip()
-    _tokens.pop(token, None)
+    if token:
+        conn = get_db()
+        conn.execute("DELETE FROM auth_tokens WHERE token = ?", (token,))
+        conn.commit()
+        conn.close()
     return jsonify({'message': 'Logged out.'}), 200
 
 

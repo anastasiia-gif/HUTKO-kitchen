@@ -63,7 +63,7 @@
 
   <!-- PACKS SECTION -->
   <section style="background:var(--cream);padding:5rem 2rem;">
-    <div class="section-inner">
+    <div class="section-inner" style="padding-top:0;padding-bottom:0;">
       <div class="label reveal" style="text-align:center;" data-i18n="home_packs_label">Ready packs</div>
       <h2 class="section-title reveal delay-1" style="text-align:center;" data-i18n="home_packs_title">Bundle up &amp; save</h2>
       <p class="section-sub reveal delay-2" style="text-align:center;margin:0 auto 3rem;max-width:500px;" data-i18n="home_packs_sub">Special offer — priced for the whole family.</p>
@@ -75,36 +75,48 @@
             <img src="assets/IMG_1259.JPG" alt="Pack S" loading="lazy">
           </div>
           <div class="pack-body">
-            <div class="pack-label">Pack S</div>
+            <span class="pack-size-badge">Pack S</span>
             <div class="pack-name" data-i18n="pack_s_name">Starter Pack</div>
-            <ul class="pack-items">
-              <li>Syrnyky <span>8 pcs</span></li>
-              <li>Borscht <span>1L</span></li>
-              <li>Zrazy <em>or</em> Chicken Balls <span>6/8 pcs</span></li>
-            </ul>
-            <div class="pack-price">€37</div>
-            <a href="#products" class="btn btn-dark" style="width:100%;justify-content:center;margin-top:1rem;">Order separately →</a>
+            <div class="pack-items">
+              <span class="pack-item-chip">Syrnyky 8 pcs</span>
+              <span class="pack-item-chip">Borscht 1L</span>
+              <span class="pack-item-chip">Zrazy or Chicken Balls 6/8 pcs</span>
+            </div>
+            <div class="pack-price-row">
+              <span class="pack-price-new">€37</span>
+            </div>
+          </div>
+          <div class="pack-footer">
+            <a href="#products" class="btn btn-dark" style="width:100%;justify-content:center;">Order separately →</a>
           </div>
         </div>
 
         <!-- Pack M -->
         <div class="pack-card featured reveal delay-2">
-          <div class="pack-badge" data-i18n="pack_popular">Most popular</div>
+          <div class="pack-badge-wrap" style="position:absolute;top:12px;left:12px;z-index:2;">
+            <span style="background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:4px 12px;border-radius:100px;letter-spacing:.5px;text-transform:uppercase;" data-i18n="pack_popular">Most popular</span>
+          </div>
           <div class="pack-img-wrap">
             <img src="assets/IMG_1704.JPG" alt="Pack M" loading="lazy">
           </div>
           <div class="pack-body">
-            <div class="pack-label">Pack M</div>
+            <span class="pack-size-badge">Pack M</span>
             <div class="pack-name" data-i18n="pack_m_name">Family Pack</div>
-            <ul class="pack-items">
-              <li>Syrnyky <span>16 pcs</span></li>
-              <li>Borscht + Solyanka <span>1L + 1L</span></li>
-              <li>Zrazy <em>or</em> Chicken Balls <span>16/20 pcs</span></li>
-              <li>Shakshuka <span>2 pcs</span></li>
-            </ul>
-            <div class="pack-price"><span class="pack-old">€114</span> €103</div>
-            <p style="font-size:12px;color:var(--ink-soft);margin:.25rem 0 0;">~€5 per portion</p>
-            <a href="#products" class="btn btn-orange" style="width:100%;justify-content:center;margin-top:1rem;">Order separately →</a>
+            <div class="pack-items">
+              <span class="pack-item-chip">Syrnyky 16 pcs</span>
+              <span class="pack-item-chip">Borscht 1L</span>
+              <span class="pack-item-chip">Solyanka 1L</span>
+              <span class="pack-item-chip">Zrazy or Chicken Balls 16/20 pcs</span>
+              <span class="pack-item-chip">Shakshuka 2 pcs</span>
+            </div>
+            <div class="pack-price-row">
+              <span class="pack-price-old">€114</span>
+              <span class="pack-price-new">€103</span>
+            </div>
+            <div class="pack-per">~€5 per portion</div>
+          </div>
+          <div class="pack-footer">
+            <a href="#products" class="btn btn-orange" style="width:100%;justify-content:center;background:var(--orange);color:#fff;">Order separately →</a>
           </div>
         </div>
 
@@ -114,21 +126,26 @@
             <img src="assets/IMG_1705.JPG" alt="Pack L" loading="lazy">
           </div>
           <div class="pack-body">
-            <div class="pack-label">Pack L</div>
+            <span class="pack-size-badge">Pack L</span>
             <div class="pack-name" data-i18n="pack_l_name">Big Family Pack</div>
-            <ul class="pack-items">
-              <li>Syrnyky <span>24 pcs</span></li>
-              <li>Borscht + Solyanka <span>2L each</span></li>
-              <li>Zrazy <em>or</em> Chicken Balls <span>24/30 pcs</span></li>
-              <li>Shakshuka <span>4 pcs</span></li>
-            </ul>
-            <div class="pack-price">€179</div>
-            <a href="#products" class="btn btn-dark" style="width:100%;justify-content:center;margin-top:1rem;">Order separately →</a>
+            <div class="pack-items">
+              <span class="pack-item-chip">Syrnyky 24 pcs</span>
+              <span class="pack-item-chip">Borscht 2L</span>
+              <span class="pack-item-chip">Solyanka 2L</span>
+              <span class="pack-item-chip">Zrazy or Chicken Balls 24/30 pcs</span>
+              <span class="pack-item-chip">Shakshuka 4 pcs</span>
+            </div>
+            <div class="pack-price-row">
+              <span class="pack-price-new">€179</span>
+            </div>
+          </div>
+          <div class="pack-footer">
+            <a href="#products" class="btn btn-dark" style="width:100%;justify-content:center;">Order separately →</a>
           </div>
         </div>
       </div>
 
-      <p class="reveal delay-3" style="text-align:center;font-size:13px;color:var(--ink-soft);margin-top:2rem;">
+      <p class="reveal delay-3" style="text-align:center;font-size:13px;color:var(--ink-soft);margin-top:2rem;padding-bottom:3rem;">
         Want a custom pack? <a href="contact.html" style="color:var(--blue);font-weight:600;">Contact us</a> and we'll sort it out.
       </p>
     </div>

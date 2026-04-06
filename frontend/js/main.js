@@ -50,7 +50,7 @@ function updateCartUI() {
     el.style.display = count ? 'flex' : 'none';
   });
   const totEl = document.getElementById('cartTotal');
-  if (totEl) totEl.textContent = `€${total}`;
+  if (totEl) totEl.textContent = `€${total.toFixed(2)}`;
 
   const listEl = document.getElementById('cartItemsList');
   if (!listEl) return;
@@ -65,7 +65,7 @@ function updateCartUI() {
         <div class="ci-name">${item.name}</div>
         <div class="ci-variant">${item.label}</div>
         <div class="ci-row">
-          <span class="ci-price">€${item.qty * item.price}</span>
+          <span class="ci-price">€${(item.qty * item.price).toFixed(2)}</span>
           <div class="ci-qty">
             <button class="ci-qbtn" onclick="changeQty('${item.id}_${item.label}',-1);updateCartUI()">−</button>
             <span class="ci-qnum">${item.qty}</span>

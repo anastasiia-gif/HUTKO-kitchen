@@ -59,9 +59,17 @@ def init_db():
             delivery_cost   REAL    NOT NULL,
             total           REAL    NOT NULL,
             status          TEXT    NOT NULL DEFAULT 'confirmed',
+            trello_card_id  TEXT,
             created_at      TEXT    DEFAULT (datetime('now'))
         )
     """)
+
+    # ── MIGRATE: add trello_card_id if upgrading existing DB ───
+    try:
+        c.execute("ALTER TABLE orders ADD COLUMN trello_card_id TEXT")
+        conn.commit()
+    except Exception:
+        pass  # Column already exists
 
     # ── MESSAGES (contact form) ─────────────────────────
     c.execute("""

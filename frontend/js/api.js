@@ -13,6 +13,11 @@ function saveToken(token) {
 function clearToken() {
   try { localStorage.removeItem('hutko_token'); localStorage.removeItem('hutko_user'); } catch {}
 }
+// getUser defined here (not only in components.js) so syncSession can call it safely
+function getUser() {
+  try { return JSON.parse(localStorage.getItem('hutko_user')) || null; } catch { return null; }
+}
+window.getUser = getUser;
 
 async function apiCall(method, path, body = null) {
   const headers = { 'Content-Type': 'application/json' };
@@ -131,6 +136,7 @@ async function syncSession() {
 window.Api         = { Auth, Orders, Contact, Admin };
 window.syncSession = syncSession;
 window.getToken    = getToken;
+window.getUser     = getUser;
 
 /* Run on every page load — only if token exists to avoid unnecessary requests */
 document.addEventListener('DOMContentLoaded', () => {
