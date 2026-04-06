@@ -105,24 +105,26 @@ async function syncSession() {
     localStorage.removeItem('hutko_user');
     return;
   }
-  const res = await Auth.me();
-  if (res.ok && res.data.user) {
-    const user = res.data.user;
-    localStorage.setItem('hutko_user', JSON.stringify({
-      id:    user.id,
-      name:  user.name,
-      email: user.email,
-    }));
-    // Pre-fill saved address if on checkout page
-    if (user.addr_street) {
-      const fill = (id, val) => { const el = document.getElementById(id); if (el && !el.value) el.value = val || ''; };
-      fill('coStreet',   user.addr_street);
-      fill('coPost',     user.addr_postcode);
-      fill('coCity',     user.addr_city);
-      fill('coProvince', user.addr_province);
+  // If we have cached user data, use it immediately (no flicker)
+  const cached = getUser();
+  if (cached) return; // Already have user data, skip API call
+
+  try {
+    const res = await Auth.me();
+    if (res.ok && res.data.user) {
+      const user = res.data.user;
+      localStorage.setItem('hutko_user', JSON.stringify({
+        id:    user.id,
+        name:  user.name,
+        email: user.email,
+      }));
+    } else if (res.status === 401) {
+      // Only clear on explicit auth failure, not network errors
+      clearToken();
     }
-  } else {
-    clearToken();
+    // On 0 (network error) or 5xx — keep token, server might be sleeping
+  } catch(e) {
+    // Network error — keep token
   }
 }
 
