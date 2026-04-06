@@ -112,6 +112,15 @@ const TRANSLATIONS = {
     /* Index hero */
     hero_title:'Made with love,<br>delivered <em>fast</em>',
     hero_sub:'Authentic Ukrainian dishes frozen fresh, delivered across the Netherlands. Borscht, syrnyky, zrazy and more, straight to your door.',
+
+    /* Account page */
+    acc_nav_profile:'👤 Profile', acc_nav_address:'📍 Saved address', acc_nav_orders:'📦 My orders',
+    acc_signout:'↩ Sign out',
+    acc_profile_title:'Profile details', acc_address_title:'Saved delivery address',
+    acc_save_profile:'Save changes', acc_save_address:'Save address',
+    acc_orders_title:'Order history', acc_no_orders:'No orders yet',
+    acc_order_status_confirmed:'Confirmed', acc_order_status_cooking:'Preparing',
+    acc_order_status_delivery:'Out for delivery', acc_order_status_delivered:'Delivered',
     hero_order:'Order now', hero_story:'Our story',
     delivery_title_map:'We deliver across<br>the Netherlands',
     delivery_sub_map:'Order your favourite Ukrainian frozen dishes and receive them anywhere in the Netherlands.',
@@ -423,6 +432,15 @@ const TRANSLATIONS = {
     search_title:'Zoekresultaten', search_for:'Resultaten voor',
     search_none:'Geen producten gevonden voor', search_all:'Bekijk alle producten',
 
+
+    /* Account page */
+    acc_nav_profile:'👤 Profiel', acc_nav_address:'📍 Bezorgadres', acc_nav_orders:'📦 Mijn bestellingen',
+    acc_signout:'↩ Uitloggen',
+    acc_profile_title:'Profielgegevens', acc_address_title:'Opgeslagen bezorgadres',
+    acc_save_profile:'Wijzigingen opslaan', acc_save_address:'Adres opslaan',
+    acc_orders_title:'Bestelgeschiedenis', acc_no_orders:'Nog geen bestellingen',
+    acc_order_status_confirmed:'Bevestigd', acc_order_status_cooking:'Wordt bereid',
+    acc_order_status_delivery:'Onderweg', acc_order_status_delivered:'Bezorgd',
     hero_title:'Met liefde gemaakt,<br><em>snel</em> bezorgd',
     hero_sub:'Authentieke Oekraiense gerechten - vers ingevroren, bezorgd door heel Nederland. Borsjt, syrnyky, zrazy en meer.',
     hero_order:'Bestel nu', hero_story:'Ons verhaal',
