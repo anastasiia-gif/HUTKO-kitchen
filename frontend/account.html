@@ -26,9 +26,9 @@
       <div class="account-email" id="accountEmail"></div>
       <ul class="account-nav">
         <li><a href="#orders" class="active" onclick="switchTab('orders',this)">📦 My orders</a></li>
-        <li><a href="#profile" onclick="switchTab('profile',this)">👤 Profile</a></li>
-        <li><a href="#address" onclick="switchTab('address',this)">📍 Saved address</a></li>
-        <li><a href="#" onclick="logoutUser()" style="color:var(--orange);opacity:1;">↩ Sign out</a></li>
+        <li><a href="#profile" onclick="switchTab('profile',this)" data-i18n="acc_nav_profile">👤 Profile</a></li>
+        <li><a href="#address" onclick="switchTab('address',this)" data-i18n="acc_nav_address">📍 Saved address</a></li>
+        <li><a href="#" onclick="logoutUser()" style="color:var(--orange);opacity:1;" data-i18n="acc_signout">↩ Sign out</a></li>
       </ul>
     </aside>
 
@@ -43,7 +43,7 @@
 
       <!-- PROFILE -->
       <div class="account-section" id="tab-profile">
-        <div class="account-section-title">Profile details</div>
+        <div class="account-section-title" data-i18n="acc_profile_title">Profile details</div>
         <div class="profile-card">
           <div style="display:flex;flex-direction:column;gap:14px;">
             <div class="field-row">
@@ -59,14 +59,14 @@
                 <div class="field"><label>Confirm new password</label><input type="password" id="profPass2" placeholder="Repeat new password"></div>
               </div>
             </div>
-            <button class="btn btn-dark" style="align-self:flex-start;" onclick="saveProfile()">Save changes</button>
+            <button class="btn btn-dark" style="align-self:flex-start;" onclick="saveProfile()" data-i18n="acc_save_profile">Save changes</button>
           </div>
         </div>
       </div>
 
       <!-- ADDRESS -->
       <div class="account-section" id="tab-address">
-        <div class="account-section-title">Saved delivery address</div>
+        <div class="account-section-title" data-i18n="acc_address_title">Saved delivery address</div>
         <div class="profile-card">
           <div style="display:flex;flex-direction:column;gap:14px;">
             <div class="field"><label>Street address</label><input type="text" id="addrStreet" placeholder="Damrak 1"></div>
@@ -86,7 +86,7 @@
                 </select>
               </div>
             </div>
-            <button class="btn btn-dark" style="align-self:flex-start;" onclick="saveAddress()">Save address</button>
+            <button class="btn btn-dark" style="align-self:flex-start;" onclick="saveAddress()" data-i18n="acc_save_address">Save address</button>
           </div>
         </div>
       </div>
