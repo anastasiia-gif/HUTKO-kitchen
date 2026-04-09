@@ -63,7 +63,8 @@ function productCard(p) {
       ${variants}
     </div>
     <div class="prod-footer">
-      <button class="btn btn-dark" style="width:100%;justify-content:center;font-size:12px;"
+      <button class="btn-view-product" onclick="location.href='product.html?id=${p.id}'">Details</button>
+      <button class="btn btn-dark" style="flex:2;justify-content:center;font-size:12px;"
         onclick="shopAddToCart('${p.id}')">Add to cart</button>
     </div>
   </div>`;
