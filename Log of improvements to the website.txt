@@ -1,9 +1,0 @@
-- no sign in before ordering if I am already logged in
-- update delivery page, outdated info, that doesn't change with excel (just change info in webpage)
-- no option to login with google (I register with google and then I need to loggin)
-- after ordering I am again not logged in - we need to fix this (after pressing view my orders)
-- every product should have a separate page with all the ingridients and dietary restrictions and story of the dish (like amazon does for example, it can be auto generated from excel info)
-
-
-Client ID Google Auth client: 41618761055-34k8r3fj6dfm0shhe63mkgoj63abkk0p.apps.googleusercontent.com
-Client`s secret: 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
