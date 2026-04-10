@@ -1,12 +1,9 @@
-Log of improvements to the website:
-- Submission forms have bundled fields, could you improve the look of them?
-- Choosing delivery slot should be linked to the order, so can select the delivery slot only while delivering. Also could people just book timeslot per day and we have like limitation of 15 people a day. 
-- Join the team doesn't doesn't send the email and noreply email to the client
-- no google login - needs api token connection
-- backup and everyday update at 12am
-- server always on and proper fetching of the database
-- add contact info also the excel and update from there
-- excel upload failed
-- no ua/nl/en translation in acc and a lot of places
-- could we integrate secure payb=ment for Netherlands?
-- 
+- no sign in before ordering if I am already logged in
+- update delivery page, outdated info, that doesn't change with excel (just change info in webpage)
+- no option to login with google (I register with google and then I need to loggin)
+- after ordering I am again not logged in - we need to fix this (after pressing view my orders)
+- every product should have a separate page with all the ingridients and dietary restrictions and story of the dish (like amazon does for example, it can be auto generated from excel info)
+
+
+Client ID Google Auth client: 41618761055-34k8r3fj6dfm0shhe63mkgoj63abkk0p.apps.googleusercontent.com
+Client`s secret: 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

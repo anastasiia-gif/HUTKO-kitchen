@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign in — HUTKO</title>
   <link rel="stylesheet" href="css/style.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <div id="navbar-placeholder"></div>
@@ -22,6 +23,31 @@
 
       <h1 class="auth-title">Welcome back</h1>
       <p class="auth-sub">Sign in to track your orders and manage your account.</p>
+
+      <!-- Google Sign In -->
+      <div id="google-btn-wrap" style="margin-bottom:1.25rem;">
+        <div id="g_id_onload"
+          data-client_id="41618761055-34k8r3fj6dfm0shhe63mkgoj63abkk0p.apps.googleusercontent.com"
+          data-callback="handleGoogleLogin"
+          data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"
+          data-type="standard"
+          data-size="large"
+          data-theme="outline"
+          data-text="signin_with"
+          data-shape="pill"
+          data-width="380"
+          data-logo_alignment="left">
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">or with email</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
 
       <div class="auth-error" id="loginError">Incorrect email or password. Please try again.</div>
 
@@ -55,6 +81,36 @@
   <script>
     /* Redirect if already logged in */
     if (getToken && getToken() && getUser()) window.location.href = 'account.html';
+
+    /* Google login — same handler as register.html */
+    async function handleGoogleLogin(response) {
+      const base64  = response.credential.split('.')[1];
+      const payload = JSON.parse(atob(base64));
+      const { name, email, sub: googleId } = payload;
+      const err = document.getElementById('loginError');
+      err.style.display = 'none';
+
+      // Try login first, then register (for first-time Google users landing on login)
+      let res = await Api.Auth.login(email, `google_${googleId}`);
+      if (!res.ok) {
+        res = await Api.Auth.register(name, email, `google_${googleId}`, '');
+      }
+      if (res.ok) {
+        if (res.data.user) {
+          const u = res.data.user;
+          localStorage.setItem('hutko_user', JSON.stringify({
+            id: u.id, name: u.name, email: u.email,
+            addr_street: u.addr_street || '', addr_postcode: u.addr_postcode || '',
+            addr_city:   u.addr_city   || '', addr_province: u.addr_province || '',
+          }));
+        }
+        const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
+        window.location.href = redirect;
+      } else {
+        err.textContent = 'Google sign-in failed. Please try with email.';
+        err.style.display = 'block';
+      }
+    }
 
     async function doLogin() {
       const email = document.getElementById('loginEmail').value.trim();

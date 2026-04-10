@@ -279,6 +279,12 @@
           </a>
         </div>
 
+        <!-- Ingredients -->
+        <div id="ingredientsSection" style="display:none;background:var(--cream);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-top:1rem;">
+          <h3 style="font-family:var(--display);font-size:15px;color:var(--ink);margin:0 0 10px;">🧾 Ingredients</h3>
+          <p id="ingredientsList" style="font-size:13px;color:var(--ink-soft);line-height:1.7;margin:0;"></p>
+        </div>
+
       </div>
     </div>
   </div>
@@ -298,7 +304,7 @@
   <script src="js/main.js"></script>
   <script src="js/shop.js"></script>
   <script>
-    const API_BASE_URL = 'https://hutko-kitchen.onrender.com';
+    // API_BASE is defined in api.js — do not redeclare here
     let currentProduct = null;
     let selectedVariant = null;
 
@@ -366,10 +372,14 @@
       if (!id) { show('notFoundState'); return; }
 
       try {
-        const res  = await fetch(`${API_BASE_URL}/api/shop/all`);
-        const data = await res.json();
-        ALL_PRODUCTS = data.products || FALLBACK_PRODUCTS;
-        ALL_BUNDLES  = data.bundles  || FALLBACK_BUNDLES;
+        const res = await Api.Shop.all();
+        if (res.ok && res.data) {
+          ALL_PRODUCTS = res.data.products || FALLBACK_PRODUCTS;
+          ALL_BUNDLES  = res.data.bundles  || FALLBACK_BUNDLES;
+        } else {
+          ALL_PRODUCTS = FALLBACK_PRODUCTS;
+          ALL_BUNDLES  = FALLBACK_BUNDLES;
+        }
       } catch(e) {
         ALL_PRODUCTS = FALLBACK_PRODUCTS;
         ALL_BUNDLES  = FALLBACK_BUNDLES;
@@ -404,6 +414,22 @@
       document.getElementById('prodName').textContent  = name;
       document.getElementById('prodDesc').textContent  = desc;
       document.getElementById('prodAbout').textContent = PRODUCT_ABOUT[p.id] || desc;
+
+      // Ingredients — hardcoded fallback; add 'ingredients' column to Excel Products sheet to override
+      const INGREDIENTS = {
+        syrnyky:  'Curd cheese (tvorog) 65%, egg, wheat flour, sugar, vanilla extract, sunflower oil. May contain traces of nuts.',
+        chicken:  'Chicken breast 70%, breadcrumbs (wheat), herb butter (butter, parsley, garlic, salt), cheese, egg. Halal option available on request.',
+        borscht:  'Beef, beetroot, white cabbage, carrot, potato, onion, tomato paste, sunflower oil, bay leaf, salt, black pepper. Gluten-free.',
+        solyanka: 'Mixed cured meats (pork, beef, chicken) 55%, pickled cucumbers, black olives, tomato, onion, lemon, sunflower oil, bay leaf, black pepper. Gluten-free.',
+        shakshuka:'Tomato 60%, red bell pepper, onion, garlic, olive oil, cumin, smoked paprika, chili flakes, salt, fresh coriander. Vegan. Gluten-free.',
+        zrazy:    'Potato 70%, forest mushrooms, hard cheese, onion, egg, wheat breadcrumbs, sunflower oil, salt, pepper. Vegetarian.',
+      };
+      const ingr = p.ingredients || INGREDIENTS[p.id];
+      const ingrEl = document.getElementById('ingredientsSection');
+      if (ingr && ingrEl) {
+        document.getElementById('ingredientsList').textContent = ingr;
+        ingrEl.style.display = 'block';
+      }
 
       // Dietary badges
       const db = document.getElementById('dietaryBadges');

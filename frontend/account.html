@@ -103,7 +103,7 @@
   <script>
     /* Redirect if no token — wait for DOM so api.js is loaded */
     document.addEventListener('DOMContentLoaded', () => {
-      if (typeof getToken !== 'function' || !getToken()) {
+      if (typeof getToken !== 'function' || (!getToken() && !getUser())) {
         window.location.href = 'login.html?redirect=account.html';
       }
     });

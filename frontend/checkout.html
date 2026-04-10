@@ -474,7 +474,7 @@
     // ── INIT ─────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
       // Redirect to login only if no token
-      if (typeof getToken !== 'function' || !getToken()) {
+      if (typeof getToken !== 'function' || (!getToken() && !getUser())) {
         window.location.href = 'login.html?redirect=checkout.html';
         return;
       }

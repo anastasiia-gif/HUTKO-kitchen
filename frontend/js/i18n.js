@@ -549,7 +549,13 @@ function setLang(lang) {
   if (typeof initSearch === 'function') setTimeout(initSearch, 50);
 }
 window.t = t; window.getLang = getLang; window.setLang = setLang; window.applyTranslations = applyTranslations;
-document.addEventListener('DOMContentLoaded', () => { updateLangSwitcher(); applyTranslations(); loadSettingsIntoPage(); });
+document.addEventListener('DOMContentLoaded', () => {
+  updateLangSwitcher();
+  applyTranslations();
+  loadSettingsIntoPage();
+  // Re-apply after a tick so components.js has injected navbar/footer HTML
+  setTimeout(() => { applyTranslations(); updateLangSwitcher(); }, 50);
+});
 
 /* ── SETTINGS FROM EXCEL ─────────────────────────────────────────────
    Fetches /api/shop/settings and patches data-setting elements.
