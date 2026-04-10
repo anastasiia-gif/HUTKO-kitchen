@@ -43,24 +43,46 @@ def checkout():
     order_ref    = make_ref()
     user_id      = g.user['id'] if g.user else None
 
+    from database import _use_postgres
+    p = '%s' if _use_postgres() else '?'
+
     conn = get_db()
-    while conn.execute("SELECT id FROM orders WHERE order_ref=?", (order_ref,)).fetchone():
+    while conn.execute(f"SELECT id FROM orders WHERE order_ref={p}", (order_ref,)).fetchone():
         order_ref = make_ref()
 
-    conn.execute("""
-        INSERT INTO orders
-          (order_ref, user_id, customer_name, customer_email, customer_phone,
-           addr_street, addr_postcode, addr_city, addr_province, delivery_notes,
-           delivery_method, items_json, subtotal, delivery_cost, total, status)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'confirmed')
-    """, (
-        order_ref, user_id,
-        f"{data['first_name']} {data['last_name']}",
-        data['email'], data['phone'],
-        data['street'], data['postcode'], data['city'], data['province'],
-        data.get('notes', ''), delivery_method,
-        json.dumps(items), subtotal, delivery_cost, total
-    ))
+    delivery_date = data.get('delivery_date', '')
+
+    if _use_postgres():
+        cur = conn.cursor()
+        cur.execute(f"""
+            INSERT INTO orders
+              (order_ref, user_id, customer_name, customer_email, customer_phone,
+               addr_street, addr_postcode, addr_city, addr_province, delivery_notes,
+               delivery_method, delivery_date, items_json, subtotal, delivery_cost, total, status)
+            VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},'confirmed')
+        """, (
+            order_ref, user_id,
+            f"{data['first_name']} {data['last_name']}",
+            data['email'], data['phone'],
+            data['street'], data['postcode'], data['city'], data['province'],
+            data.get('notes', ''), delivery_method, delivery_date,
+            json.dumps(items), subtotal, delivery_cost, total
+        ))
+    else:
+        conn.execute("""
+            INSERT INTO orders
+              (order_ref, user_id, customer_name, customer_email, customer_phone,
+               addr_street, addr_postcode, addr_city, addr_province, delivery_notes,
+               delivery_method, delivery_date, items_json, subtotal, delivery_cost, total, status)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'confirmed')
+        """, (
+            order_ref, user_id,
+            f"{data['first_name']} {data['last_name']}",
+            data['email'], data['phone'],
+            data['street'], data['postcode'], data['city'], data['province'],
+            data.get('notes', ''), delivery_method, delivery_date,
+            json.dumps(items), subtotal, delivery_cost, total
+        ))
     conn.commit()
     conn.close()
 
@@ -222,3 +244,35 @@ def confirm_delivery(ref):
         print(f"[TRELLO CONFIRM ERROR] {e}")
 
     return jsonify({'message': 'Delivery confirmed. Thank you!'}), 200
+
+
+# ── DELIVERY SLOTS AVAILABILITY ──────────────────────────
+MAX_SLOTS_PER_DAY = 15
+
+@orders_bp.route('/api/slots/availability', methods=['GET'])
+def slots_availability():
+    """
+    Returns booked count per date for the requested dates.
+    Query param: ?dates=2026-04-10,2026-04-12,...
+    Response: {"2026-04-10": 3, "2026-04-12": 0, ...}
+    """
+    dates_param = request.args.get('dates', '')
+    if not dates_param:
+        return jsonify({}), 200
+
+    dates = [d.strip() for d in dates_param.split(',') if d.strip()]
+    conn  = get_db()
+    result = {}
+
+    from database import _use_postgres
+    p = '%s' if _use_postgres() else '?'
+
+    for date in dates:
+        row = conn.execute(
+            f"SELECT COUNT(*) as cnt FROM orders WHERE delivery_date = {p} AND status != 'cancelled'",
+            (date,)
+        ).fetchone()
+        result[date] = row['cnt'] if row else 0
+
+    conn.close()
+    return jsonify(result), 200

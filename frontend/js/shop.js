@@ -1,26 +1,30 @@
 /* ── HUTKO shop.js ─────────────────────────────────────
-   Fetches products & bundles from /api/shop/all
+   Fetches products & bundles via Api.Shop (defined in api.js)
    ─────────────────────────────────────────────────────── */
 
-// API_BASE defined in api.js
 let ALL_PRODUCTS = [];
 let ALL_BUNDLES  = [];
 
 async function loadShopData() {
-  const grid   = document.getElementById('productGrid');
-  const bgrid  = document.getElementById('bundleGrid');
+  const grid  = document.getElementById('productGrid');
+  const bgrid = document.getElementById('bundleGrid');
   if (grid)  grid.innerHTML  = '<div class="shop-loading">Loading…</div>';
   if (bgrid) bgrid.innerHTML = '<div class="shop-loading">Loading…</div>';
 
   try {
-    const res  = await fetch(`${API_BASE}/api/shop/all`);
-    const data = await res.json();
-    ALL_PRODUCTS = data.products || [];
-    ALL_BUNDLES  = data.bundles  || [];
+    const res = await Api.Shop.all();
+    if (res.ok && res.data) {
+      ALL_PRODUCTS = res.data.products || [];
+      ALL_BUNDLES  = res.data.bundles  || [];
+    } else {
+      throw new Error('API returned error');
+    }
   } catch(e) {
+    console.warn('[SHOP] API failed, using fallback data', e);
     ALL_PRODUCTS = FALLBACK_PRODUCTS;
     ALL_BUNDLES  = FALLBACK_BUNDLES;
   }
+
   renderProducts(ALL_PRODUCTS);
   renderBundles(ALL_BUNDLES);
   updateCount(ALL_PRODUCTS);
@@ -112,7 +116,7 @@ function renderProducts(list) {
 function renderBundles(list) {
   const grid = document.getElementById('bundleGrid');
   if (!grid) return;
-  grid.innerHTML = list.map(bundleCard).join('');
+  grid.innerHTML = list.length ? list.map(bundleCard).join('') : '';
   initReveal();
 }
 
@@ -168,7 +172,7 @@ window.bundleAddToCart = bundleAddToCart;
 // ── BOOT ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', loadShopData);
 
-// ── FALLBACK ──────────────────────────────────────────
+// ── FALLBACK DATA (shown if API unreachable) ──────────
 const FALLBACK_PRODUCTS = [
   {id:'syrnyky',name_en:'Syrnyky',name_ua:'Сирники',name_nl:'Syrnyky',category:'breakfast',
    desc_en:'Ukrainian cottage cheese pancakes. Warm, real, no fuss.',base_price:13,unit:'8 pcs',badge:'',

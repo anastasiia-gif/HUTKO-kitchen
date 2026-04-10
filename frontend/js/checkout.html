@@ -5,15 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout — HUTKO</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── FIELD HELPERS ── */
+    .field { display:flex; flex-direction:column; gap:5px; }
+    .field label { font-size:13px; font-weight:600; color:var(--ink); }
+    .field input, .field select, .field textarea {
+      padding:10px 13px; border:1.5px solid var(--border); border-radius:10px;
+      font-size:14px; color:var(--ink); background:var(--white);
+      transition:.15s; width:100%; box-sizing:border-box;
+    }
+    .field input:focus, .field select:focus { border-color:var(--blue); outline:none; }
+    .field input.error, .field select.error { border-color:#e84b22; }
+    .field .hint { font-size:12px; color:var(--ink-soft); line-height:1.5; }
+    .field .hint a { color:var(--blue); font-weight:600; }
+    .optional { font-weight:400; opacity:.5; font-size:12px; }
+
+    /* ── DATE PICKER ── */
+    .slot-grid {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:8px; margin-top:4px;
+    }
+    .slot-btn {
+      border:1.5px solid var(--border); border-radius:10px; background:var(--white);
+      padding:10px 8px; cursor:pointer; text-align:center; transition:.15s;
+    }
+    .slot-btn:hover:not(:disabled) { border-color:var(--blue); }
+    .slot-btn.selected { border-color:var(--blue); background:rgba(27,63,206,.06); }
+    .slot-btn:disabled { opacity:.4; cursor:not-allowed; background:var(--cream); }
+    .slot-date { font-size:13px; font-weight:600; color:var(--ink); }
+    .slot-day  { font-size:11px; color:var(--ink-soft); margin-bottom:2px; }
+    .slot-cap  { font-size:11px; color:var(--ink-soft); margin-top:3px; }
+    .slot-cap.full { color:#e84b22; }
+    .slot-loading { font-size:13px; color:var(--ink-soft); padding:12px 0; }
+  </style>
 </head>
 <body>
   <div id="navbar-placeholder"></div>
   <div id="cart-placeholder"></div>
 
   <!-- EMPTY CART GUARD -->
-  <div id="emptyGuard" style="display:none; text-align:center; padding:5rem 2rem;">
+  <div id="emptyGuard" style="display:none;text-align:center;padding:5rem 2rem;">
     <div style="font-size:48px;margin-bottom:1rem;">🛒</div>
-    <h2 style="font-family:var(--display);font-size:28px;color:var(--blue);margin-bottom:0.75rem;">Your cart is empty</h2>
+    <h2 style="font-family:var(--display);font-size:28px;color:var(--blue);margin-bottom:.75rem;">Your cart is empty</h2>
     <p style="color:var(--ink-soft);margin-bottom:2rem;">Add some products before checking out.</p>
     <a href="shop.html" class="btn btn-primary">Browse products</a>
   </div>
@@ -29,7 +61,7 @@
       <!-- LEFT: FORMS -->
       <div class="checkout-main">
 
-        <!-- CONTACT -->
+        <!-- 1. CONTACT -->
         <div class="checkout-block">
           <div class="checkout-block-head">
             <div class="checkout-block-num">1</div>
@@ -37,17 +69,29 @@
           </div>
           <div class="checkout-block-body">
             <div class="field-row">
-              <div class="field"><label>First name</label><input type="text" id="coFirst" placeholder="Anna" autocomplete="given-name"></div>
-              <div class="field"><label>Last name</label><input type="text" id="coLast" placeholder="Kovalenko" autocomplete="family-name"></div>
+              <div class="field">
+                <label for="coFirst">First name</label>
+                <input type="text" id="coFirst" placeholder="Anna" autocomplete="given-name">
+              </div>
+              <div class="field">
+                <label for="coLast">Last name</label>
+                <input type="text" id="coLast" placeholder="Kovalenko" autocomplete="family-name">
+              </div>
             </div>
-            <div class="field-row">
-              <div class="field"><label>Email address</label><input type="email" id="coEmail" placeholder="anna@email.com" autocomplete="email"></div>
-              <div class="field"><label>Phone number</label><input type="tel" id="coPhone" placeholder="+31 6 00 00 00 00" autocomplete="tel"></div>
+            <div class="field">
+              <label for="coEmail">Email address</label>
+              <input type="email" id="coEmail" placeholder="anna@email.com" autocomplete="email">
+              <span class="hint">Your order confirmation will be sent here.</span>
+            </div>
+            <div class="field">
+              <label for="coPhone">Phone number</label>
+              <input type="tel" id="coPhone" placeholder="+31 6 00 00 00 00" autocomplete="tel">
+              <span class="hint">So we can reach you if there's a delivery question.</span>
             </div>
           </div>
         </div>
 
-        <!-- DELIVERY ADDRESS -->
+        <!-- 2. DELIVERY ADDRESS -->
         <div class="checkout-block">
           <div class="checkout-block-head">
             <div class="checkout-block-num">2</div>
@@ -55,15 +99,19 @@
           </div>
           <div class="checkout-block-body">
             <div class="field">
-              <label>Street address</label>
+              <label for="coStreet">Street address & house number</label>
               <input type="text" id="coStreet" placeholder="Damrak 1" autocomplete="street-address">
             </div>
-            <div class="field-row">
-              <div class="field"><label>Postcode</label><input type="text" id="coPost" placeholder="1012 LG" autocomplete="postal-code"></div>
-              <div class="field"><label>City</label><input type="text" id="coCity" placeholder="Amsterdam" autocomplete="address-level2"></div>
+            <div class="field">
+              <label for="coPost">Postcode</label>
+              <input type="text" id="coPost" placeholder="1012 LG" autocomplete="postal-code" style="max-width:180px;">
             </div>
             <div class="field">
-              <label>Province</label>
+              <label for="coCity">City</label>
+              <input type="text" id="coCity" placeholder="Amsterdam" autocomplete="address-level2">
+            </div>
+            <div class="field">
+              <label for="coProvince">Province</label>
               <div class="select-wrap">
                 <select id="coProvince">
                   <option value="" disabled selected>Select your province…</option>
@@ -75,21 +123,35 @@
               </div>
             </div>
             <div class="field">
-              <label>Delivery notes + preferred time slot <span class="optional">optional</span></label>
-              <input type="text" id="coNotes" placeholder="e.g. Thursday 10 Apr 10:00–13:00, ring bell 2nd floor">
-              <p style="font-size:12px;color:var(--ink-soft);margin:4px 0 0;">
-                📅 Book a slot first on our
-                <a href="delivery.html#booking" style="color:var(--blue);font-weight:600;">delivery page</a>
-                — then mention it here.
-              </p>
+              <label for="coNotes">Delivery notes <span class="optional">optional</span></label>
+              <input type="text" id="coNotes" placeholder="e.g. ring bell 2nd floor, leave at door">
+              <span class="hint">Apartment number, gate code, or anything useful for the driver.</span>
             </div>
           </div>
         </div>
 
-        <!-- DELIVERY METHOD -->
+        <!-- 3. DELIVERY DATE -->
         <div class="checkout-block">
           <div class="checkout-block-head">
             <div class="checkout-block-num">3</div>
+            <h3>Choose delivery date</h3>
+          </div>
+          <div class="checkout-block-body">
+            <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">
+              We deliver on <strong>Thursdays and Saturdays</strong> across the Netherlands.
+              Each day has a maximum of 15 orders.
+            </p>
+            <div id="slotGrid" class="slot-grid">
+              <div class="slot-loading">Loading available dates…</div>
+            </div>
+            <div id="slotError" style="display:none;font-size:13px;color:#e84b22;margin-top:8px;"></div>
+          </div>
+        </div>
+
+        <!-- 4. DELIVERY METHOD -->
+        <div class="checkout-block">
+          <div class="checkout-block-head">
+            <div class="checkout-block-num">4</div>
             <h3>Delivery method</h3>
           </div>
           <div class="checkout-block-body">
@@ -98,7 +160,7 @@
                 <input type="radio" name="delivery" value="standard" checked onchange="selectDelivery(this)">
                 <div class="delivery-option-info">
                   <div class="delivery-option-name">Standard delivery</div>
-                  <div class="delivery-option-desc">2–3 business days • Insulated packaging</div>
+                  <div class="delivery-option-desc">Insulated packaging • Nationwide</div>
                 </div>
                 <div class="delivery-option-price">€5.00</div>
               </label>
@@ -106,11 +168,11 @@
                 <input type="radio" name="delivery" value="express" onchange="selectDelivery(this)">
                 <div class="delivery-option-info">
                   <div class="delivery-option-name">Express delivery</div>
-                  <div class="delivery-option-desc">Next business day • Priority packaging</div>
+                  <div class="delivery-option-desc">Priority packaging • Contact us first</div>
                 </div>
                 <div class="delivery-option-price">€12.00</div>
               </label>
-              <label class="delivery-option" id="opt-free" style="opacity:0.5;pointer-events:none;">
+              <label class="delivery-option" id="opt-free" style="opacity:.5;pointer-events:none;">
                 <input type="radio" name="delivery" value="free" disabled>
                 <div class="delivery-option-info">
                   <div class="delivery-option-name">Free delivery</div>
@@ -122,18 +184,22 @@
           </div>
         </div>
 
-        <!-- PAYMENT NOTE -->
+        <!-- 5. PAYMENT -->
         <div class="checkout-block">
           <div class="checkout-block-head">
-            <div class="checkout-block-num">4</div>
+            <div class="checkout-block-num">5</div>
             <h3>Payment</h3>
           </div>
           <div class="checkout-block-body">
             <div style="background:var(--cream);border-radius:10px;padding:1.25rem;display:flex;gap:14px;align-items:flex-start;">
               <div style="font-size:22px;">💳</div>
               <div>
-                <div style="font-size:14px;font-weight:500;color:var(--blue);margin-bottom:4px;">Payment on delivery or via invoice</div>
-                <div style="font-size:13px;color:var(--ink-soft);line-height:1.6;">We currently accept payment by bank transfer or cash on delivery. After placing your order, we'll send you a payment confirmation and invoice by email within 1 hour.</div>
+                <div style="font-size:14px;font-weight:600;color:var(--blue);margin-bottom:4px;">Payment on delivery or via bank transfer</div>
+                <div style="font-size:13px;color:var(--ink-soft);line-height:1.65;">
+                  After placing your order you'll receive a confirmation email with our bank details.
+                  Payment by cash on delivery is also accepted.
+                  Online payment coming soon.
+                </div>
               </div>
             </div>
           </div>
@@ -164,7 +230,7 @@
       <h2>Order placed!</h2>
       <p style="font-size:13px;color:var(--ink-soft);margin-bottom:.25rem;">Order reference</p>
       <p style="font-family:var(--display);font-size:22px;color:var(--blue);margin-bottom:1rem;" id="orderRef">—</p>
-      <p>Thank you for your order. We've received it and will send you a confirmation email within 1 hour with your invoice and delivery details.</p>
+      <p>Thank you! We've received your order and will send a confirmation email with payment details within 1 hour.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
         <a href="account.html#orders" class="btn btn-dark">View my orders</a>
         <a href="shop.html" class="btn btn-ghost">Continue shopping</a>
@@ -181,7 +247,73 @@
   <script>
     const DELIVERY_PRICES = { standard: 5, express: 12, free: 0 };
     let selectedDelivery = 'standard';
+    let selectedDate     = null;
 
+    // ── DELIVERY DATE SLOTS ─────────────────────────────
+    const MAX_PER_DAY = 15;
+
+    function getUpcomingSlots(weeksAhead = 4) {
+      const slots = [];
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const cutoff = new Date(today);
+      cutoff.setDate(today.getDate() + 1); // must book at least 1 day ahead
+
+      for (let d = 0; d < weeksAhead * 7; d++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + d);
+        const dow = date.getDay(); // 0=Sun,4=Thu,6=Sat
+        if (dow === 4 || dow === 6) {
+          if (date >= cutoff) slots.push(date);
+        }
+      }
+      return slots.slice(0, 8); // show next 8 available days
+    }
+
+    function formatDate(d) {
+      return d.toLocaleDateString('nl-NL', { weekday:'short', day:'numeric', month:'short' });
+    }
+    function isoDate(d) {
+      return d.toISOString().slice(0,10);
+    }
+
+    async function loadSlots() {
+      const grid = document.getElementById('slotGrid');
+      const upcoming = getUpcomingSlots();
+
+      // Fetch booked counts from backend
+      let bookedMap = {};
+      try {
+        const res = await fetch(`${window.Api ? '' : 'https://hutko-kitchen.onrender.com'}/api/slots/availability?dates=${upcoming.map(isoDate).join(',')}`);
+        if (res.ok) bookedMap = await res.json();
+      } catch(e) {
+        // If endpoint not ready yet, show all as available
+      }
+
+      grid.innerHTML = upcoming.map(date => {
+        const iso     = isoDate(date);
+        const booked  = bookedMap[iso] || 0;
+        const spots   = MAX_PER_DAY - booked;
+        const full    = spots <= 0;
+        const dow     = date.getDay() === 4 ? 'Thursday' : 'Saturday';
+        return `<button class="slot-btn" data-date="${iso}" onclick="selectSlot(this,'${iso}')"
+                  ${full ? 'disabled' : ''}>
+          <div class="slot-day">${dow}</div>
+          <div class="slot-date">${date.toLocaleDateString('nl-NL',{day:'numeric',month:'short'})}</div>
+          <div class="slot-cap ${full?'full':''}">${full ? 'Full' : spots + ' spots left'}</div>
+        </button>`;
+      }).join('');
+    }
+
+    function selectSlot(btn, date) {
+      document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedDate = date;
+      document.getElementById('slotError').style.display = 'none';
+    }
+    window.selectSlot = selectSlot;
+
+    // ── DELIVERY METHOD ─────────────────────────────────
     function selectDelivery(radio) {
       selectedDelivery = radio.value;
       document.querySelectorAll('.delivery-option').forEach(el => el.classList.remove('selected'));
@@ -190,6 +322,7 @@
     }
     window.selectDelivery = selectDelivery;
 
+    // ── SUMMARY ─────────────────────────────────────────
     function renderSummary() {
       const cart  = getCart();
       const items = Object.values(cart);
@@ -208,28 +341,28 @@
       const delivery = subtotal >= 60 ? 0 : DELIVERY_PRICES[selectedDelivery];
       const total    = subtotal + delivery;
 
-      /* unlock free delivery */
       const freeOpt = document.getElementById('opt-free');
-      if (subtotal >= 60) { freeOpt.style.opacity = '1'; freeOpt.style.pointerEvents = 'auto'; }
+      if (subtotal >= 60) { freeOpt.style.opacity='1'; freeOpt.style.pointerEvents='auto'; }
 
       si.innerHTML = items.map(i => `
         <div class="summary-item">
-          <span class="summary-item-emoji">${i.emoji || '🍽️'}</span>
+          <span class="summary-item-emoji">${i.emoji||'🍽️'}</span>
           <span class="summary-item-name">${i.name}</span>
           <span class="summary-item-qty">×${i.qty}</span>
-          <span class="summary-item-price">€${i.qty * i.price}</span>
+          <span class="summary-item-price">€${(i.qty*i.price).toFixed(2)}</span>
         </div>`).join('');
 
       st.innerHTML = `
-        <div class="summary-row"><span>Subtotal</span><span>€${subtotal}</span></div>
-        <div class="summary-row"><span>Delivery</span><span>${delivery === 0 ? 'Free' : '€' + delivery}</span></div>
-        <div class="summary-row total"><span>Total</span><span>€${total}</span></div>`;
+        <div class="summary-row"><span>Subtotal</span><span>€${subtotal.toFixed(2)}</span></div>
+        <div class="summary-row"><span>Delivery</span><span>${delivery===0?'Free':'€'+delivery.toFixed(2)}</span></div>
+        <div class="summary-row total"><span>Total</span><span>€${total.toFixed(2)}</span></div>`;
 
       btn.disabled = false;
     }
 
+    // ── PLACE ORDER ─────────────────────────────────────
     async function placeOrder() {
-      /* Validate required fields */
+      // Validate fields
       const required = ['coFirst','coLast','coEmail','coPhone','coStreet','coPost','coCity','coProvince'];
       let ok = true;
       required.forEach(id => {
@@ -239,13 +372,20 @@
       });
       if (!ok) { showToast('Please fill in all required fields.'); return; }
 
+      if (!selectedDate) {
+        document.getElementById('slotError').textContent = 'Please choose a delivery date.';
+        document.getElementById('slotError').style.display = 'block';
+        document.querySelector('.checkout-block:nth-child(3)').scrollIntoView({behavior:'smooth'});
+        return;
+      }
+
       const cart  = getCart();
       const items = Object.values(cart);
       if (!items.length) return;
 
       const btn = document.getElementById('placeOrderBtn');
       btn.textContent = 'Placing order…';
-      btn.disabled = true;
+      btn.disabled    = true;
 
       const payload = {
         first_name:      document.getElementById('coFirst').value.trim(),
@@ -256,9 +396,10 @@
         postcode:        document.getElementById('coPost').value.trim(),
         city:            document.getElementById('coCity').value.trim(),
         province:        document.getElementById('coProvince').value.trim(),
-        notes:           document.getElementById('coNotes')?.value.trim() || '',
+        notes:           document.getElementById('coNotes').value.trim(),
         delivery_method: selectedDelivery,
-        items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+        delivery_date:   selectedDate,
+        items:           items.map(i => ({ name:i.name, qty:i.qty, price:i.price })),
       };
 
       try {
@@ -266,42 +407,33 @@
         if (!res.ok) {
           showToast(res.data.error || 'Order failed. Please try again.');
           btn.textContent = 'Place order →';
-          btn.disabled = false;
+          btn.disabled    = false;
           return;
         }
-        /* Store order ref for success screen */
-        const ref = res.data.order_ref;
-        document.getElementById('orderRef').textContent = ref || '';
-
-        /* Clear cart */
+        document.getElementById('orderRef').textContent = res.data.order_ref || '';
         localStorage.removeItem('hutko_cart');
-
-        /* Show success */
         document.getElementById('checkoutBody').style.display = 'none';
         document.getElementById('successScreen').style.display = 'block';
         window.scrollTo(0, 0);
       } catch(e) {
         showToast('Network error. Please try again.');
         btn.textContent = 'Place order →';
-        btn.disabled = false;
+        btn.disabled    = false;
       }
     }
 
-    /* Require login + pre-fill if logged in */
+    // ── INIT ─────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
-      // Require login
       if (typeof getToken !== 'function' || !getToken()) {
         window.location.href = 'login.html?redirect=checkout.html';
         return;
       }
-
       const cart = getCart();
       if (!Object.keys(cart).length) {
         document.getElementById('emptyGuard').style.display = 'block';
         document.getElementById('checkoutBody').style.display = 'none';
         return;
       }
-
       const user = getUser();
       if (user) {
         const parts = (user.name || '').split(' ');
@@ -309,6 +441,7 @@
         document.getElementById('coLast').value  = parts.slice(1).join(' ') || '';
         document.getElementById('coEmail').value = user.email || '';
       }
+      loadSlots();
       renderSummary();
     });
   </script>
