@@ -21,5 +21,11 @@ services:
         sync: false
       - key: RENDER_EXTERNAL_URL
         sync: false
+      - key: MOLLIE_API_KEY
+        sync: false       # get from mollie.com — free account, NL iDEAL support
+      - key: TRELLO_API_KEY
+        sync: false
+      - key: TRELLO_TOKEN
+        sync: false
       # DATABASE_URL — leave unset to use SQLite (safe default)
       # Add a Render PostgreSQL database manually when ready to upgrade

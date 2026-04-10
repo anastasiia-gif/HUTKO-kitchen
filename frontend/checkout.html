@@ -232,9 +232,15 @@
       <p style="font-family:var(--display);font-size:22px;color:var(--blue);margin-bottom:.5rem;" id="orderRef">—</p>
       <p id="orderDeliveryDate" style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:1rem;"></p>
       <p>Thank you! We've received your order and will send a confirmation email with payment details within 1 hour.</p>
-      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <a href="account.html#orders" class="btn btn-dark">View my orders</a>
-        <a href="shop.html" class="btn btn-ghost">Continue shopping</a>
+      <div style="display:flex;flex-direction:column;gap:10px;align-items:center;margin-top:1.5rem;">
+        <button id="payOnlineBtn" class="btn btn-primary" style="display:none;font-size:15px;padding:14px 36px;width:100%;max-width:320px;">
+          💳 Pay online now (iDEAL) →
+        </button>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <a href="account.html#orders" class="btn btn-dark">View my orders</a>
+          <a href="shop.html" class="btn btn-ghost">Continue shopping</a>
+        </div>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:4px;">Or pay by bank transfer / cash on delivery — details in your confirmation email.</p>
       </div>
     </div>
   </div>
@@ -412,15 +418,49 @@
           return;
         }
         document.getElementById('orderRef').textContent = res.data.order_ref || '';
-        // Show selected delivery date on success screen
         if (selectedDate) {
           const d = new Date(selectedDate + 'T00:00:00');
           const dateStr = d.toLocaleDateString('en-NL', {weekday:'long', day:'numeric', month:'long'});
           const dateEl = document.getElementById('orderDeliveryDate');
           if (dateEl) dateEl.textContent = '📅 Delivery: ' + dateStr;
         }
-        // Clear cart only — keep token and user session
         localStorage.removeItem('hutko_cart');
+
+        // Offer online payment if Mollie is available
+        const payBtn = document.getElementById('payOnlineBtn');
+        if (payBtn && res.data.order_ref) {
+          const cart2   = {}; // cart already cleared, use totals from res
+          const subtotal = Object.values(JSON.parse(localStorage.getItem('hutko_cart_last') || '{}')).reduce((s,i)=>s+i.qty*i.price,0) || 0;
+          payBtn.style.display = 'block';
+          payBtn.onclick = async () => {
+            payBtn.textContent = 'Redirecting to payment…';
+            payBtn.disabled = true;
+            try {
+              const payRes = await fetch(API_BASE + '/api/payment/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+                body: JSON.stringify({
+                  order_ref: res.data.order_ref,
+                  total:     res.data.total,
+                  customer_email: document.getElementById('coEmail').value,
+                  description: `HUTKO order #${res.data.order_ref}`,
+                }),
+              });
+              const payData = await payRes.json();
+              if (payData.payment_url) {
+                window.location.href = payData.payment_url;
+              } else {
+                payBtn.textContent = 'Pay online →';
+                payBtn.disabled = false;
+                showToast(payData.error || 'Payment service unavailable. Please pay on delivery.');
+              }
+            } catch(e) {
+              payBtn.textContent = 'Pay online →';
+              payBtn.disabled = false;
+            }
+          };
+        }
+
         document.getElementById('checkoutBody').style.display = 'none';
         document.getElementById('successScreen').style.display = 'block';
         window.scrollTo(0, 0);
@@ -444,13 +484,20 @@
         document.getElementById('checkoutBody').style.display = 'none';
         return;
       }
-      // Pre-fill from cached user — syncSession() will update from server
+      // Pre-fill from cached user — syncSession() will also update from server
       const user = getUser();
       if (user) {
         const parts = (user.name || '').split(' ');
         document.getElementById('coFirst').value = parts[0] || '';
         document.getElementById('coLast').value  = parts.slice(1).join(' ') || '';
         document.getElementById('coEmail').value = user.email || '';
+        // Pre-fill saved address if available
+        if (user.addr_street) {
+          document.getElementById('coStreet').value   = user.addr_street;
+          document.getElementById('coPost').value     = user.addr_postcode || '';
+          document.getElementById('coCity').value     = user.addr_city     || '';
+          if (user.addr_province) document.getElementById('coProvince').value = user.addr_province;
+        }
       }
       loadSlots();
       renderSummary();

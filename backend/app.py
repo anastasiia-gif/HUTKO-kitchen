@@ -20,6 +20,7 @@ from contact          import contact_bp
 from admin            import admin_bp
 from trello_webhook   import webhook_bp
 from shop_data        import shop_bp
+from payments         import payments_bp
 
 load_dotenv()
 
@@ -57,6 +58,7 @@ app.register_blueprint(contact_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(webhook_bp)
 app.register_blueprint(shop_bp)
+app.register_blueprint(payments_bp)
 
 
 @app.route('/api/health', methods=['GET'])

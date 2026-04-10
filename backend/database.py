@@ -139,6 +139,8 @@ def init_db():
     # Migrations — safe on both SQLite and Postgres
     _safe_alter(conn, cur, "ALTER TABLE orders ADD COLUMN trello_card_id TEXT")
     _safe_alter(conn, cur, "ALTER TABLE orders ADD COLUMN delivery_date TEXT")
+    _safe_alter(conn, cur, "ALTER TABLE orders ADD COLUMN payment_id TEXT")
+    _safe_alter(conn, cur, "ALTER TABLE orders ADD COLUMN payment_status TEXT DEFAULT 'pending'")
 
     conn.commit()
     conn.close()

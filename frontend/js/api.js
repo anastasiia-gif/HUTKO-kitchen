@@ -142,7 +142,13 @@ async function syncSession() {
   if (res.ok && res.data.user) {
     const user = res.data.user;
     localStorage.setItem('hutko_user', JSON.stringify({
-      id: user.id, name: user.name, email: user.email,
+      id:            user.id,
+      name:          user.name,
+      email:         user.email,
+      addr_street:   user.addr_street   || '',
+      addr_postcode: user.addr_postcode || '',
+      addr_city:     user.addr_city     || '',
+      addr_province: user.addr_province || '',
     }));
     if (user.addr_street) {
       const fill = (id, val) => { const el = document.getElementById(id); if (el && !el.value) el.value = val || ''; };
