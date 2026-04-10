@@ -1,0 +1,12 @@
+Log of improvements to the website:
+- Submission forms have bundled fields, could you improve the look of them?
+- Choosing delivery slot should be linked to the order, so can select the delivery slot only while delivering. Also could people just book timeslot per day and we have like limitation of 15 people a day. 
+- Join the team doesn't doesn't send the email and noreply email to the client
+- no google login - needs api token connection
+- backup and everyday update at 12am
+- server always on and proper fetching of the database
+- add contact info also the excel and update from there
+- excel upload failed
+- no ua/nl/en translation in acc and a lot of places
+- could we integrate secure payb=ment for Netherlands?
+- 

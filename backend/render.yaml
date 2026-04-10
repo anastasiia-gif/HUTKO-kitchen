@@ -17,3 +17,14 @@ services:
         sync: false       # set manually in Render dashboard
       - key: FRONTEND_URL
         value: https://hutko-kitchen.com
+      - key: OWNER_EMAIL
+        sync: false       # set to nastiapolimasheva@hutko-kitchen.com in dashboard
+      - key: RENDER_EXTERNAL_URL
+        sync: false       # set to https://hutko-kitchen.onrender.com in dashboard (keep-alive ping)
+      - key: DATABASE_URL
+        sync: false       # set automatically when you attach a Render PostgreSQL database
+
+databases:
+  - name: hutko-db
+    databaseName: hutko
+    plan: free

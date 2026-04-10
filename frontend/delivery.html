@@ -128,18 +128,43 @@
         <button class="modal-close" onclick="closeApply()">&#x2715;</button>
       </div>
       <div class="modal-body">
+        <div id="applyError" style="display:none;background:rgba(232,75,34,.08);border:1px solid rgba(232,75,34,.3);
+             color:var(--orange);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px;"></div>
         <div class="field-row">
-          <div class="field"><label>First name</label><input type="text" placeholder="Anna"></div>
-          <div class="field"><label>Last name</label><input type="text" placeholder="Kovalenko"></div>
+          <div class="field">
+            <label for="applyFirst">First name</label>
+            <input type="text" id="applyFirst" placeholder="Anna" autocomplete="given-name">
+          </div>
+          <div class="field">
+            <label for="applyLast">Last name</label>
+            <input type="text" id="applyLast" placeholder="Kovalenko" autocomplete="family-name">
+          </div>
         </div>
-        <div class="field"><label>Email</label><input type="email" placeholder="anna@email.com"></div>
-        <div class="field"><label>Phone</label><input type="tel" placeholder="+31 6 00 00 00 00"></div>
-        <div class="field" id="driverField"><label>City / region you can deliver in</label><input type="text" placeholder="e.g. Amsterdam, Utrecht"></div>
-        <div class="field" id="partnerField" style="display:none"><label>Your business or organisation name</label><input type="text" placeholder="e.g. Café Kyiv"></div>
-        <div class="field"><label>Tell us about yourself</label><textarea placeholder="A few sentences about you and why you'd like to work with HUTKO…"></textarea></div>
+        <div class="field">
+          <label for="applyEmail">Email</label>
+          <input type="email" id="applyEmail" placeholder="anna@email.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="applyPhone">Phone</label>
+          <input type="tel" id="applyPhone" placeholder="+31 6 00 00 00 00" autocomplete="tel">
+        </div>
+        <div class="field" id="driverField">
+          <label for="applyCity">City / region you can deliver in</label>
+          <input type="text" id="applyCity" placeholder="e.g. Amsterdam, Utrecht">
+        </div>
+        <div class="field" id="partnerField" style="display:none">
+          <label for="applyBiz">Your business or organisation name</label>
+          <input type="text" id="applyBiz" placeholder="e.g. Café Kyiv">
+        </div>
+        <div class="field">
+          <label for="applyBio">Tell us about yourself</label>
+          <textarea id="applyBio" placeholder="A few sentences about you and why you'd like to work with HUTKO…"></textarea>
+        </div>
       </div>
       <div class="modal-foot">
-        <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="submitApply()">Send application →</button>
+        <button class="btn btn-primary" id="applyBtn" style="width:100%;justify-content:center;" onclick="submitApply()">
+          Send application →
+        </button>
       </div>
     </div>
   </div>
@@ -206,15 +231,73 @@
   <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
+    let _applyRole = 'driver';
+
     function openApply(type) {
+      _applyRole = type;
       document.getElementById('modalWrap').classList.add('open');
       document.getElementById('modalTitle').textContent = type === 'driver' ? 'Apply as delivery driver' : 'Apply as partner';
       document.getElementById('driverField').style.display  = type === 'driver'  ? 'flex' : 'none';
       document.getElementById('partnerField').style.display = type === 'partner' ? 'flex' : 'none';
+      document.getElementById('applyError').style.display = 'none';
     }
-    function closeApply() { document.getElementById('modalWrap').classList.remove('open'); }
-    function submitApply() { closeApply(); showToast('✓ Application sent! We\'ll be in touch within 2 business days.'); }
-    document.getElementById('modalWrap')?.addEventListener('click', e => { if (e.target.id === 'modalWrap') closeApply(); });
+
+    function closeApply() {
+      document.getElementById('modalWrap').classList.remove('open');
+    }
+
+    async function submitApply() {
+      const first = document.getElementById('applyFirst').value.trim();
+      const last  = document.getElementById('applyLast').value.trim();
+      const email = document.getElementById('applyEmail').value.trim();
+      const phone = document.getElementById('applyPhone').value.trim();
+      const city  = document.getElementById('applyCity').value.trim();
+      const biz   = document.getElementById('applyBiz').value.trim();
+      const bio   = document.getElementById('applyBio').value.trim();
+      const errEl = document.getElementById('applyError');
+
+      if (!first || !last || !email || !bio) {
+        errEl.textContent = 'Please fill in your name, email, and a short bio.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      const name     = `${first} ${last}`;
+      const cityOrBiz = _applyRole === 'driver' ? city : biz;
+      const topicMap  = { driver: 'Join as delivery driver', partner: 'Join as business partner' };
+
+      const btn = document.getElementById('applyBtn');
+      btn.disabled    = true;
+      btn.textContent = 'Sending…';
+      errEl.style.display = 'none';
+
+      try {
+        const res = await Api.Contact.send(
+          name, email, phone, '',
+          topicMap[_applyRole],
+          `Application: ${topicMap[_applyRole]} — ${name}`,
+          `Role: ${_applyRole}\nCity/Org: ${cityOrBiz}\n\n${bio}`
+        );
+
+        if (res.ok) {
+          closeApply();
+          if (typeof showToast === 'function') showToast('✓ Application sent! We\'ll be in touch within 2–3 business days.');
+        } else {
+          errEl.textContent = res.data?.error || 'Something went wrong. Please try again.';
+          errEl.style.display = 'block';
+        }
+      } catch (e) {
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.style.display = 'block';
+      } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Send application →';
+      }
+    }
+
+    document.getElementById('modalWrap')?.addEventListener('click', e => {
+      if (e.target.id === 'modalWrap') closeApply();
+    });
   </script>
 </body>
 </html>
