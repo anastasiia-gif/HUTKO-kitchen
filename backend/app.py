@@ -48,7 +48,8 @@ if os.environ.get('FRONTEND_URL'):
 CORS(app,
      origins=ALLOWED_ORIGINS,
      allow_headers=["Content-Type", "Authorization"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     supports_credentials=True)
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(orders_bp)

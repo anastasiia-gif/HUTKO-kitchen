@@ -135,11 +135,18 @@
             </div>
             <span class="order-status ${o.status || 'confirmed'}">${o.status || 'confirmed'}</span>
           </div>
-          <div class="order-items-list">${(o.items || []).map(i => i.name + ' x' + i.qty).join(', ')}</div>
+          <div class="order-items-list">${(o.items || []).map(i => i.name + ' ×' + i.qty).join(', ')}</div>
+          ${o.delivery_date ? `<div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;">📅 Delivery: ${o.delivery_date}</div>` : ''}
           <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">📍 ${o.addr_street ? o.addr_street + ', ' + o.addr_city : 'Address not saved'}</div>
           <div class="order-total">Total: €${o.total}</div>
         </div>`).join('');
     }
+
+    async function logoutUser() {
+      await Api.Auth.logout();  // clears token in api.js
+      window.location.href = 'index.html';
+    }
+    window.logoutUser = logoutUser;
 
     async function saveProfile() {
       const first = document.getElementById('profFirst').value.trim();

@@ -76,117 +76,24 @@ def _base_template(content: str, preview: str = '') -> str:
 </html>"""
 
 
-def send_email(to: str, subject: str, html: str, attachments: list = None):
-    """
-    Send email via Resend. Silently skips if API key not configured.
-    attachments: list of dicts with keys filename, content (base64 str), type
-    """
+def send_email(to: str, subject: str, html: str):
+    """Send email via Resend. Silently skips if API key not configured."""
     api_key = os.environ.get('RESEND_API_KEY')
     if not api_key:
         print(f"[EMAIL SKIPPED — no RESEND_API_KEY] To: {to} | Subject: {subject}")
         return
     resend.api_key = api_key
     sender = os.environ.get('EMAIL_FROM', 'HUTKO Kitchen <noreply@hutko-kitchen.com>')
-    payload = {
-        "from":    sender,
-        "to":      [to],
-        "subject": subject,
-        "html":    html,
-    }
-    if attachments:
-        payload["attachments"] = [
-            {"filename": a["filename"], "content": a["content"]}
-            for a in attachments
-        ]
     try:
-        resend.Emails.send(payload)
+        resend.Emails.send({
+            "from":    sender,
+            "to":      [to],
+            "subject": subject,
+            "html":    html,
+        })
         print(f"[EMAIL SENT] To: {to} | Subject: {subject}")
     except Exception as e:
         print(f"[EMAIL ERROR] {e}")
-
-
-# ── JOB / TEAM APPLICATION EMAILS ───────────────────────
-def send_application_confirmation(name: str, email: str, role: str):
-    """Confirmation email to the applicant."""
-    first = name.split()[0]
-    role_label = 'delivery driver' if role == 'driver' else 'business partner'
-    content = f"""
-      <h1 style="margin:0 0 8px;font-size:26px;font-weight:900;color:#111;">
-        Thanks for applying, {first}! 🙌
-      </h1>
-      <p style="margin:0 0 24px;font-size:15px;color:#666;line-height:1.6;">
-        We've received your application to join HUTKO Kitchen as a <strong>{role_label}</strong>.
-        We review every application personally and will be in touch within <strong>2–3 business days</strong>.
-      </p>
-
-      <div style="background:{BRAND_CREAM};border-radius:12px;padding:20px 24px;margin:0 0 28px;">
-        <p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#111;">What happens next:</p>
-        <p style="margin:0 0 8px;font-size:14px;color:#444;">📋 &nbsp;We'll review your application</p>
-        <p style="margin:0 0 8px;font-size:14px;color:#444;">📞 &nbsp;We'll reach out to schedule a quick call</p>
-        <p style="margin:0;font-size:14px;color:#444;">🤝 &nbsp;If it's a match, we'll get you started!</p>
-      </div>
-
-      <p style="margin:0 0 24px;font-size:14px;color:#666;line-height:1.6;text-align:center;">
-        Questions? Message us on Instagram
-        <a href="https://instagram.com/hutko.kitchen" style="color:{BRAND_BLUE};font-weight:700;">@hutko.kitchen</a>
-      </p>
-      <p style="margin:0;font-size:14px;color:#999;text-align:center;">
-        З любов'ю / With love,<br>
-        <strong style="color:#111;">The HUTKO Kitchen team</strong> 🇺🇦
-      </p>
-    """
-    send_email(
-        email,
-        "We received your application — HUTKO Kitchen 🇺🇦",
-        _base_template(content, f"Thanks {first}! We'll be in touch within 2–3 business days.")
-    )
-
-
-def send_application_notification(name: str, email: str, phone: str,
-                                   role: str, city: str, bio: str):
-    """Internal notification to the owner."""
-    owner_email = os.environ.get('OWNER_EMAIL', 'nastiapolimasheva@hutko-kitchen.com')
-    role_label  = 'Delivery Driver' if role == 'driver' else 'Business Partner'
-    content = f"""
-      <div style="background:{BRAND_BLUE};border-radius:12px;padding:16px 24px;margin:0 0 24px;">
-        <p style="margin:0;font-size:20px;font-weight:900;color:#fff;">
-          👤 New application: <strong>{role_label}</strong>
-        </p>
-      </div>
-
-      <div style="background:{BRAND_CREAM};border-radius:12px;padding:18px 24px;margin:0 0 20px;">
-        <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#666;">Applicant</p>
-        <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#111;">{name}</p>
-        <p style="margin:0 0 4px;font-size:13px;color:#666;">
-          <a href="mailto:{email}" style="color:{BRAND_BLUE};">{email}</a>
-        </p>
-        {'<p style="margin:0 0 4px;font-size:13px;color:#666;">' + phone + '</p>' if phone else ''}
-        {'<p style="margin:0;font-size:13px;color:#666;">📍 ' + city + '</p>' if city else ''}
-      </div>
-
-      <div style="border:1px solid #e8e2d5;border-radius:12px;padding:18px 24px;margin:0 0 24px;">
-        <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#666;">About them</p>
-        <p style="margin:0;font-size:14px;color:#333;line-height:1.7;">{bio or 'No bio provided.'}</p>
-      </div>
-
-      <table cellpadding="0" cellspacing="0" width="100%">
-        <tr>
-          <td align="center">
-            <a href="mailto:{email}?subject=Re: Your HUTKO application"
-               style="display:inline-block;background:{BRAND_ORANGE};color:#fff;
-                      text-decoration:none;font-size:14px;font-weight:700;
-                      padding:13px 32px;border-radius:100px;">
-              Reply to {name} →
-            </a>
-          </td>
-        </tr>
-      </table>
-    """
-    send_email(
-        owner_email,
-        f"👤 New {role_label} application from {name}",
-        _base_template(content, f"New {role_label} application from {name}")
-    )
 
 
 # ── WELCOME EMAIL (on registration) ─────────────────────
@@ -242,7 +149,8 @@ def send_welcome(name: str, email: str):
 def send_order_confirmation(order_ref: str, name: str, email: str,
                              items: list, subtotal: float,
                              delivery_cost: float, total: float,
-                             address: str, delivery_method: str):
+                             address: str, delivery_method: str,
+                             delivery_date: str = ''):
     first = name.split()[0]
     items_html = ''.join([
         f"""<tr>
@@ -293,12 +201,20 @@ def send_order_confirmation(order_ref: str, name: str, email: str,
       </div>
 
       <!-- Delivery address -->
-      <div style="border:1px solid #e8e2d5;border-radius:12px;padding:20px 24px;margin:0 0 28px;">
+      <div style="border:1px solid #e8e2d5;border-radius:12px;padding:20px 24px;margin:0 0 20px;">
         <p style="margin:0 0 8px;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#666;">
           Delivery address
         </p>
         <p style="margin:0;font-size:14px;color:#333;line-height:1.6;">{name}<br>{address}</p>
       </div>
+
+      {f'''<div style="background:{BRAND_BLUE};border-radius:12px;padding:16px 24px;margin:0 0 20px;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:24px;">📅</span>
+        <div>
+          <p style="margin:0;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);letter-spacing:1.5px;text-transform:uppercase;">Delivery date</p>
+          <p style="margin:4px 0 0;font-size:18px;font-weight:900;color:#fff;">{delivery_date}</p>
+        </div>
+      </div>''' if delivery_date else ''}
 
       <!-- What's next -->
       <div style="background:{BRAND_BLUE};border-radius:12px;padding:20px 24px;margin:0 0 28px;">
@@ -333,7 +249,8 @@ def send_order_confirmation(order_ref: str, name: str, email: str,
 # ── NEW ORDER NOTIFICATION (to owner) ───────────────────
 def send_order_notification(order_ref: str, name: str, email: str,
                               phone: str, items: list, total: float,
-                              address: str, delivery_method: str, notes: str):
+                              address: str, delivery_method: str, notes: str,
+                              delivery_date: str = ''):
     owner_email = os.environ.get('OWNER_EMAIL', 'nastiapolimasheva@hutko-kitchen.com')
     items_text = '<br>'.join([f"• {i['name']} ×{i['qty']} — €{i['qty']*i['price']}" for i in items])
 
@@ -359,7 +276,8 @@ def send_order_notification(order_ref: str, name: str, email: str,
             <div style="background:{BRAND_CREAM};border-radius:12px;padding:18px 20px;">
               <p style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#666;">Delivery</p>
               <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#111;">{address}</p>
-              <p style="margin:0;font-size:13px;color:#666;">{delivery_method}</p>
+              <p style="margin:0 0 4px;font-size:13px;color:#666;">{delivery_method}</p>
+              {f'<p style="margin:4px 0 0;font-size:14px;font-weight:700;color:{BRAND_BLUE};">📅 {delivery_date}</p>' if delivery_date else ''}
               {'<p style="margin:6px 0 0;font-size:13px;color:#888;font-style:italic;">Note: ' + notes + '</p>' if notes else ''}
             </div>
           </td>

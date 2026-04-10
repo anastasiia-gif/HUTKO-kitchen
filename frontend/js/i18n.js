@@ -500,7 +500,6 @@ const TRANSLATIONS = {
     apply_partner_perk1:'Groothandelsprijzen voor bulkbestellingen',
     apply_partner_perk2:'Co-branding en marketingondersteuning',
     apply_partner_perk3:"Flexibele bezorgschema's",
-  }
 };
 
 const I18N_KEY = 'hutko_lang';
@@ -550,4 +549,67 @@ function setLang(lang) {
   if (typeof initSearch === 'function') setTimeout(initSearch, 50);
 }
 window.t = t; window.getLang = getLang; window.setLang = setLang; window.applyTranslations = applyTranslations;
-document.addEventListener('DOMContentLoaded', () => { updateLangSwitcher(); applyTranslations(); });
+document.addEventListener('DOMContentLoaded', () => { updateLangSwitcher(); applyTranslations(); loadSettingsIntoPage(); });
+
+/* ── SETTINGS FROM EXCEL ─────────────────────────────────────────────
+   Fetches /api/shop/settings and patches data-setting elements.
+   Also updates i18n delivery info strings so they stay in sync.
+   Usage in HTML: <span data-setting="delivery_cost">€5</span>
+────────────────────────────────────────────────────────────────────── */
+async function loadSettingsIntoPage() {
+  try {
+    const API = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://hutko-kitchen.onrender.com';
+    const res  = await fetch(`${API}/api/shop/settings`);
+    if (!res.ok) return;
+    const { settings } = await res.json();
+    if (!settings) return;
+
+    // Patch any element with data-setting attribute
+    document.querySelectorAll('[data-setting]').forEach(el => {
+      const key = el.dataset.setting;
+      if (settings[key] !== undefined) el.textContent = settings[key];
+    });
+
+    // Patch delivery info cards dynamically in all languages
+    const lang = getLang();
+    const dc   = settings.delivery_cost    || '5';
+    const free = settings.free_delivery_at || '60';
+    const min  = settings.min_order        || '0';
+    const days = settings.delivery_days    || 'Thursday & Saturday';
+    const max  = settings.max_per_day      || '15';
+
+    const dynamicKeys = {
+      delivery_cost_text: {
+        en: `Flat rate €${dc}. Free delivery on orders over €${free}.`,
+        ua: `Доставка €${dc}. Безкоштовно від €${free}.`,
+        nl: `Vast tarief €${dc}. Gratis bezorging boven €${free}.`,
+      },
+      min_order_text: {
+        en: min === '0' ? 'No minimum order.' : `Minimum order value is €${min}.`,
+        ua: min === '0' ? 'Мінімальне замовлення відсутнє.' : `Мінімальне замовлення €${min}.`,
+        nl: min === '0' ? 'Geen minimumbestelling.' : `Minimale bestelwaarde is €${min}.`,
+      },
+      delivery_days_text: {
+        en: `We deliver on ${days}.`,
+        ua: `Доставка: ${days}.`,
+        nl: `Wij bezorgen op ${days}.`,
+      },
+    };
+
+    Object.entries(dynamicKeys).forEach(([key, vals]) => {
+      const text = vals[lang] || vals.en;
+      // Update live data-i18n elements
+      document.querySelectorAll(`[data-i18n="${key}"]`).forEach(el => {
+        el.textContent = text;
+      });
+      // Also update the translation cache for future setLang() calls
+      if (TRANSLATIONS.en) TRANSLATIONS.en[key] = dynamicKeys[key].en;
+      if (TRANSLATIONS.ua) TRANSLATIONS.ua[key] = dynamicKeys[key].ua;
+      if (TRANSLATIONS.nl) TRANSLATIONS.nl[key] = dynamicKeys[key].nl;
+    });
+
+  } catch(e) {
+    // Settings load failed — static fallback values already in place
+  }
+}
+window.loadSettingsIntoPage = loadSettingsIntoPage;

@@ -229,7 +229,8 @@
       <div class="checkout-success-icon">🎉</div>
       <h2>Order placed!</h2>
       <p style="font-size:13px;color:var(--ink-soft);margin-bottom:.25rem;">Order reference</p>
-      <p style="font-family:var(--display);font-size:22px;color:var(--blue);margin-bottom:1rem;" id="orderRef">—</p>
+      <p style="font-family:var(--display);font-size:22px;color:var(--blue);margin-bottom:.5rem;" id="orderRef">—</p>
+      <p id="orderDeliveryDate" style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:1rem;"></p>
       <p>Thank you! We've received your order and will send a confirmation email with payment details within 1 hour.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
         <a href="account.html#orders" class="btn btn-dark">View my orders</a>
@@ -411,6 +412,14 @@
           return;
         }
         document.getElementById('orderRef').textContent = res.data.order_ref || '';
+        // Show selected delivery date on success screen
+        if (selectedDate) {
+          const d = new Date(selectedDate + 'T00:00:00');
+          const dateStr = d.toLocaleDateString('en-NL', {weekday:'long', day:'numeric', month:'long'});
+          const dateEl = document.getElementById('orderDeliveryDate');
+          if (dateEl) dateEl.textContent = '📅 Delivery: ' + dateStr;
+        }
+        // Clear cart only — keep token and user session
         localStorage.removeItem('hutko_cart');
         document.getElementById('checkoutBody').style.display = 'none';
         document.getElementById('successScreen').style.display = 'block';
@@ -424,6 +433,7 @@
 
     // ── INIT ─────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
+      // Redirect to login only if no token
       if (typeof getToken !== 'function' || !getToken()) {
         window.location.href = 'login.html?redirect=checkout.html';
         return;
@@ -434,6 +444,7 @@
         document.getElementById('checkoutBody').style.display = 'none';
         return;
       }
+      // Pre-fill from cached user — syncSession() will update from server
       const user = getUser();
       if (user) {
         const parts = (user.name || '').split(' ');

@@ -93,12 +93,13 @@ def checkout():
         send_order_confirmation(
             order_ref, customer_name, data['email'],
             items, subtotal, delivery_cost, total,
-            customer_addr, delivery_method
+            customer_addr, delivery_method, delivery_date
         )
         send_order_notification(
             order_ref, customer_name, data['email'],
             data['phone'], items, total,
-            customer_addr, delivery_method, data.get('notes', '')
+            customer_addr, delivery_method, data.get('notes', ''),
+            delivery_date
         )
     except Exception as e:
         print(f"[ORDER EMAIL ERROR] {e}")
