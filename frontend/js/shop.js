@@ -1,7 +1,3 @@
-/* ── HUTKO shop.js ─────────────────────────────────────
-   Fetches products & bundles via Api.Shop (defined in api.js)
-   ─────────────────────────────────────────────────────── */
-
 let ALL_PRODUCTS = [];
 let ALL_BUNDLES  = [];
 
