@@ -1,14 +1,15 @@
 """
 HUTKO — database.py
-PostgreSQL in production (Render), SQLite locally.
-All tables created automatically on first run.
+PostgreSQL in production (when DATABASE_URL is set), SQLite locally.
+psycopg2 is imported lazily — only when DATABASE_URL is actually present,
+so the app starts fine on SQLite even if psycopg2 isn't installed.
 """
 
 import os
 import sqlite3
 
 DB_PATH      = os.environ.get('DB_PATH', 'hutko.db')
-DATABASE_URL = os.environ.get('DATABASE_URL', '')   # Set by Render PostgreSQL addon
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
 
 
 def _use_postgres():
@@ -16,16 +17,11 @@ def _use_postgres():
 
 
 def get_db():
-    """
-    Return an open DB connection.
-    PostgreSQL when DATABASE_URL is set, otherwise SQLite.
-    Both expose .execute() / .commit() / .close() identically.
-    Rows are dict-like in both cases.
-    """
     if _use_postgres():
         import psycopg2
         import psycopg2.extras
-        conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+        conn = psycopg2.connect(DATABASE_URL,
+                                cursor_factory=psycopg2.extras.RealDictCursor)
         conn.autocommit = False
         return conn
     else:
@@ -36,7 +32,6 @@ def get_db():
 
 
 def _placeholder():
-    """? for SQLite, %s for Postgres."""
     return '%s' if _use_postgres() else '?'
 
 
@@ -49,20 +44,18 @@ def _datetime_default():
 
 
 def init_db():
-    """Create all tables if they don't exist yet."""
     conn = get_db()
 
     if _use_postgres():
-        cur = conn.cursor()
+        cur  = conn.cursor()
         _exec = cur.execute
     else:
-        cur = conn
+        cur  = conn
         _exec = conn.execute
 
     ai = _autoincrement()
     dt = _datetime_default()
 
-    # ── USERS ──────────────────────────────────────────
     _exec(f"""
         CREATE TABLE IF NOT EXISTS users (
             id            {ai},
@@ -78,7 +71,14 @@ def init_db():
         )
     """)
 
-    # ── ORDERS ─────────────────────────────────────────
+    _exec(f"""
+        CREATE TABLE IF NOT EXISTS auth_tokens (
+            token      TEXT PRIMARY KEY,
+            user_id    INTEGER NOT NULL,
+            created_at TEXT {dt}
+        )
+    """)
+
     _exec(f"""
         CREATE TABLE IF NOT EXISTS orders (
             id              {ai},
@@ -104,9 +104,6 @@ def init_db():
         )
     """)
 
-    # ── DELIVERY SLOTS ──────────────────────────────────
-    # Tracks how many orders are booked per delivery date.
-    # MAX_SLOTS_PER_DAY enforced at checkout (default 15).
     _exec(f"""
         CREATE TABLE IF NOT EXISTS delivery_slots (
             id         {ai},
@@ -117,7 +114,6 @@ def init_db():
         )
     """)
 
-    # ── MESSAGES (contact form) ─────────────────────────
     _exec(f"""
         CREATE TABLE IF NOT EXISTS messages (
             id         {ai},
@@ -132,7 +128,6 @@ def init_db():
         )
     """)
 
-    # ── NEWSLETTER ──────────────────────────────────────
     _exec(f"""
         CREATE TABLE IF NOT EXISTS newsletter (
             id         {ai},
@@ -141,17 +136,16 @@ def init_db():
         )
     """)
 
-    # ── MIGRATIONS: add new columns to existing DBs ─────
+    # Migrations — safe on both SQLite and Postgres
     _safe_alter(conn, cur, "ALTER TABLE orders ADD COLUMN trello_card_id TEXT")
     _safe_alter(conn, cur, "ALTER TABLE orders ADD COLUMN delivery_date TEXT")
 
     conn.commit()
     conn.close()
-    print(f"✓ Database initialised ({'PostgreSQL' if _use_postgres() else 'SQLite'})")
+    print(f"[DB] Initialised ({'PostgreSQL' if _use_postgres() else 'SQLite'})")
 
 
 def _safe_alter(conn, cur, sql):
-    """Run ALTER TABLE silently — ignore if column already exists."""
     try:
         if _use_postgres():
             cur.execute(sql)
@@ -161,4 +155,5 @@ def _safe_alter(conn, cur, sql):
             conn.commit()
     except Exception:
         if _use_postgres():
-            conn.rollback()
+            try: conn.rollback()
+            except: pass

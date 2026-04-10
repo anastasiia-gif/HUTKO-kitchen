@@ -3,28 +3,23 @@ services:
     name: hutko-api
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --workers 2 --bind 0.0.0.0:$PORT
+    startCommand: gunicorn app:app --workers 1 --bind 0.0.0.0:$PORT --timeout 120
     envVars:
       - key: FLASK_ENV
         value: production
       - key: SECRET_KEY
         generateValue: true
       - key: ADMIN_PASSWORD
-        sync: false       # set manually in Render dashboard
+        sync: false
       - key: RESEND_API_KEY
-        sync: false       # set manually in Render dashboard
+        sync: false
       - key: WEBHOOK_SECRET
-        sync: false       # set manually in Render dashboard
+        sync: false
       - key: FRONTEND_URL
         value: https://hutko-kitchen.com
       - key: OWNER_EMAIL
-        sync: false       # set to nastiapolimasheva@hutko-kitchen.com in dashboard
+        sync: false
       - key: RENDER_EXTERNAL_URL
-        sync: false       # set to https://hutko-kitchen.onrender.com in dashboard (keep-alive ping)
-      - key: DATABASE_URL
-        sync: false       # set automatically when you attach a Render PostgreSQL database
-
-databases:
-  - name: hutko-db
-    databaseName: hutko
-    plan: free
+        sync: false
+      # DATABASE_URL — leave unset to use SQLite (safe default)
+      # Add a Render PostgreSQL database manually when ready to upgrade
