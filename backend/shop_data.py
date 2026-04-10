@@ -46,6 +46,8 @@ def _load_excel():
         if header_row is not None:
             headers = [str(c).strip() if c else '' for c in rows[header_row][1:]]
             for row in rows[header_row + 1:]:
+                if row[1] == 'product_id':
+                    break  # hit the variants table — stop
                 vals = row[1:]
                 if not any(vals):
                     continue
