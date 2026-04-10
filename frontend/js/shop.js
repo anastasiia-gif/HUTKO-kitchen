@@ -2,7 +2,7 @@
    Fetches products & bundles from /api/shop/all
    ─────────────────────────────────────────────────────── */
 
-const API_BASE = 'https://hutko-kitchen.onrender.com';
+// API_BASE defined in api.js
 let ALL_PRODUCTS = [];
 let ALL_BUNDLES  = [];
 
