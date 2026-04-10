@@ -553,8 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateLangSwitcher();
   applyTranslations();
   loadSettingsIntoPage();
-  // components.js also runs at DOMContentLoaded and injects navbar/footer HTML with data-i18n attrs.
-  // We re-apply translations after a short tick to catch those injected elements.
+  // Re-apply after 80ms so components.js-injected navbar HTML also gets translated
   setTimeout(() => { applyTranslations(); updateLangSwitcher(); }, 80);
 });
 

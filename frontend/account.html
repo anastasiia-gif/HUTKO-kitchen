@@ -179,26 +179,26 @@
     window.saveAddress = saveAddress;
 
     document.addEventListener('DOMContentLoaded', async () => {
-      /* If no token AND no cached user → redirect */
-      const hasToken = typeof getToken === 'function' && getToken();
-      const cached   = getUser();
+      /* Guard: only redirect if truly no token AND no cached user */
+      const hasToken = typeof getToken === 'function' && !!getToken();
+      const cached   = typeof getUser  === 'function' && getUser();
       if (!hasToken && !cached) {
         window.location.href = 'login.html?redirect=account.html';
         return;
       }
 
-      /* Render from cache immediately for instant UI */
+      /* Render from cache instantly */
       if (cached) {
-        document.getElementById('pageGreeting').textContent = `Hello, ${cached.name.split(' ')[0]} 👋`;
+        document.getElementById('pageGreeting').textContent  = `Hello, ${cached.name.split(' ')[0]} 👋`;
         document.getElementById('accountAvatar').textContent = cached.name.charAt(0).toUpperCase();
         document.getElementById('accountName').textContent   = cached.name;
         document.getElementById('accountEmail').textContent  = cached.email;
       }
 
-      /* Re-apply translations after components injected navbar */
+      /* Re-apply translations now that components have injected navbar */
       if (typeof applyTranslations === 'function') applyTranslations();
 
-      /* Fetch fresh user data — but don't block orders on failure */
+      /* Fetch fresh user — but NEVER let this block the orders fetch */
       const res = await Api.Auth.me();
       if (res.ok && res.data.user) {
         const user = res.data.user;
@@ -211,7 +211,6 @@
         document.getElementById('accountAvatar').textContent = user.name.charAt(0).toUpperCase();
         document.getElementById('accountName').textContent   = user.name;
         document.getElementById('accountEmail').textContent  = user.email;
-
         const parts = user.name.split(' ');
         document.getElementById('profFirst').value    = parts[0] || '';
         document.getElementById('profLast').value     = parts.slice(1).join(' ') || '';
@@ -226,9 +225,9 @@
         window.location.href = 'login.html';
         return;
       }
-      /* If status 0 (cold start / network) — stay on page, still load orders */
+      // status 0 (network/cold-start) → stay on page, still load orders below
 
-      /* Always load orders */
+      /* Always load orders regardless of /api/me result */
       const ordersRes = await Api.Orders.myOrders();
       renderOrders(ordersRes.ok ? ordersRes.data.orders : []);
 

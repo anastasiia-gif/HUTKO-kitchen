@@ -107,6 +107,7 @@ def _run_backup():
                      'Street','Post','City','Province','Method',
                      'Delivery Date','Items','Subtotal','Delivery','Total','Status'])
         for r in conn.execute("SELECT * FROM orders ORDER BY created_at DESC").fetchall():
+            r = dict(r)
             ws1.append([r['id'], r['order_ref'], r['created_at'],
                         r['customer_name'], r['customer_email'], r['customer_phone'],
                         r['addr_street'], r['addr_postcode'], r['addr_city'], r['addr_province'],
@@ -194,10 +195,15 @@ def _keep_alive():
         time.sleep(600)   # 10 minutes
 
 
-# Always init DB on startup — works with gunicorn AND direct run
-init_db()
+# Always init DB on startup — safe with gunicorn preload
+_db_ready = False
+try:
+    init_db()
+    _db_ready = True
+except Exception as _e:
+    print(f"[STARTUP] DB init error: {_e}")
 
-# Start background threads (only once — guard against gunicorn multi-worker restarts)
+# Start background threads once per process
 if os.environ.get('FLASK_ENV') != 'development' or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     threading.Thread(target=_backup_scheduler, daemon=True).start()
     threading.Thread(target=_keep_alive,       daemon=True).start()
