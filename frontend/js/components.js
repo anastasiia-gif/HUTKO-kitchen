@@ -153,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderNavbar();
   renderCartPanel();
   renderFooter();
-  // Re-apply translations after components inject their HTML
-  if (typeof applyTranslations === 'function') applyTranslations();
+  // Apply translations to all injected HTML
+  if (typeof applyTranslations  === 'function') applyTranslations();
+  if (typeof updateLangSwitcher === 'function') updateLangSwitcher();
 });

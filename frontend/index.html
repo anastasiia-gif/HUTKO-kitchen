@@ -297,8 +297,9 @@
     // Load home preview from API
     async function loadHomePreviews() {
       try {
-        const res  = await fetch('https://hutko-kitchen.onrender.com/api/shop/all');
-        const data = await res.json();
+        const res  = await Api.Shop.all();
+        if (!res.ok || !res.data) throw new Error('API error');
+        const data     = res.data;
         const products = (data.products || []).slice(0, 3);
         const bundles  = (data.bundles  || []).slice(0, 3);
 

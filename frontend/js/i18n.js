@@ -553,8 +553,6 @@ document.addEventListener('DOMContentLoaded', () => {
   updateLangSwitcher();
   applyTranslations();
   loadSettingsIntoPage();
-  // Re-apply after 80ms so components.js-injected navbar HTML also gets translated
-  setTimeout(() => { applyTranslations(); updateLangSwitcher(); }, 80);
 });
 
 /* ── SETTINGS FROM EXCEL ─────────────────────────────────────────────
