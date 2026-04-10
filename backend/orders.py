@@ -132,9 +132,11 @@ def checkout():
 @orders_bp.route('/api/orders', methods=['GET'])
 @token_required
 def get_my_orders():
+    from database import _use_postgres
     conn = get_db()
+    p    = '%s' if _use_postgres() else '?'
     rows = conn.execute(
-        "SELECT * FROM orders WHERE user_id=? ORDER BY created_at DESC",
+        f"SELECT * FROM orders WHERE user_id={p} ORDER BY created_at DESC",
         (g.user['id'],)
     ).fetchall()
     conn.close()

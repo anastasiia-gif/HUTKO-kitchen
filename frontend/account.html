@@ -103,7 +103,7 @@
   <script>
     /* Redirect if no token — wait for DOM so api.js is loaded */
     document.addEventListener('DOMContentLoaded', () => {
-      if (typeof getToken !== 'function' || (!getToken() && !getUser())) {
+      if (typeof getToken !== 'function' || !getToken()) {
         window.location.href = 'login.html?redirect=account.html';
       }
     });
@@ -179,8 +179,15 @@
     window.saveAddress = saveAddress;
 
     document.addEventListener('DOMContentLoaded', async () => {
-      /* Load user from cache first for instant render */
-      const cached = getUser();
+      /* If no token AND no cached user → redirect */
+      const hasToken = typeof getToken === 'function' && getToken();
+      const cached   = getUser();
+      if (!hasToken && !cached) {
+        window.location.href = 'login.html?redirect=account.html';
+        return;
+      }
+
+      /* Render from cache immediately for instant UI */
       if (cached) {
         document.getElementById('pageGreeting').textContent = `Hello, ${cached.name.split(' ')[0]} 👋`;
         document.getElementById('accountAvatar').textContent = cached.name.charAt(0).toUpperCase();
@@ -188,35 +195,40 @@
         document.getElementById('accountEmail').textContent  = cached.email;
       }
 
-      /* Fetch fresh data from server */
+      /* Re-apply translations after components injected navbar */
+      if (typeof applyTranslations === 'function') applyTranslations();
+
+      /* Fetch fresh user data — but don't block orders on failure */
       const res = await Api.Auth.me();
-      if (!res.ok) {
-        if (res.status === 401) { clearToken(); window.location.href = 'login.html'; }
+      if (res.ok && res.data.user) {
+        const user = res.data.user;
+        localStorage.setItem('hutko_user', JSON.stringify({
+          id: user.id, name: user.name, email: user.email,
+          addr_street: user.addr_street || '', addr_postcode: user.addr_postcode || '',
+          addr_city:   user.addr_city   || '', addr_province: user.addr_province || '',
+        }));
+        document.getElementById('pageGreeting').textContent  = `Hello, ${user.name.split(' ')[0]} 👋`;
+        document.getElementById('accountAvatar').textContent = user.name.charAt(0).toUpperCase();
+        document.getElementById('accountName').textContent   = user.name;
+        document.getElementById('accountEmail').textContent  = user.email;
+
+        const parts = user.name.split(' ');
+        document.getElementById('profFirst').value    = parts[0] || '';
+        document.getElementById('profLast').value     = parts.slice(1).join(' ') || '';
+        document.getElementById('profEmail').value    = user.email || '';
+        document.getElementById('profPhone').value    = user.phone || '';
+        document.getElementById('addrStreet').value   = user.addr_street   || '';
+        document.getElementById('addrPost').value     = user.addr_postcode || '';
+        document.getElementById('addrCity').value     = user.addr_city     || '';
+        document.getElementById('addrProvince').value = user.addr_province || '';
+      } else if (res.status === 401) {
+        clearToken();
+        window.location.href = 'login.html';
         return;
       }
-      const user = res.data.user;
-      localStorage.setItem('hutko_user', JSON.stringify({ id: user.id, name: user.name, email: user.email }));
+      /* If status 0 (cold start / network) — stay on page, still load orders */
 
-      /* Update header */
-      document.getElementById('pageGreeting').textContent = `Hello, ${user.name.split(' ')[0]} 👋`;
-      document.getElementById('accountAvatar').textContent = user.name.charAt(0).toUpperCase();
-      document.getElementById('accountName').textContent   = user.name;
-      document.getElementById('accountEmail').textContent  = user.email;
-
-      /* Profile fields */
-      const parts = user.name.split(' ');
-      document.getElementById('profFirst').value = parts[0] || '';
-      document.getElementById('profLast').value  = parts.slice(1).join(' ') || '';
-      document.getElementById('profEmail').value = user.email || '';
-      document.getElementById('profPhone').value = user.phone || '';
-
-      /* Address fields */
-      document.getElementById('addrStreet').value   = user.addr_street   || '';
-      document.getElementById('addrPost').value     = user.addr_postcode || '';
-      document.getElementById('addrCity').value     = user.addr_city     || '';
-      document.getElementById('addrProvince').value = user.addr_province || '';
-
-      /* Orders */
+      /* Always load orders */
       const ordersRes = await Api.Orders.myOrders();
       renderOrders(ordersRes.ok ? ordersRes.data.orders : []);
 

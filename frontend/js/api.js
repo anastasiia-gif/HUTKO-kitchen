@@ -158,8 +158,8 @@ async function syncSession() {
       fill('coProvince', user.addr_province);
     }
   } else if (res.status === 401) {
-    // Only clear on an explicit "token rejected" — not on network error (status 0)
-    // or CORS failures. This keeps users logged in during server cold starts.
+    // Only wipe token on a genuine "rejected" response.
+    // status 0 = network error / cold-start CORS — keep the user logged in.
     clearToken();
   }
 }
