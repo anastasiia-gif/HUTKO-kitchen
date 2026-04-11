@@ -13,9 +13,28 @@ const NAV_LINKS = [
   { href:'contact.html',  key:'nav_contact',  label:'Contact' },
 ];
 
+const EN_FALLBACK = {
+  nav_home:'Home', nav_shop:'Shop / Order', nav_about:'About Us',
+  nav_delivery:'Delivery & Info', nav_contact:'Contact',
+  nav_search:'Search products...', nav_signin:'Sign in',
+  nav_myaccount:'My account', nav_myorders:'My orders',
+  nav_signout:'Sign out', nav_cart:'Cart', nav_register:'Register',
+  footer_tagline:'Authentic Ukrainian frozen food, delivered across the Netherlands.',
+  footer_pages:'Pages', footer_products:'Products', footer_contact:'Contact',
+  footer_copy:`© ${new Date().getFullYear()} HUTKO Frozen Food. All rights reserved.`,
+  cart_title:'Your order', cart_empty:'Your cart is empty.',
+  cart_total:'Total', cart_checkout:'Proceed to checkout',
+};
+
 function getUser() {
   try { return JSON.parse(localStorage.getItem('hutko_user')) || null; } catch { return null; }
 }
+
+// Safe wrapper — works even if i18n.js failed to load
+const _tr = (key) => {
+  if (typeof t === 'function') return t(key);
+  return EN_FALLBACK[key] || key;
+};
 async function logoutUser() {
   if (window.Api) await window.Api.Auth.logout();
   else { localStorage.removeItem('hutko_user'); localStorage.removeItem('hutko_token'); }
@@ -27,7 +46,7 @@ window.toggleUserMenu = toggleUserMenu;
 
 function renderNavbar() {
   const lang = (typeof getLang === 'function') ? getLang() : 'en';
-  const tr   = (key) => (typeof t === 'function') ? t(key) : key;
+  const tr   = _tr;
 
   const links = NAV_LINKS.map(l => `<li><a href="${l.href}" data-i18n="${l.key}">${tr(l.key) || l.label}</a></li>`).join('');
   const drawerLinks = NAV_LINKS.map(l => `<a href="${l.href}" data-i18n="${l.key}">${tr(l.key) || l.label}</a>`).join('');
@@ -105,7 +124,7 @@ function renderNavbar() {
 }
 
 function renderCartPanel() {
-  const tr = (key) => (typeof t === 'function') ? t(key) : key;
+  const tr = _tr;
   document.getElementById('cart-placeholder').innerHTML = `
   <div class="cart-overlay" id="cartOverlay"></div>
   <div class="cart-panel" id="cartPanel">
@@ -122,7 +141,7 @@ function renderCartPanel() {
 }
 
 function renderFooter() {
-  const tr = (key) => (typeof t === 'function') ? t(key) : key;
+  const tr = _tr;
   const links = NAV_LINKS.map(l => `<a href="${l.href}" data-i18n="${l.key}">${tr(l.key) || l.label}</a>`).join('');
   document.getElementById('footer-placeholder').innerHTML = `
   <footer class="footer"><div class="footer-inner">
