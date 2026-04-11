@@ -183,10 +183,10 @@ def _keep_alive():
     import urllib.request
     # Wait for server to fully start before first ping
     time.sleep(30)
-    # Use RENDER_EXTERNAL_URL env var, or fall back to the known Render URL
+    # Use env var or fall back to known Render URL so server never sleeps
     api_url = os.environ.get('RENDER_EXTERNAL_URL', 'https://hutko-kitchen.onrender.com')
     ping_url = api_url.rstrip('/') + '/api/health'
-    print(f"[KEEP-ALIVE] Will ping {ping_url} every 10 minutes")
+    print(f"[KEEP-ALIVE] Will ping {ping_url} every 10 min")
     while True:
         try:
             urllib.request.urlopen(ping_url, timeout=10)

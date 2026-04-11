@@ -1,270 +1,301 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create account — HUTKO Kitchen</title>
-  <link rel="stylesheet" href="css/style.css">
-  <!-- Google Identity Services -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create account — HUTKO Kitchen</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-  <div id="navbar-placeholder"></div>
+    <div id="navbar-placeholder"></div>
 
-  <div class="auth-page">
-    <div class="auth-card anim-fade-up" style="max-width:460px;">
+    <div class="auth-page">
+        <div class="auth-card anim-fade-up" style="max-width:460px;">
 
-      <!-- Logo -->
-      <div class="auth-logo">
-        <img src="assets/logo_nav.png" alt="HUTKO" class="auth-logo-img">
-        <span class="auth-logo-text">HUTKO</span>
-      </div>
+            <!-- Logo -->
+            <div class="auth-logo">
+                <img src="assets/logo_nav.png" alt="HUTKO" class="auth-logo-img">
+                <span class="auth-logo-text">HUTKO</span>
+            </div>
 
-      <h1 class="auth-title">Create account</h1>
-      <p class="auth-sub">Join HUTKO Kitchen to track orders and save your delivery details.</p>
+            <h1 class="auth-title">Create account</h1>
+            <p class="auth-sub">Join HUTKO Kitchen to track orders and save your delivery details.</p>
 
-      <!-- Google Sign In -->
-      <div id="google-btn-wrap" style="margin-bottom:1.25rem;">
-        <div id="g_id_onload"
-          data-client_id="41618761055-34k8r3fj6dfm0shhe63mkgoj63abkk0p.apps.googleusercontent.com"
-          data-callback="handleGoogleLogin"
-          data-auto_prompt="false">
+            <!-- Google Sign In -->
+            <div id="google-btn-wrap" style="margin-bottom:1.25rem;">
+                <div id="g_id_onload"
+                     data-client_id="41618761055-34k8r3fj6dfm0shhe63mkgoj63abkk0p.apps.googleusercontent.com"
+                     data-callback="handleGoogleLogin"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-size="large"
+                     data-theme="outline"
+                     data-text="continue_with"
+                     data-shape="pill"
+                     data-width="380"
+                     data-logo_alignment="left">
+                </div>
+            </div>
+
+            <!-- Email section — hidden when Google is used -->
+            <div id="emailRegSection">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;">
+                    <div style="flex:1;height:1px;background:var(--border);"></div>
+                    <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">or with email</span>
+                    <div style="flex:1;height:1px;background:var(--border);"></div>
+                </div>
+
+                <!-- Error box -->
+                <div class="auth-error" id="regError"></div>
+
+                <!-- Form -->
+                <div class="auth-form" id="regForm">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="form-group">
+                            <label>First name</label>
+                            <input class="form-control" type="text" id="regFirst" placeholder="Anna" autocomplete="given-name">
+                        </div>
+                        <div class="form-group">
+                            <label>Last name</label>
+                            <input class="form-control" type="text" id="regLast" placeholder="Kovalenko" autocomplete="family-name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email address</label>
+                        <input class="form-control" type="email" id="regEmail" placeholder="anna@email.com" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone number <span style="opacity:.5;font-weight:400;">optional</span></label>
+                        <input class="form-control" type="tel" id="regPhone" placeholder="+31 6 00 00 00 00" autocomplete="tel">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input class="form-control" type="password" id="regPass" placeholder="At least 6 characters" autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm password</label>
+                        <input class="form-control" type="password" id="regPass2" placeholder="Repeat your password" autocomplete="new-password">
+                    </div>
+
+                    <!-- Terms & Conditions -->
+                    <div style="display:flex;align-items:flex-start;gap:10px;margin-top:.25rem;">
+                        <input type="checkbox" id="agreeTerms" style="margin-top:3px;width:16px;height:16px;cursor:pointer;accent-color:var(--blue);flex-shrink:0;">
+                        <label for="agreeTerms" style="font-size:13px;color:var(--ink-soft);line-height:1.5;cursor:pointer;">
+                            I agree to the
+                            <a href="#" onclick="showTerms(event)" style="color:var(--blue);font-weight:600;">Terms & Conditions</a>
+                            and
+                            <a href="#" onclick="showPrivacy(event)" style="color:var(--blue);font-weight:600;">Privacy Policy</a>.
+                            I understand that HUTKO Kitchen will process my data to fulfill orders.
+                        </label>
+                    </div>
+
+                    <!-- Newsletter opt-in -->
+                    <div style="display:flex;align-items:flex-start;gap:10px;margin-top:.5rem;">
+                        <input type="checkbox" id="agreeNewsletter" checked style="margin-top:3px;width:16px;height:16px;cursor:pointer;accent-color:var(--blue);flex-shrink:0;">
+                        <label for="agreeNewsletter" style="font-size:13px;color:var(--ink-soft);line-height:1.5;cursor:pointer;">
+                            Send me updates about new dishes, seasonal offers and delivery news.
+                        </label>
+                    </div>
+
+                    <button class="auth-submit" onclick="doRegister()">Create account</button>
+                </div>
+
+                <div class="auth-divider" style="margin-top:1.25rem;">
+                    Already have an account? <a href="login.html">Sign in</a>
+                </div>
+                <div class="auth-divider" style="margin-top:8px;">
+                    <a href="index.html" style="font-weight:400;opacity:0.6;">← Back to homepage</a>
+                </div>
+            </div><!-- end emailRegSection -->
+
         </div>
-        <div class="g_id_signin"
-          data-type="standard"
-          data-size="large"
-          data-theme="outline"
-          data-text="continue_with"
-          data-shape="pill"
-          data-width="380"
-          data-logo_alignment="left">
-        </div>
-      </div>
-
-      <!-- Divider -->
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;">
-        <div style="flex:1;height:1px;background:var(--border);"></div>
-        <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">or with email</span>
-        <div style="flex:1;height:1px;background:var(--border);"></div>
-      </div>
-
-      <!-- Error box -->
-      <div class="auth-error" id="regError"></div>
-
-      <!-- Form -->
-      <div class="auth-form" id="regForm">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="form-group">
-            <label>First name</label>
-            <input class="form-control" type="text" id="regFirst" placeholder="Anna" autocomplete="given-name">
-          </div>
-          <div class="form-group">
-            <label>Last name</label>
-            <input class="form-control" type="text" id="regLast" placeholder="Kovalenko" autocomplete="family-name">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Email address</label>
-          <input class="form-control" type="email" id="regEmail" placeholder="anna@email.com" autocomplete="email">
-        </div>
-        <div class="form-group">
-          <label>Phone number <span style="opacity:.5;font-weight:400;">optional</span></label>
-          <input class="form-control" type="tel" id="regPhone" placeholder="+31 6 00 00 00 00" autocomplete="tel">
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input class="form-control" type="password" id="regPass" placeholder="At least 6 characters" autocomplete="new-password">
-        </div>
-        <div class="form-group">
-          <label>Confirm password</label>
-          <input class="form-control" type="password" id="regPass2" placeholder="Repeat your password" autocomplete="new-password">
-        </div>
-
-        <!-- Terms & Conditions -->
-        <div style="display:flex;align-items:flex-start;gap:10px;margin-top:.25rem;">
-          <input type="checkbox" id="agreeTerms" style="margin-top:3px;width:16px;height:16px;cursor:pointer;accent-color:var(--blue);flex-shrink:0;">
-          <label for="agreeTerms" style="font-size:13px;color:var(--ink-soft);line-height:1.5;cursor:pointer;">
-            I agree to the
-            <a href="#" onclick="showTerms(event)" style="color:var(--blue);font-weight:600;">Terms & Conditions</a>
-            and
-            <a href="#" onclick="showPrivacy(event)" style="color:var(--blue);font-weight:600;">Privacy Policy</a>.
-            I understand that HUTKO Kitchen will process my data to fulfill orders.
-          </label>
-        </div>
-
-        <!-- Newsletter opt-in -->
-        <div style="display:flex;align-items:flex-start;gap:10px;margin-top:.5rem;">
-          <input type="checkbox" id="agreeNewsletter" checked style="margin-top:3px;width:16px;height:16px;cursor:pointer;accent-color:var(--blue);flex-shrink:0;">
-          <label for="agreeNewsletter" style="font-size:13px;color:var(--ink-soft);line-height:1.5;cursor:pointer;">
-            Send me updates about new dishes, seasonal offers and delivery news.
-          </label>
-        </div>
-
-        <button class="auth-submit" onclick="doRegister()">Create account</button>
-      </div>
-
-      <div class="auth-divider" style="margin-top:1.25rem;">
-        Already have an account? <a href="login.html">Sign in</a>
-      </div>
-      <div class="auth-divider" style="margin-top:8px;">
-        <a href="index.html" style="font-weight:400;opacity:0.6;">← Back to homepage</a>
-      </div>
-
     </div>
-  </div>
 
-  <!-- Terms modal -->
-  <div id="termsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;
+    <!-- Terms modal -->
+    <div id="termsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;
        display:none;align-items:center;justify-content:center;padding:1rem;">
-    <div style="background:#fff;border-radius:20px;padding:2rem;max-width:560px;width:100%;max-height:80vh;overflow-y:auto;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
-        <h2 style="font-family:var(--display);font-size:22px;color:var(--ink);">Terms & Conditions</h2>
-        <button onclick="closeModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink-soft);">✕</button>
-      </div>
-      <div style="font-size:14px;color:var(--ink-soft);line-height:1.75;">
-        <p><strong style="color:var(--ink);">1. Service</strong><br>
-        HUTKO Kitchen provides frozen Ukrainian food delivery across the Netherlands. Orders are accepted online and delivered on Thursdays and Saturdays.</p>
-        <p><strong style="color:var(--ink);">2. Orders & Payment</strong><br>
-        Orders must be paid via bank transfer or cash on delivery within 24 hours of confirmation. We reserve the right to cancel unpaid orders.</p>
-        <p><strong style="color:var(--ink);">3. Delivery</strong><br>
-        We deliver across all Netherlands provinces. Minimum order €25. Flat rate €5 delivery, free over €60. Delivery times may vary.</p>
-        <p><strong style="color:var(--ink);">4. Food Safety</strong><br>
-        All products are frozen immediately after cooking. Store at -18°C. Follow cooking instructions on packaging. Not suitable for refreezing after thawing.</p>
-        <p><strong style="color:var(--ink);">5. Cancellations</strong><br>
-        Orders may be cancelled up to 24 hours before the delivery date. Contact us at orders@hutko-kitchen.com.</p>
-        <p><strong style="color:var(--ink);">6. Data</strong><br>
-        We process your personal data (name, address, email) solely to fulfill your orders. We do not share your data with third parties. See our Privacy Policy.</p>
-        <p style="color:#999;font-size:12px;margin-top:1.5rem;">Last updated: April 2025 · HUTKO Kitchen · Amsterdam, Netherlands · KVK: (ZZP registration)</p>
-      </div>
-      <button onclick="acceptTerms()" style="width:100%;margin-top:1.5rem;background:var(--blue);color:#fff;
+        <div style="background:#fff;border-radius:20px;padding:2rem;max-width:560px;width:100%;max-height:80vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+                <h2 style="font-family:var(--display);font-size:22px;color:var(--ink);">Terms & Conditions</h2>
+                <button onclick="closeModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink-soft);">✕</button>
+            </div>
+            <div style="font-size:14px;color:var(--ink-soft);line-height:1.75;">
+                <p>
+                    <strong style="color:var(--ink);">1. Service</strong><br>
+                    HUTKO Kitchen provides frozen Ukrainian food delivery across the Netherlands. Orders are accepted online and delivered on Thursdays and Saturdays.
+                </p>
+                <p>
+                    <strong style="color:var(--ink);">2. Orders & Payment</strong><br>
+                    Orders must be paid via bank transfer or cash on delivery within 24 hours of confirmation. We reserve the right to cancel unpaid orders.
+                </p>
+                <p>
+                    <strong style="color:var(--ink);">3. Delivery</strong><br>
+                    We deliver across all Netherlands provinces. Minimum order €25. Flat rate €5 delivery, free over €60. Delivery times may vary.
+                </p>
+                <p>
+                    <strong style="color:var(--ink);">4. Food Safety</strong><br>
+                    All products are frozen immediately after cooking. Store at -18°C. Follow cooking instructions on packaging. Not suitable for refreezing after thawing.
+                </p>
+                <p>
+                    <strong style="color:var(--ink);">5. Cancellations</strong><br>
+                    Orders may be cancelled up to 24 hours before the delivery date. Contact us at orders@hutko-kitchen.com.
+                </p>
+                <p>
+                    <strong style="color:var(--ink);">6. Data</strong><br>
+                    We process your personal data (name, address, email) solely to fulfill your orders. We do not share your data with third parties. See our Privacy Policy.
+                </p>
+                <p style="color:#999;font-size:12px;margin-top:1.5rem;">Last updated: April 2025 · HUTKO Kitchen · Amsterdam, Netherlands · KVK: (ZZP registration)</p>
+            </div>
+            <button onclick="acceptTerms()" style="width:100%;margin-top:1.5rem;background:var(--blue);color:#fff;
               border:none;border-radius:100px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;">
-        I agree to these terms
-      </button>
+                I agree to these terms
+            </button>
+        </div>
     </div>
-  </div>
 
-  <div id="footer-placeholder"></div>
-  <script src="js/api.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/components.js"></script>
-  <script src="js/main.js"></script>
-  <script>
-    // Redirect if already logged in
-    if (typeof getToken === 'function' && getToken()) {
-      window.location.href = 'account.html';
-    }
-
-    // ── GOOGLE LOGIN ────────────────────────────────────
-    async function handleGoogleLogin(response) {
-      // Decode JWT from Google
-      const base64 = response.credential.split('.')[1];
-      const payload = JSON.parse(atob(base64));
-      const { name, email, sub: googleId } = payload;
-
-      // Register or login via backend
-      const nameParts = name.split(' ');
-      const first = nameParts[0];
-      const last  = nameParts.slice(1).join(' ') || first;
-
-      // Try login first, then register
-      let res = await Api.Auth.login(email, `google_${googleId}`);
-      if (!res.ok) {
-        res = await Api.Auth.register(name, email, `google_${googleId}`, '');
-      }
-
-      if (res.ok) {
-        if (res.data.user) {
-          localStorage.setItem('hutko_user', JSON.stringify({
-            id: res.data.user.id, name: res.data.user.name, email: res.data.user.email,
-          }));
+    <div id="footer-placeholder"></div>
+    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Redirect if already logged in
+        if (typeof getToken === 'function' && getToken()) {
+            window.location.href = 'account.html';
         }
-        const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
-        window.location.href = redirect;
-      } else {
-        const err = document.getElementById('regError');
-        err.textContent = 'Google sign-in failed. Please try with email.';
-        err.style.display = 'block';
-      }
-    }
 
-    // ── EMAIL REGISTER ──────────────────────────────────
-    async function doRegister() {
-      const first  = document.getElementById('regFirst').value.trim();
-      const last   = document.getElementById('regLast').value.trim();
-      const email  = document.getElementById('regEmail').value.trim();
-      const phone  = document.getElementById('regPhone').value.trim();
-      const pass   = document.getElementById('regPass').value;
-      const pass2  = document.getElementById('regPass2').value;
-      const terms  = document.getElementById('agreeTerms').checked;
-      const err    = document.getElementById('regError');
-      err.style.display = 'none';
+        // ── GOOGLE LOGIN ────────────────────────────────────
+        let _googleUsed = false;
 
-      if (!first || !last || !email || !pass) {
-        err.textContent = 'Please fill in all required fields.';
-        err.style.display = 'block'; return;
-      }
-      if (pass.length < 6) {
-        err.textContent = 'Password must be at least 6 characters.';
-        err.style.display = 'block'; return;
-      }
-      if (pass !== pass2) {
-        err.textContent = 'Passwords do not match.';
-        err.style.display = 'block'; return;
-      }
-      if (!terms) {
-        err.textContent = 'Please agree to the Terms & Conditions to continue.';
-        err.style.display = 'block'; return;
-      }
+        function _hideRegForm() {
+            document.getElementById('emailRegSection').style.display = 'none';
+        }
 
-      const btn = document.querySelector('.auth-submit');
-      btn.textContent = 'Creating account…';
-      btn.disabled = true;
+        async function handleGoogleLogin(response) {
+            _googleUsed = true;
+            _hideRegForm(); // hide email form — Google is handling it
 
-      const res = await Api.Auth.register(`${first} ${last}`, email, pass, phone);
+            const base64 = response.credential.split('.')[1];
+            const payload = JSON.parse(atob(base64));
+            const { name, email, sub: googleId } = payload;
 
-      if (!res.ok) {
-        err.textContent = res.data.error || 'Registration failed. Please try again.';
-        err.style.display = 'block';
-        btn.textContent = 'Create account';
-        btn.disabled = false;
-        return;
-      }
+            const err = document.getElementById('regError');
+            err.style.display = 'none';
 
-      // Save user before redirect
-      if (res.data.user) {
-        localStorage.setItem('hutko_user', JSON.stringify({
-          id: res.data.user.id, name: res.data.user.name, email: res.data.user.email,
-        }));
-      }
+            // Show loading
+            const wrap = document.getElementById('google-btn-wrap');
+            wrap.innerHTML = '<div style="text-align:center;padding:12px;font-size:13px;color:var(--ink-soft);">Signing in with Google…</div>';
 
-      // Subscribe to newsletter if opted in
-      if (document.getElementById('agreeNewsletter').checked) {
-        try { await Api.Contact.subscribe(email); } catch(e) {}
-      }
+            // Try login first (existing account), then register (new user)
+            let res = await Api.Auth.login(email, `google_${googleId}`);
+            if (!res.ok && res.status !== 401) {
+                await new Promise(r => setTimeout(r, 2000));
+                res = await Api.Auth.login(email, `google_${googleId}`);
+            }
+            if (!res.ok) {
+                res = await Api.Auth.register(name, email, `google_${googleId}`, '');
+            }
 
-      showToast('Account created! Welcome to HUTKO Kitchen 🇺🇦');
-      const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
-      setTimeout(() => window.location.href = redirect, 600);
-    }
+            if (res.ok) {
+                if (res.data.user) {
+                    localStorage.setItem('hutko_user', JSON.stringify({
+                        id: res.data.user.id, name: res.data.user.name, email: res.data.user.email,
+                    }));
+                }
+                const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
+                window.location.href = redirect;
+            } else {
+                _googleUsed = false;
+                document.getElementById('emailRegSection').style.display = 'block';
+                err.textContent = 'Google sign-in failed. Please try again or use email below.';
+                err.style.display = 'block';
+            }
+        }
 
-    // ── TERMS MODAL ─────────────────────────────────────
-    function showTerms(e) {
-      e.preventDefault();
-      document.getElementById('termsModal').style.display = 'flex';
-    }
-    function showPrivacy(e) {
-      e.preventDefault();
-      document.getElementById('termsModal').style.display = 'flex';
-    }
-    function closeModal() {
-      document.getElementById('termsModal').style.display = 'none';
-    }
-    function acceptTerms() {
-      document.getElementById('agreeTerms').checked = true;
-      closeModal();
-    }
+        // ── EMAIL REGISTER ──────────────────────────────────
+        async function doRegister() {
+            if (_googleUsed) return; // Google already handled auth
 
-    document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
-  </script>
+            const first = document.getElementById('regFirst').value.trim();
+            const last = document.getElementById('regLast').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const pass = document.getElementById('regPass').value;
+            const pass2 = document.getElementById('regPass2').value;
+            const terms = document.getElementById('agreeTerms').checked;
+            const err = document.getElementById('regError');
+            err.style.display = 'none';
+
+            if (!first || !last || !email || !pass) {
+                err.textContent = 'Please fill in all required fields.';
+                err.style.display = 'block'; return;
+            }
+            if (pass.length < 6) {
+                err.textContent = 'Password must be at least 6 characters.';
+                err.style.display = 'block'; return;
+            }
+            if (pass !== pass2) {
+                err.textContent = 'Passwords do not match.';
+                err.style.display = 'block'; return;
+            }
+            if (!terms) {
+                err.textContent = 'Please agree to the Terms & Conditions to continue.';
+                err.style.display = 'block'; return;
+            }
+
+            const btn = document.querySelector('.auth-submit');
+            btn.textContent = 'Creating account…';
+            btn.disabled = true;
+
+            const res = await Api.Auth.register(`${first} ${last}`, email, pass, phone);
+
+            if (!res.ok) {
+                err.textContent = res.data.error || 'Registration failed. Please try again.';
+                err.style.display = 'block';
+                btn.textContent = 'Create account';
+                btn.disabled = false;
+                return;
+            }
+
+            // Save user before redirect
+            if (res.data.user) {
+                localStorage.setItem('hutko_user', JSON.stringify({
+                    id: res.data.user.id, name: res.data.user.name, email: res.data.user.email,
+                }));
+            }
+
+            // Subscribe to newsletter if opted in
+            if (document.getElementById('agreeNewsletter').checked) {
+                try { await Api.Contact.subscribe(email); } catch (e) { }
+            }
+
+            showToast('Account created! Welcome to HUTKO Kitchen 🇺🇦');
+            const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
+            setTimeout(() => window.location.href = redirect, 600);
+        }
+
+        // ── TERMS MODAL ─────────────────────────────────────
+        function showTerms(e) {
+            e.preventDefault();
+            document.getElementById('termsModal').style.display = 'flex';
+        }
+        function showPrivacy(e) {
+            e.preventDefault();
+            document.getElementById('termsModal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('termsModal').style.display = 'none';
+        }
+        function acceptTerms() {
+            document.getElementById('agreeTerms').checked = true;
+            closeModal();
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+    </script>
 </body>
 </html>
