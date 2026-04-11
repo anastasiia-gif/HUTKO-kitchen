@@ -500,6 +500,7 @@ const TRANSLATIONS = {
     apply_partner_perk1:'Groothandelsprijzen voor bulkbestellingen',
     apply_partner_perk2:'Co-branding en marketingondersteuning',
     apply_partner_perk3:"Flexibele bezorgschema's",
+  },
 };
 
 const I18N_KEY = 'hutko_lang';
