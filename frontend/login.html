@@ -90,12 +90,24 @@
       const err = document.getElementById('loginError');
       err.style.display = 'none';
 
-      // Try login first, then register (for first-time Google users landing on login)
+      // Show a loading state on the Google button area
+      const wrap = document.getElementById('google-btn-wrap');
+      const origHtml = wrap.innerHTML;
+      wrap.innerHTML = '<div style="text-align:center;padding:12px;font-size:13px;color:var(--ink-soft);">Signing in with Google…</div>';
+
+      // Try login first (existing account), then auto-register (first-time Google user)
       let res = await Api.Auth.login(email, `google_${googleId}`);
+      if (!res.ok && res.status !== 401) {
+        // Network/cold-start error — retry once after 2s
+        await new Promise(r => setTimeout(r, 2000));
+        res = await Api.Auth.login(email, `google_${googleId}`);
+      }
       if (!res.ok) {
+        // Account doesn't exist yet — register automatically
         res = await Api.Auth.register(name, email, `google_${googleId}`, '');
       }
       if (res.ok) {
+        // Token is already saved by Api.Auth.login/register internally
         if (res.data.user) {
           const u = res.data.user;
           localStorage.setItem('hutko_user', JSON.stringify({
@@ -107,8 +119,13 @@
         const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
         window.location.href = redirect;
       } else {
-        err.textContent = 'Google sign-in failed. Please try with email.';
+        wrap.innerHTML = origHtml;
+        err.textContent = 'Google sign-in failed. Please try again or use email below.';
         err.style.display = 'block';
+        // Re-init Google button
+        if (window.google && google.accounts) google.accounts.id.renderButton(
+          document.querySelector('.g_id_signin'), { type:'standard', size:'large', theme:'outline', text:'signin_with', shape:'pill', width:380 }
+        );
       }
     }
 
