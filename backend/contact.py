@@ -1,33 +1,15 @@
 """
 HUTKO — contact.py
 Contact form submissions and newsletter signups.
-Optionally sends confirmation emails via Resend.
+Sends branded emails via emails.py
 """
 
 import os
-import resend
 from flask import Blueprint, request, jsonify
 from database import get_db
+from emails import send_contact_reply, send_contact_notification, send_email
 
 contact_bp = Blueprint('contact', __name__)
-
-
-def send_email(to: str, subject: str, html: str):
-    """Send email via Resend. Silently skips if API key not configured."""
-    api_key = os.environ.get('RESEND_API_KEY')
-    if not api_key:
-        print(f"[EMAIL SKIPPED — no RESEND_API_KEY] To: {to} | Subject: {subject}")
-        return
-    resend.api_key = api_key
-    try:
-        resend.Emails.send({
-            "from":    "HUTKO <noreply@hutko.nl>",
-            "to":      [to],
-            "subject": subject,
-            "html":    html,
-        })
-    except Exception as e:
-        print(f"[EMAIL ERROR] {e}")
 
 
 # ── CONTACT FORM ─────────────────────────────────────────
@@ -56,13 +38,16 @@ def contact():
     conn.commit()
     conn.close()
 
-    # Auto-reply to sender
-    send_email(email, "We received your message — HUTKO", f"""
-        <p>Hi {name},</p>
-        <p>Thanks for reaching out! We've received your message about <strong>{topic}</strong> and will get back to you within 2 business days.</p>
-        <p>Your message: <em>{body[:200]}{'...' if len(body) > 200 else ''}</em></p>
-        <br><p>Warm regards,<br>The HUTKO team</p>
-    """)
+    # Send emails
+    try:
+        send_contact_reply(name, email, topic, body)
+        send_contact_notification(
+            name, email,
+            data.get('phone', ''),
+            topic, title, body
+        )
+    except Exception as e:
+        print(f"[CONTACT EMAIL ERROR] {e}")
 
     return jsonify({'message': 'Message received. Thank you!'}), 201
 
@@ -89,10 +74,18 @@ def newsletter():
     conn.commit()
     conn.close()
 
-    send_email(email, "Welcome to the HUTKO newsletter!", """
-        <p>You're now subscribed to HUTKO updates!</p>
-        <p>Expect Ukrainian food stories, new dish announcements, seasonal recipes and exclusive offers.</p>
-        <br><p>З любов'ю / With love,<br>The HUTKO team</p>
-    """)
+    try:
+        send_email(email, "Welcome to the HUTKO Kitchen newsletter! 🇺🇦", """
+            <!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f4f0e8;padding:40px 20px;">
+            <div style="max-width:500px;margin:0 auto;background:#fff;border-radius:16px;padding:40px;">
+            <h2 style="color:#1B3FCE;margin:0 0 16px;">You're subscribed! 🎉</h2>
+            <p style="color:#666;line-height:1.7;">
+                Expect Ukrainian food stories, new dish announcements, seasonal recipes and exclusive offers.
+            </p>
+            <p style="color:#999;font-size:13px;margin-top:24px;">З любов'ю / With love,<br><strong style="color:#111;">The HUTKO Kitchen team</strong></p>
+            </div></body></html>
+        """)
+    except Exception as e:
+        print(f"[NEWSLETTER EMAIL ERROR] {e}")
 
     return jsonify({'message': 'Subscribed successfully!'}), 201

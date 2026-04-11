@@ -26,9 +26,9 @@
       <div class="account-email" id="accountEmail"></div>
       <ul class="account-nav">
         <li><a href="#orders" class="active" onclick="switchTab('orders',this)">📦 My orders</a></li>
-        <li><a href="#profile" onclick="switchTab('profile',this)">👤 Profile</a></li>
-        <li><a href="#address" onclick="switchTab('address',this)">📍 Saved address</a></li>
-        <li><a href="#" onclick="logoutUser()" style="color:var(--orange);opacity:1;">↩ Sign out</a></li>
+        <li><a href="#profile" onclick="switchTab('profile',this)" data-i18n="acc_nav_profile">👤 Profile</a></li>
+        <li><a href="#address" onclick="switchTab('address',this)" data-i18n="acc_nav_address">📍 Saved address</a></li>
+        <li><a href="#" onclick="logoutUser()" style="color:var(--orange);opacity:1;" data-i18n="acc_signout">↩ Sign out</a></li>
       </ul>
     </aside>
 
@@ -43,7 +43,7 @@
 
       <!-- PROFILE -->
       <div class="account-section" id="tab-profile">
-        <div class="account-section-title">Profile details</div>
+        <div class="account-section-title" data-i18n="acc_profile_title">Profile details</div>
         <div class="profile-card">
           <div style="display:flex;flex-direction:column;gap:14px;">
             <div class="field-row">
@@ -59,14 +59,14 @@
                 <div class="field"><label>Confirm new password</label><input type="password" id="profPass2" placeholder="Repeat new password"></div>
               </div>
             </div>
-            <button class="btn btn-dark" style="align-self:flex-start;" onclick="saveProfile()">Save changes</button>
+            <button class="btn btn-dark" style="align-self:flex-start;" onclick="saveProfile()" data-i18n="acc_save_profile">Save changes</button>
           </div>
         </div>
       </div>
 
       <!-- ADDRESS -->
       <div class="account-section" id="tab-address">
-        <div class="account-section-title">Saved delivery address</div>
+        <div class="account-section-title" data-i18n="acc_address_title">Saved delivery address</div>
         <div class="profile-card">
           <div style="display:flex;flex-direction:column;gap:14px;">
             <div class="field"><label>Street address</label><input type="text" id="addrStreet" placeholder="Damrak 1"></div>
@@ -86,7 +86,7 @@
                 </select>
               </div>
             </div>
-            <button class="btn btn-dark" style="align-self:flex-start;" onclick="saveAddress()">Save address</button>
+            <button class="btn btn-dark" style="align-self:flex-start;" onclick="saveAddress()" data-i18n="acc_save_address">Save address</button>
           </div>
         </div>
       </div>
@@ -101,10 +101,12 @@
   <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
-    /* Redirect if no token at all */
-    if (!getToken || !getToken()) {
-      window.location.href = 'login.html?redirect=account.html';
-    }
+    /* Redirect if no token — wait for DOM so api.js is loaded */
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof getToken !== 'function' || !getToken()) {
+        window.location.href = 'login.html?redirect=account.html';
+      }
+    });
 
     function switchTab(name, el) {
       document.querySelectorAll('.account-section').forEach(s => s.classList.remove('active'));
@@ -133,11 +135,18 @@
             </div>
             <span class="order-status ${o.status || 'confirmed'}">${o.status || 'confirmed'}</span>
           </div>
-          <div class="order-items-list">${(o.items || []).map(i => i.name + ' x' + i.qty).join(', ')}</div>
+          <div class="order-items-list">${(o.items || []).map(i => i.name + ' ×' + i.qty).join(', ')}</div>
+          ${o.delivery_date ? `<div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;">📅 Delivery: ${o.delivery_date}</div>` : ''}
           <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">📍 ${o.addr_street ? o.addr_street + ', ' + o.addr_city : 'Address not saved'}</div>
           <div class="order-total">Total: €${o.total}</div>
         </div>`).join('');
     }
+
+    async function logoutUser() {
+      await Api.Auth.logout();  // clears token in api.js
+      window.location.href = 'index.html';
+    }
+    window.logoutUser = logoutUser;
 
     async function saveProfile() {
       const first = document.getElementById('profFirst').value.trim();
@@ -170,44 +179,55 @@
     window.saveAddress = saveAddress;
 
     document.addEventListener('DOMContentLoaded', async () => {
-      /* Load user from cache first for instant render */
-      const cached = getUser();
+      /* Guard: only redirect if truly no token AND no cached user */
+      const hasToken = typeof getToken === 'function' && !!getToken();
+      const cached   = typeof getUser  === 'function' && getUser();
+      if (!hasToken && !cached) {
+        window.location.href = 'login.html?redirect=account.html';
+        return;
+      }
+
+      /* Render from cache instantly */
       if (cached) {
-        document.getElementById('pageGreeting').textContent = `Hello, ${cached.name.split(' ')[0]} 👋`;
+        document.getElementById('pageGreeting').textContent  = `Hello, ${cached.name.split(' ')[0]} 👋`;
         document.getElementById('accountAvatar').textContent = cached.name.charAt(0).toUpperCase();
         document.getElementById('accountName').textContent   = cached.name;
         document.getElementById('accountEmail').textContent  = cached.email;
       }
 
-      /* Fetch fresh data from server */
+      /* Re-apply translations now that components have injected navbar */
+      if (typeof applyTranslations === 'function') applyTranslations();
+
+      /* Fetch fresh user — but NEVER let this block the orders fetch */
       const res = await Api.Auth.me();
-      if (!res.ok) {
-        if (res.status === 401) { clearToken(); window.location.href = 'login.html'; }
+      if (res.ok && res.data.user) {
+        const user = res.data.user;
+        localStorage.setItem('hutko_user', JSON.stringify({
+          id: user.id, name: user.name, email: user.email,
+          addr_street: user.addr_street || '', addr_postcode: user.addr_postcode || '',
+          addr_city:   user.addr_city   || '', addr_province: user.addr_province || '',
+        }));
+        document.getElementById('pageGreeting').textContent  = `Hello, ${user.name.split(' ')[0]} 👋`;
+        document.getElementById('accountAvatar').textContent = user.name.charAt(0).toUpperCase();
+        document.getElementById('accountName').textContent   = user.name;
+        document.getElementById('accountEmail').textContent  = user.email;
+        const parts = user.name.split(' ');
+        document.getElementById('profFirst').value    = parts[0] || '';
+        document.getElementById('profLast').value     = parts.slice(1).join(' ') || '';
+        document.getElementById('profEmail').value    = user.email || '';
+        document.getElementById('profPhone').value    = user.phone || '';
+        document.getElementById('addrStreet').value   = user.addr_street   || '';
+        document.getElementById('addrPost').value     = user.addr_postcode || '';
+        document.getElementById('addrCity').value     = user.addr_city     || '';
+        document.getElementById('addrProvince').value = user.addr_province || '';
+      } else if (res.status === 401) {
+        clearToken();
+        window.location.href = 'login.html';
         return;
       }
-      const user = res.data.user;
-      localStorage.setItem('hutko_user', JSON.stringify({ id: user.id, name: user.name, email: user.email }));
+      // status 0 (network/cold-start) → stay on page, still load orders below
 
-      /* Update header */
-      document.getElementById('pageGreeting').textContent = `Hello, ${user.name.split(' ')[0]} 👋`;
-      document.getElementById('accountAvatar').textContent = user.name.charAt(0).toUpperCase();
-      document.getElementById('accountName').textContent   = user.name;
-      document.getElementById('accountEmail').textContent  = user.email;
-
-      /* Profile fields */
-      const parts = user.name.split(' ');
-      document.getElementById('profFirst').value = parts[0] || '';
-      document.getElementById('profLast').value  = parts.slice(1).join(' ') || '';
-      document.getElementById('profEmail').value = user.email || '';
-      document.getElementById('profPhone').value = user.phone || '';
-
-      /* Address fields */
-      document.getElementById('addrStreet').value   = user.addr_street   || '';
-      document.getElementById('addrPost').value     = user.addr_postcode || '';
-      document.getElementById('addrCity').value     = user.addr_city     || '';
-      document.getElementById('addrProvince').value = user.addr_province || '';
-
-      /* Orders */
+      /* Always load orders regardless of /api/me result */
       const ordersRes = await Api.Orders.myOrders();
       renderOrders(ordersRes.ok ? ordersRes.data.orders : []);
 

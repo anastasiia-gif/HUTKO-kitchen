@@ -2,17 +2,36 @@ services:
   - type: web
     name: hutko-api
     runtime: python
-    rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --workers 2 --bind 0.0.0.0:$PORT
+    startCommand: gunicorn app:app --workers 1 --bind 0.0.0.0:$PORT --timeout 120
+    disk:
+      name: hutko-data
+      mountPath: /data
+      sizeGB: 1
     envVars:
       - key: FLASK_ENV
         value: production
       - key: SECRET_KEY
         generateValue: true
+      - key: DB_PATH
+        value: /data/hutko.db
+      - key: SHOP_EXCEL_PATH
+        value: /data/hutko_shop.xlsx
       - key: ADMIN_PASSWORD
-        sync: false       # set manually in Render dashboard
+        sync: false
       - key: RESEND_API_KEY
-        sync: false       # set manually in Render dashboard
+        sync: false
+      - key: WEBHOOK_SECRET
+        sync: false
       - key: FRONTEND_URL
-        value: https://hutko.netlify.app
+        value: https://hutko-kitchen.com
+      - key: OWNER_EMAIL
+        sync: false
+      - key: RENDER_EXTERNAL_URL
+        sync: false
+      - key: MOLLIE_API_KEY
+        sync: false
+      - key: TRELLO_API_KEY
+        sync: false
+      - key: TRELLO_TOKEN
+        sync: false

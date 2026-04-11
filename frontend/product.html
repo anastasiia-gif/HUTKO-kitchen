@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product — HUTKO Kitchen</title>
+  <meta name="description" content="Authentic Ukrainian frozen food — HUTKO Kitchen">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .product-page { background: var(--cream); min-height: 100vh; }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      padding: 1.25rem 2rem;
+      font-size: 12px; color: var(--ink-soft);
+      display: flex; align-items: center; gap: 8px;
+      background: var(--white); border-bottom: 1px solid var(--border);
+    }
+    .breadcrumb a { color: var(--blue); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb-sep { opacity: .35; }
+
+    /* Main layout */
+    .product-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      max-width: 1100px;
+      margin: 0 auto;
+      gap: 0;
+      padding: 3rem 2rem;
+      align-items: start;
+    }
+
+    /* Left: image */
+    .product-gallery {
+      position: sticky;
+      top: 80px;
+      padding-right: 3rem;
+    }
+    .product-img-main {
+      background: #fff;
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .product-img-main img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 16px 40px rgba(0,0,0,.12));
+    }
+
+    /* Dietary badges */
+    .dietary-badges {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 1.25rem;
+    }
+    .dietary-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: 100px; padding: 6px 14px;
+      font-size: 12px; font-weight: 500; color: var(--ink);
+    }
+    .dietary-badge-icon { font-size: 14px; }
+
+    /* Right: details */
+    .product-details { padding-left: 1rem; }
+
+    .product-cat {
+      font-size: 10px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--orange);
+      font-weight: 600; margin-bottom: 8px;
+    }
+    .product-title {
+      font-family: var(--display);
+      font-size: clamp(2rem, 4vw, 3rem);
+      color: var(--ink); line-height: 1.0;
+      margin-bottom: 1rem;
+    }
+    .product-tagline {
+      font-size: 16px; color: var(--ink-soft);
+      line-height: 1.7; margin-bottom: 1.75rem;
+      border-left: 3px solid var(--orange);
+      padding-left: 16px;
+    }
+
+    /* About section */
+    .product-about {
+      background: #fff; border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 1.5rem; margin-bottom: 1.5rem;
+    }
+    .product-about h3 {
+      font-family: var(--display); font-size: 16px;
+      color: var(--ink); margin-bottom: 0.75rem;
+    }
+    .product-about p {
+      font-size: 14px; color: var(--ink-soft); line-height: 1.75;
+    }
+
+    /* Nutrition/details row */
+    .product-details-row {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 8px; margin-bottom: 1.5rem;
+    }
+    .detail-chip {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 14px; text-align: center;
+    }
+    .detail-chip-icon { font-size: 20px; margin-bottom: 4px; }
+    .detail-chip-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-soft); }
+    .detail-chip-value { font-family: var(--display); font-size: 14px; color: var(--ink); margin-top: 2px; }
+
+    /* Pricing & add to cart */
+    .product-purchase {
+      background: #fff; border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 1.5rem; margin-bottom: 1.5rem;
+    }
+    .product-price {
+      display: flex; align-items: baseline; gap: 8px; margin-bottom: 1rem;
+    }
+    .product-price-from { font-size: 12px; color: var(--ink-soft); }
+    .product-price-val {
+      font-family: var(--display); font-size: 3rem;
+      color: var(--orange); line-height: 1; letter-spacing: -0.02em;
+    }
+    .product-price-unit { font-size: 14px; color: var(--ink-soft); }
+
+    .variant-selector {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem;
+    }
+    .variant-pill {
+      background: var(--cream); border: 1.5px solid transparent;
+      border-radius: 100px; padding: 9px 18px;
+      font-size: 13px; font-family: var(--sans);
+      font-weight: 500; color: var(--ink);
+      cursor: pointer; transition: .15s;
+    }
+    .variant-pill:hover { border-color: var(--blue); }
+    .variant-pill.selected { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+    .btn-add-to-cart {
+      width: 100%;
+      background: var(--orange);
+      color: #fff; border: none;
+      border-radius: 100px; padding: 16px;
+      font-family: var(--display); font-size: 16px;
+      letter-spacing: -0.01em;
+      transition: var(--transition); cursor: pointer;
+    }
+    .btn-add-to-cart:hover { background: var(--orange-dk); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(232,75,34,.3); }
+    .btn-add-to-cart.added { background: #2a9d5c; }
+
+    /* How to prepare */
+    .product-prepare {
+      background: var(--blue); border-radius: 16px;
+      padding: 1.5rem; margin-bottom: 1.5rem;
+    }
+    .product-prepare h3 {
+      font-family: var(--display); font-size: 16px;
+      color: #fff; margin-bottom: 1rem;
+    }
+    .prepare-step {
+      display: flex; align-items: flex-start; gap: 12px;
+      margin-bottom: 10px;
+    }
+    .prepare-step:last-child { margin-bottom: 0; }
+    .prepare-num {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: rgba(255,255,255,.15); color: #fff;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .prepare-text { font-size: 13px; color: rgba(255,255,255,.85); line-height: 1.6; }
+
+    /* Contact CTA */
+    .product-contact {
+      background: var(--cream);
+      border: 1.5px solid var(--border);
+      border-radius: 16px; padding: 1.25rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .product-contact p { font-size: 13px; color: var(--ink-soft); line-height: 1.5; margin: 0; }
+    .product-contact strong { color: var(--ink); display: block; font-size: 14px; margin-bottom: 3px; }
+
+    /* Loading */
+    .product-loading {
+      text-align: center; padding: 8rem 2rem;
+      color: var(--ink-soft); font-size: 15px;
+    }
+
+    @media (max-width: 900px) {
+      .product-layout { grid-template-columns: 1fr; padding: 2rem 1.25rem; }
+      .product-gallery { position: static; padding-right: 0; margin-bottom: 2rem; }
+      .product-img-main { max-width: 400px; margin: 0 auto; }
+      .product-details { padding-left: 0; }
+    }
+  </style>
+</head>
+<body class="product-page">
+
+  <div id="navbar-placeholder"></div>
+  <div id="cart-placeholder"></div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="index.html" data-i18n="nav_home">Home</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="shop.html" data-i18n="nav_shop">Shop</a>
+    <span class="breadcrumb-sep">›</span>
+    <span id="breadcrumbName">Product</span>
+  </div>
+
+  <!-- Loading state -->
+  <div id="loadingState" class="product-loading">
+    Loading product…
+  </div>
+
+  <!-- Product content -->
+  <div id="productContent" style="display:none;">
+    <div class="product-layout">
+
+      <!-- LEFT: Image + dietary -->
+      <div class="product-gallery">
+        <div class="product-img-main">
+          <img id="prodImg" src="" alt="">
+        </div>
+        <div class="dietary-badges" id="dietaryBadges"></div>
+      </div>
+
+      <!-- RIGHT: Details -->
+      <div class="product-details">
+
+        <div class="product-cat" id="prodCat"></div>
+        <h1 class="product-title" id="prodName"></h1>
+        <p class="product-tagline" id="prodDesc"></p>
+
+        <!-- About -->
+        <div class="product-about">
+          <h3>About this product</h3>
+          <p id="prodAbout"></p>
+        </div>
+
+        <!-- Details chips -->
+        <div class="product-details-row" id="detailsRow"></div>
+
+        <!-- Purchase -->
+        <div class="product-purchase">
+          <div class="product-price">
+            <span class="product-price-from">from</span>
+            <span class="product-price-val" id="prodPrice">€0</span>
+            <span class="product-price-unit" id="prodUnit"></span>
+          </div>
+          <div class="variant-selector" id="variantSelector"></div>
+          <button class="btn-add-to-cart" id="addToCartBtn" onclick="addProductToCart()">
+            Add to cart →
+          </button>
+        </div>
+
+        <!-- How to prepare -->
+        <div class="product-prepare" id="prepareSection">
+          <h3>🍳 How to prepare</h3>
+          <div id="prepareSteps"></div>
+        </div>
+
+        <!-- Contact CTA -->
+        <div class="product-contact">
+          <div>
+            <strong>Have a question about this product?</strong>
+            <p>We're happy to help — allergies, custom orders, B2B inquiries.</p>
+          </div>
+          <a href="contact.html" class="btn btn-outline" style="white-space:nowrap;font-size:13px;">
+            Contact us →
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Not found -->
+  <div id="notFoundState" style="display:none;text-align:center;padding:6rem 2rem;">
+    <p style="font-size:40px;">😕</p>
+    <h2 style="font-family:var(--display);margin-bottom:1rem;">Product not found</h2>
+    <a href="shop.html" class="btn btn-blue">Back to shop</a>
+  </div>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/shop.js"></script>
+  <script>
+    // API_BASE is defined in api.js — do NOT redeclare it here
+    let currentProduct = null;
+    let selectedVariant = null;
+
+    const DIETARY_INFO = {
+      'vegetarian':          { icon: '🌿', label: 'Vegetarian' },
+      'vegan':               { icon: '🌱', label: 'Vegan' },
+      'gluten-free':         { icon: '🌾', label: 'Gluten-free' },
+      'gluten-free option':  { icon: '🌾', label: 'Gluten-free option' },
+      'halal option':        { icon: '✅', label: 'Halal option' },
+    };
+
+    const PREPARE_STEPS = {
+      syrnyky: [
+        'Take syrnyky straight from the freezer — no thawing needed.',
+        'Heat a non-stick pan with a little butter or oil on medium heat.',
+        'Fry 4–5 min per side until golden brown and heated through.',
+        'Serve with sour cream, honey, or jam.',
+      ],
+      chicken: [
+        'Take chicken balls straight from the freezer.',
+        'Heat pan with oil on medium-high, or preheat air fryer to 180°C.',
+        'Pan: fry 8–10 min, turning occasionally. Air fryer: 12 min.',
+        'The inside should be hot and the outside crispy. Serve immediately.',
+      ],
+      borscht: [
+        'Remove from freezer 5 min before heating.',
+        'Pour into a pot and heat on medium for 8–10 minutes, stirring occasionally.',
+        'Or microwave in a bowl for 5–7 minutes, stirring halfway through.',
+        'Serve hot with sour cream and fresh herbs.',
+      ],
+      solyanka: [
+        'Remove from freezer 5 min before heating.',
+        'Heat in a pot on medium for 8–10 min, stirring occasionally.',
+        'Or microwave for 5–7 minutes.',
+        'Serve with a slice of lemon and sour cream.',
+      ],
+      shakshuka: [
+        'Remove hearts from packaging while still frozen.',
+        'Place in a pan with a little oil on medium heat.',
+        'Cover with a lid and heat for 6–8 min until piping hot.',
+        'Optionally crack a fresh egg on top for the last 2 min.',
+      ],
+      zrazy: [
+        'Take zrazy straight from the freezer.',
+        'Heat a pan with oil on medium heat.',
+        'Fry 5–7 min per side until golden and heated through.',
+        'Serve with sour cream or a green salad.',
+      ],
+    };
+
+    const PRODUCT_ABOUT = {
+      syrnyky: 'Syrnyky are the most beloved Ukrainian breakfast. Made from fresh curd cheese (tvorog), egg, a little flour and vanilla — they\'re soft inside with a golden crust. Our recipe follows the traditional village method, cooked in small batches and frozen at peak freshness. No preservatives, nothing artificial.',
+      chicken: 'These are Kiev-style chicken balls inspired by the classic Chicken Kyiv — herb butter sealed inside a crispy breadcrumb coating. Each ball is handmade, filled with a blend of fresh herbs, butter and mild cheese. Frozen right after making, they\'re ready in minutes and taste freshly cooked.',
+      borscht: 'Our borscht is a slow-cooked, deeply flavoured Ukrainian soup made from beetroot, cabbage, carrots, potato and tender beef. Every batch follows a time-tested family recipe — simmered for hours to develop a rich, complex flavour. Frozen in heart-shaped portions, it heats in under 10 minutes.',
+      solyanka: 'Solyanka is a bold Eastern European meat soup — tangy, smoky, rich. Made with mixed cured meats, pickled cucumbers, black olives, tomatoes and finished with a slice of lemon. It\'s the kind of soup that warms you from the inside. A staple of Ukrainian winter cooking.',
+      shakshuka: 'Our shakshuka is a Ukrainian take on the beloved Middle Eastern dish — a richly spiced tomato and pepper sauce cooked down until thick and jammy. Each portion is shaped into two 100g hearts, frozen individually. Pan-fry from frozen in minutes. Add a fresh egg on top if you like.',
+      zrazy: 'Zrazy are traditional Ukrainian pan-fried potato patties filled with sautéed mushrooms and melted cheese. They\'re crispy on the outside, soft and savoury inside. Made from fresh grated potato, shaped by hand, and frozen individually so you can take out exactly what you need.',
+    };
+
+    function lang() { try { return localStorage.getItem('hutko_lang') || 'en'; } catch { return 'en'; } }
+
+    async function loadProduct() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      if (!id) { show('notFoundState'); return; }
+
+      try {
+        const res = await Api.Shop.all();
+        if (res.ok && res.data) {
+          ALL_PRODUCTS = res.data.products || FALLBACK_PRODUCTS;
+          ALL_BUNDLES  = res.data.bundles  || FALLBACK_BUNDLES;
+        } else {
+          ALL_PRODUCTS = FALLBACK_PRODUCTS;
+          ALL_BUNDLES  = FALLBACK_BUNDLES;
+        }
+      } catch(e) {
+        ALL_PRODUCTS = FALLBACK_PRODUCTS;
+        ALL_BUNDLES  = FALLBACK_BUNDLES;
+      }
+
+      const p = ALL_PRODUCTS.find(x => x.id === id);
+      if (!p) { show('notFoundState'); return; }
+
+      currentProduct = p;
+      selectedVariant = p.variants?.[0] || { label: p.unit, price: p.base_price };
+      renderProduct(p);
+      show('productContent');
+
+      // Update page title
+      const name = p[`name_${lang()}`] || p.name_en;
+      document.title = `${name} — HUTKO Kitchen`;
+      document.getElementById('breadcrumbName').textContent = name;
+    }
+
+    function renderProduct(p) {
+      const name = p[`name_${lang()}`] || p.name_en;
+      const desc = p[`desc_${lang()}`] || p.desc_en;
+
+      // Image
+      const img = document.getElementById('prodImg');
+      img.src = p.photo;
+      img.alt = name;
+      img.onerror = () => { img.src = 'assets/IMG_7982.JPEG'; };
+
+      // Text
+      document.getElementById('prodCat').textContent   = p.category;
+      document.getElementById('prodName').textContent  = name;
+      document.getElementById('prodDesc').textContent  = desc;
+      document.getElementById('prodAbout').textContent = PRODUCT_ABOUT[p.id] || desc;
+
+      // Dietary badges
+      const db = document.getElementById('dietaryBadges');
+      db.innerHTML = (p.dietary || []).map(tag => {
+        const d = DIETARY_INFO[tag];
+        return d ? `<div class="dietary-badge">
+          <span class="dietary-badge-icon">${d.icon}</span>${d.label}
+        </div>` : '';
+      }).join('');
+
+      // Detail chips
+      const chips = [
+        { icon: '⏱', label: 'Ready in', value: p.id === 'borscht' || p.id === 'solyanka' ? '8–10 min' : '10–15 min' },
+        { icon: '❄️', label: 'Storage', value: 'Up to 6 months' },
+        { icon: '🍽️', label: 'Serves', value: p.id === 'borscht' || p.id === 'solyanka' ? '1–2 people' : '2–3 people' },
+      ];
+      document.getElementById('detailsRow').innerHTML = chips.map(c => `
+        <div class="detail-chip">
+          <div class="detail-chip-icon">${c.icon}</div>
+          <div class="detail-chip-label">${c.label}</div>
+          <div class="detail-chip-value">${c.value}</div>
+        </div>`).join('');
+
+      // Variants
+      const vs = document.getElementById('variantSelector');
+      if (p.variants && p.variants.length > 1) {
+        vs.innerHTML = p.variants.map((v, i) => `
+          <div class="variant-pill ${i === 0 ? 'selected' : ''}"
+               onclick="selectVariant(${i}, ${v.price}, '${v.label}', this)">
+            ${v.label} — €${v.price}
+          </div>`).join('');
+      } else {
+        vs.innerHTML = `<div class="variant-pill selected">${p.unit} — €${p.base_price}</div>`;
+      }
+
+      // Price
+      document.getElementById('prodPrice').textContent = `€${selectedVariant.price}`;
+      document.getElementById('prodUnit').textContent  = `/ ${selectedVariant.label}`;
+
+      // Prepare steps
+      const steps = PREPARE_STEPS[p.id] || [];
+      if (steps.length) {
+        document.getElementById('prepareSteps').innerHTML = steps.map((s, i) => `
+          <div class="prepare-step">
+            <div class="prepare-num">${i + 1}</div>
+            <div class="prepare-text">${s}</div>
+          </div>`).join('');
+      } else {
+        document.getElementById('prepareSection').style.display = 'none';
+      }
+    }
+
+    function selectVariant(idx, price, label, el) {
+      document.querySelectorAll('.variant-pill').forEach(p => p.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedVariant = { price, label };
+      document.getElementById('prodPrice').textContent = `€${price}`;
+      document.getElementById('prodUnit').textContent  = `/ ${label}`;
+    }
+    window.selectVariant = selectVariant;
+
+    function addProductToCart() {
+      if (!currentProduct || !selectedVariant) return;
+      const btn  = document.getElementById('addToCartBtn');
+      const name = currentProduct[`name_${lang()}`] || currentProduct.name_en;
+      addToCart(currentProduct.id, name, '🍽️', selectedVariant.price, selectedVariant.label);
+      btn.textContent = '✅ Added to cart!';
+      btn.classList.add('added');
+      setTimeout(() => {
+        btn.textContent = 'Add to cart →';
+        btn.classList.remove('added');
+      }, 2000);
+    }
+    window.addProductToCart = addProductToCart;
+
+    function show(id) {
+      ['loadingState', 'productContent', 'notFoundState'].forEach(s => {
+        document.getElementById(s).style.display = s === id ? 'block' : 'none';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadProduct);
+  </script>
+</body>
+</html>

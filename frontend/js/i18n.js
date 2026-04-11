@@ -9,7 +9,7 @@ const TRANSLATIONS = {
     nav_signout:'Sign out', nav_cart:'Cart', nav_register:'Register',
     footer_tagline:'Authentic Ukrainian frozen food, delivered with love across the Netherlands.',
     footer_pages:'Pages', footer_products:'Products', footer_contact:'Contact',
-    footer_copy:'2025 HUTKO Frozen Food. All rights reserved.',
+    footer_copy:`© ${new Date().getFullYear()} HUTKO Frozen Food. All rights reserved.`,
     home_hero_tag:'Ukrainian Frozen Food',
     home_hero_title:'Made with love,<br>delivered <em>fast</em>',
     home_hero_sub:'Authentic Ukrainian dishes frozen fresh, delivered across the Netherlands.',
@@ -112,6 +112,15 @@ const TRANSLATIONS = {
     /* Index hero */
     hero_title:'Made with love,<br>delivered <em>fast</em>',
     hero_sub:'Authentic Ukrainian dishes frozen fresh, delivered across the Netherlands. Borscht, syrnyky, zrazy and more, straight to your door.',
+
+    /* Account page */
+    acc_nav_profile:'👤 Profile', acc_nav_address:'📍 Saved address', acc_nav_orders:'📦 My orders',
+    acc_signout:'↩ Sign out',
+    acc_profile_title:'Profile details', acc_address_title:'Saved delivery address',
+    acc_save_profile:'Save changes', acc_save_address:'Save address',
+    acc_orders_title:'Order history', acc_no_orders:'No orders yet',
+    acc_order_status_confirmed:'Confirmed', acc_order_status_cooking:'Preparing',
+    acc_order_status_delivery:'Out for delivery', acc_order_status_delivered:'Delivered',
     hero_order:'Order now', hero_story:'Our story',
     delivery_title_map:'We deliver across<br>the Netherlands',
     delivery_sub_map:'Order your favourite Ukrainian frozen dishes and receive them anywhere in the Netherlands.',
@@ -157,7 +166,7 @@ const TRANSLATIONS = {
     footer_pages:'\u0421\u0442\u043e\u0440\u0456\u043d\u043a\u0438',
     footer_products:'\u041f\u0440\u043e\u0434\u0443\u043a\u0442\u0438',
     footer_contact:'\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u0438',
-    footer_copy:'2025 HUTKO Frozen Food. \u0412\u0441\u0456 \u043f\u0440\u0430\u0432\u0430 \u0437\u0430\u0445\u0438\u0449\u0435\u043d\u0456.',
+    footer_copy:`© ${new Date().getFullYear()} HUTKO Frozen Food. Всі права захищені.`,
     home_hero_tag:'\u0423\u043a\u0440\u0430\u0457\u043d\u0441\u044c\u043a\u0430 \u0437\u0430\u043c\u043e\u0440\u043e\u0436\u0435\u043d\u0430 \u0457\u0436\u0430',
     home_hero_title:'\u0417 \u043b\u044e\u0431\u043e\u0432\'\u044e,<br>\u0434\u043e\u0441\u0442\u0430\u0432\u043a\u0430 <em>\u0448\u0432\u0438\u0434\u043a\u043e</em>',
     home_hero_sub:'\u0421\u043f\u0440\u0430\u0432\u0436\u043d\u0456 \u0443\u043a\u0440\u0430\u0457\u043d\u0441\u044c\u043a\u0456 \u0441\u0442\u0440\u0430\u0432\u0438 \u2014 \u0437\u0430\u043c\u043e\u0440\u043e\u0436\u0435\u043d\u0456 \u0441\u0432\u0456\u0436\u0438\u043c\u0438, \u0434\u043e\u0441\u0442\u0430\u0432\u043b\u044f\u0454\u043c\u043e \u043f\u043e \u0432\u0441\u0456\u0445 \u041d\u0456\u0434\u0435\u0440\u043b\u0430\u043d\u0434\u0430\u0445.',
@@ -315,6 +324,41 @@ const TRANSLATIONS = {
     search_for:'\u0420\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u0438 \u0434\u043b\u044f',
     search_none:'\u041f\u0440\u043e\u0434\u0443\u043a\u0442\u0456\u0432 \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e \u0434\u043b\u044f',
     search_all:'\u041f\u0435\u0440\u0435\u0433\u043b\u044f\u043d\u0443\u0442\u0438 \u0432\u0441\u0456 \u043f\u0440\u043e\u0434\u0443\u043a\u0442\u0438',
+
+    /* Account page - missing */
+    acc_nav_profile:'👤 Профіль', acc_nav_address:'📍 Адреса доставки', acc_nav_orders:'📦 Мої замовлення',
+    acc_signout:'↩ Вийти',
+    acc_profile_title:'Дані профілю', acc_address_title:'Збережена адреса доставки',
+    acc_save_profile:'Зберегти зміни', acc_save_address:'Зберегти адресу',
+    acc_orders_title:'Історія замовлень', acc_no_orders:'Замовлень ще немає',
+    acc_order_status_confirmed:'Підтверджено', acc_order_status_cooking:'Готується',
+    acc_order_status_delivery:'У доставці', acc_order_status_delivered:'Доставлено',
+    /* Hero */
+    hero_title:'З любов\'ю,<br>доставка <em>швидко</em>',
+    hero_sub:'Автентичні українські страви, заморожені після приготування. Доставка по всій Нідерландах.',
+    hero_order:'Замовити зараз', hero_story:'Наша історія',
+    /* Delivery */
+    delivery_title_map:'Доставляємо по всій<br>Нідерландах',
+    delivery_sub_map:'Замовляйте улюблені українські заморожені страви та отримуйте їх будь-де в Нідерландах.',
+    delivery_cta:'Деталі доставки',
+    view_all:'Переглянути всі продукти',
+    /* Steps */
+    step1_name:'Оберіть страви', step1_desc:'Перегляньте наше меню та додайте до кошика',
+    step2_name:'Оформіть замовлення', step2_desc:'Вкажіть адресу та зручний час доставки',
+    step3_name:'Ми готуємо', step3_desc:'Готуємо свіжо малими партіями та заморожуємо',
+    step4_name:'Доставка', step4_desc:'Четвер і субота по всій Нідерландах',
+    /* Info boxes */
+    cutoff_title:'Дедлайн замовлення', cutoff_text:'Замовляйте до вівторка 20:00 для доставки в четвер, до п\'ятниці 20:00 для субботи.',
+    min_order_title:'Мінімальне замовлення', min_order_text:'Мінімальне замовлення €25. Безкоштовна доставка від €60.',
+    delivery_cost_title:'Вартість доставки', delivery_cost_text:'Стандартна доставка €5. Безкоштовно від €60.',
+    /* About */
+    about_story_p1:'HUTKO народився з простого бажання — смаку дому. Переїхавши до Нідерландів, засновниця виявила, що ніщо в голландському супермаркеті не може замінити справжній борщ або свіжозроблені сирники. Тому вона почала готувати. Спочатку для родини, потім для друзів, потім для зростаючої української спільноти в Амстердамі.',
+    about_story_p2:'Сьогодні HUTKO — це невелика, але пристрасна команда кухарів, пакувальників і кур\'єрів — більшість з нас українці — об\'єднані вірою в те, що їжа — це найпотужніший спосіб переносити культуру через кордони.',
+    /* Apply */
+    apply_driver_perk1:'Гнучкий графік', apply_driver_perk2:'Справедлива оплата', apply_driver_perk3:'Тепла команда',
+    apply_partner_perk1:'Оптові ціни для великих замовлень', apply_partner_perk2:'Спільний брендинг та маркетинг', apply_partner_perk3:'Гнучкий графік доставки',
+    driver_desc:'Допоможіть нам доставляти автентичну українську їжу родинам по всій Нідерландах. Гнучкий графік, справедлива оплата та тепла команда.',
+    partner_desc:'Хочете запропонувати HUTKO своїм клієнтам? Ми шукаємо партнерів — кафе, офіси, магазини.',
   },
 
   nl: {
@@ -325,7 +369,7 @@ const TRANSLATIONS = {
     nav_signout:'Uitloggen', nav_cart:'Winkelwagen', nav_register:'Registreren',
     footer_tagline:'Authentiek Oekraiens diepvriesvoedsel, met liefde bezorgd door heel Nederland.',
     footer_pages:'Paginas', footer_products:'Producten', footer_contact:'Contact',
-    footer_copy:'2025 HUTKO Frozen Food. Alle rechten voorbehouden.',
+    footer_copy:`© ${new Date().getFullYear()} HUTKO Frozen Food. Alle rechten voorbehouden.`,
     home_hero_tag:'Oekraiens Diepvriesvoedsel',
     home_hero_title:'Met liefde gemaakt,<br><em>snel</em> bezorgd',
     home_hero_sub:'Authentieke Oekraiense gerechten - vers ingevroren, bezorgd door heel Nederland.',
@@ -423,6 +467,15 @@ const TRANSLATIONS = {
     search_title:'Zoekresultaten', search_for:'Resultaten voor',
     search_none:'Geen producten gevonden voor', search_all:'Bekijk alle producten',
 
+
+    /* Account page */
+    acc_nav_profile:'👤 Profiel', acc_nav_address:'📍 Bezorgadres', acc_nav_orders:'📦 Mijn bestellingen',
+    acc_signout:'↩ Uitloggen',
+    acc_profile_title:'Profielgegevens', acc_address_title:'Opgeslagen bezorgadres',
+    acc_save_profile:'Wijzigingen opslaan', acc_save_address:'Adres opslaan',
+    acc_orders_title:'Bestelgeschiedenis', acc_no_orders:'Nog geen bestellingen',
+    acc_order_status_confirmed:'Bevestigd', acc_order_status_cooking:'Wordt bereid',
+    acc_order_status_delivery:'Onderweg', acc_order_status_delivered:'Bezorgd',
     hero_title:'Met liefde gemaakt,<br><em>snel</em> bezorgd',
     hero_sub:'Authentieke Oekraiense gerechten - vers ingevroren, bezorgd door heel Nederland. Borsjt, syrnyky, zrazy en meer.',
     hero_order:'Bestel nu', hero_story:'Ons verhaal',
@@ -447,7 +500,7 @@ const TRANSLATIONS = {
     apply_partner_perk1:'Groothandelsprijzen voor bulkbestellingen',
     apply_partner_perk2:'Co-branding en marketingondersteuning',
     apply_partner_perk3:"Flexibele bezorgschema's",
-  }
+  },
 };
 
 const I18N_KEY = 'hutko_lang';
@@ -457,9 +510,12 @@ function t(key) {
   return (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || (TRANSLATIONS['en'] && TRANSLATIONS['en'][key]) || key;
 }
 function applyTranslations() {
+  const lang = getLang();
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    const val = t(el.dataset.i18n);
-    if (!val || val === el.dataset.i18n) return;
+    const key = el.dataset.i18n;
+    const val = (TRANSLATIONS[lang] && TRANSLATIONS[lang][key])
+             || (TRANSLATIONS['en'] && TRANSLATIONS['en'][key]);
+    if (!val) return;
     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
       el.placeholder = val;
     } else {
@@ -497,4 +553,71 @@ function setLang(lang) {
   if (typeof initSearch === 'function') setTimeout(initSearch, 50);
 }
 window.t = t; window.getLang = getLang; window.setLang = setLang; window.applyTranslations = applyTranslations;
-document.addEventListener('DOMContentLoaded', () => { updateLangSwitcher(); applyTranslations(); });
+document.addEventListener('DOMContentLoaded', () => {
+  updateLangSwitcher();
+  applyTranslations();
+  loadSettingsIntoPage();
+});
+
+/* ── SETTINGS FROM EXCEL ─────────────────────────────────────────────
+   Fetches /api/shop/settings and patches data-setting elements.
+   Also updates i18n delivery info strings so they stay in sync.
+   Usage in HTML: <span data-setting="delivery_cost">€5</span>
+────────────────────────────────────────────────────────────────────── */
+async function loadSettingsIntoPage() {
+  try {
+    const API = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://hutko-kitchen.onrender.com';
+    const res  = await fetch(`${API}/api/shop/settings`);
+    if (!res.ok) return;
+    const { settings } = await res.json();
+    if (!settings) return;
+
+    // Patch any element with data-setting attribute
+    document.querySelectorAll('[data-setting]').forEach(el => {
+      const key = el.dataset.setting;
+      if (settings[key] !== undefined) el.textContent = settings[key];
+    });
+
+    // Patch delivery info cards dynamically in all languages
+    const lang = getLang();
+    const dc   = settings.delivery_cost    || '5';
+    const free = settings.free_delivery_at || '60';
+    const min  = settings.min_order        || '0';
+    const days = settings.delivery_days    || 'Thursday & Saturday';
+    const max  = settings.max_per_day      || '15';
+
+    const dynamicKeys = {
+      delivery_cost_text: {
+        en: `Flat rate €${dc}. Free delivery on orders over €${free}.`,
+        ua: `Доставка €${dc}. Безкоштовно від €${free}.`,
+        nl: `Vast tarief €${dc}. Gratis bezorging boven €${free}.`,
+      },
+      min_order_text: {
+        en: min === '0' ? 'No minimum order.' : `Minimum order value is €${min}.`,
+        ua: min === '0' ? 'Мінімальне замовлення відсутнє.' : `Мінімальне замовлення €${min}.`,
+        nl: min === '0' ? 'Geen minimumbestelling.' : `Minimale bestelwaarde is €${min}.`,
+      },
+      delivery_days_text: {
+        en: `We deliver on ${days}.`,
+        ua: `Доставка: ${days}.`,
+        nl: `Wij bezorgen op ${days}.`,
+      },
+    };
+
+    Object.entries(dynamicKeys).forEach(([key, vals]) => {
+      const text = vals[lang] || vals.en;
+      // Update live data-i18n elements
+      document.querySelectorAll(`[data-i18n="${key}"]`).forEach(el => {
+        el.textContent = text;
+      });
+      // Also update the translation cache for future setLang() calls
+      if (TRANSLATIONS.en) TRANSLATIONS.en[key] = dynamicKeys[key].en;
+      if (TRANSLATIONS.ua) TRANSLATIONS.ua[key] = dynamicKeys[key].ua;
+      if (TRANSLATIONS.nl) TRANSLATIONS.nl[key] = dynamicKeys[key].nl;
+    });
+
+  } catch(e) {
+    // Settings load failed — static fallback values already in place
+  }
+}
+window.loadSettingsIntoPage = loadSettingsIntoPage;

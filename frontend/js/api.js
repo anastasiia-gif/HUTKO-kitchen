@@ -1,19 +1,31 @@
 /* ── HUTKO — api.js ──────────────────────────────────────
    Single source of truth for all backend API calls.
+   Token-based auth: saves JWT to localStorage, sends as
+   Authorization: Bearer <token> on every request.
    ─────────────────────────────────────────────────────── */
 
 const API_BASE = 'https://hutko-kitchen.onrender.com';
 
+/* ── TOKEN HELPERS ───────────────────────────────────── */
 function getToken() {
   try { return localStorage.getItem('hutko_token') || ''; } catch { return ''; }
 }
 function saveToken(token) {
-  try { localStorage.setItem('hutko_token', token); } catch {}
+  try { if (token) localStorage.setItem('hutko_token', token); } catch {}
 }
 function clearToken() {
-  try { localStorage.removeItem('hutko_token'); localStorage.removeItem('hutko_user'); } catch {}
+  try {
+    localStorage.removeItem('hutko_token');
+    localStorage.removeItem('hutko_user');
+  } catch {}
 }
+function getUser() {
+  try { return JSON.parse(localStorage.getItem('hutko_user')) || null; } catch { return null; }
+}
+window.getToken = getToken;
+window.getUser  = getUser;
 
+/* ── CORE FETCH ──────────────────────────────────────── */
 async function apiCall(method, path, body = null) {
   const headers = { 'Content-Type': 'application/json' };
   const token = getToken();
@@ -36,12 +48,22 @@ async function apiCall(method, path, body = null) {
 const Auth = {
   async register(name, email, password, phone = '') {
     const res = await apiCall('POST', '/api/register', { name, email, password, phone });
-    if (res.ok && res.data.token) saveToken(res.data.token);
+    if (res.ok && res.data.token) {
+      saveToken(res.data.token);
+      if (res.data.user) localStorage.setItem('hutko_user', JSON.stringify({
+        id: res.data.user.id, name: res.data.user.name, email: res.data.user.email,
+      }));
+    }
     return res;
   },
   async login(email, password) {
     const res = await apiCall('POST', '/api/login', { email, password });
-    if (res.ok && res.data.token) saveToken(res.data.token);
+    if (res.ok && res.data.token) {
+      saveToken(res.data.token);
+      if (res.data.user) localStorage.setItem('hutko_user', JSON.stringify({
+        id: res.data.user.id, name: res.data.user.name, email: res.data.user.email,
+      }));
+    }
     return res;
   },
   async logout() {
@@ -83,12 +105,23 @@ const Contact = {
   },
 };
 
+/* ── SHOP ────────────────────────────────────────────── */
+const Shop = {
+  async all() {
+    return apiCall('GET', '/api/shop/all');
+  },
+  async products() {
+    return apiCall('GET', '/api/shop/products');
+  },
+  async bundles() {
+    return apiCall('GET', '/api/shop/bundles');
+  },
+};
+
 /* ── ADMIN ───────────────────────────────────────────── */
 const Admin = {
   async login(password) {
-    const res = await apiCall('POST', '/api/admin/login', { password });
-    if (res.ok && res.data.token) saveToken('admin_' + res.data.token);
-    return res;
+    return apiCall('POST', '/api/admin/login', { password });
   },
   async stats() {
     return apiCall('GET', '/api/admin/stats');
@@ -98,7 +131,7 @@ const Admin = {
   },
 };
 
-/* ── SESSION HELPER ──────────────────────────────────── */
+/* ── SESSION SYNC ────────────────────────────────────── */
 async function syncSession() {
   const token = getToken();
   if (!token) {
@@ -109,11 +142,14 @@ async function syncSession() {
   if (res.ok && res.data.user) {
     const user = res.data.user;
     localStorage.setItem('hutko_user', JSON.stringify({
-      id:    user.id,
-      name:  user.name,
-      email: user.email,
+      id:            user.id,
+      name:          user.name,
+      email:         user.email,
+      addr_street:   user.addr_street   || '',
+      addr_postcode: user.addr_postcode || '',
+      addr_city:     user.addr_city     || '',
+      addr_province: user.addr_province || '',
     }));
-    // Pre-fill saved address if on checkout page
     if (user.addr_street) {
       const fill = (id, val) => { const el = document.getElementById(id); if (el && !el.value) el.value = val || ''; };
       fill('coStreet',   user.addr_street);
@@ -121,16 +157,14 @@ async function syncSession() {
       fill('coCity',     user.addr_city);
       fill('coProvince', user.addr_province);
     }
-  } else {
+  } else if (res.status === 401) {
+    // Only clear on a real rejected-token response.
+    // status 0 = network error / CORS / cold-start — keep the user logged in.
     clearToken();
   }
 }
 
-window.Api         = { Auth, Orders, Contact, Admin };
+window.Api         = { Auth, Orders, Contact, Shop, Admin };
 window.syncSession = syncSession;
-window.getToken    = getToken;
 
-/* Run on every page load — only if token exists to avoid unnecessary requests */
-document.addEventListener('DOMContentLoaded', () => {
-  if (getToken()) syncSession();
-});
+document.addEventListener('DOMContentLoaded', syncSession);

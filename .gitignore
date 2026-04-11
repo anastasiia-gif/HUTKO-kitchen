@@ -4,3 +4,8 @@
 !.dev.vars.example
 .env*
 !.env.example
+# Visual Studio local files
+.vs/
+*.slnx
+*.user
+*.suo

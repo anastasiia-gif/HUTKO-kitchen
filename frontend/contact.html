@@ -25,13 +25,13 @@
   <!-- SOCIAL STRIP -->
   <div class="social-strip">
     <span class="strip-label" data-i18n="contact_follow">Follow us on social</span>
-    <a href="https://facebook.com" target="_blank" rel="noopener" class="strip-link">
+    <a href="https://facebook.com/hutkokitchen" target="_blank" rel="noopener" class="strip-link" id="fbLink">
       <span class="strip-icon">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
       </span>
       Facebook
     </a>
-    <a href="https://instagram.com" target="_blank" rel="noopener" class="strip-link">
+    <a href="https://instagram.com/hutko.kitchen" target="_blank" rel="noopener" class="strip-link" id="igLink">
       <span class="strip-icon">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><defs><radialGradient id="ig" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs><rect width="24" height="24" rx="5" fill="url(#ig)"/><rect x="6.5" y="6.5" width="11" height="11" rx="3" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="12" cy="12" r="2.8" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="17" cy="7" r="1" fill="#fff"/></svg>
       </span>
@@ -104,9 +104,9 @@
     <aside class="contact-info-side reveal delay-2">
       <div class="info-group">
         <div class="info-group-title">Contact details</div>
-        <div class="info-item"><div class="info-dot">✉️</div><div><div class="info-lbl">Email</div><div class="info-val">info@hutko.nl</div></div></div>
-        <div class="info-item"><div class="info-dot">📞</div><div><div class="info-lbl">Phone</div><div class="info-val">+31 6 00 00 00 00</div></div></div>
-        <div class="info-item"><div class="info-dot">📍</div><div><div class="info-lbl">Based in</div><div class="info-val">Amsterdam, Netherlands</div></div></div>
+        <div class="info-item"><div class="info-dot">✉️</div><div><div class="info-lbl">Email</div><div class="info-val"><a href="#" id="contactEmailLink" data-setting="email_contact" style="color:var(--blue);">hello@hutko-kitchen.com</a></div></div></div>
+        <div class="info-item"><div class="info-dot">📞</div><div><div class="info-lbl">WhatsApp / Phone</div><div class="info-val" data-setting="phone">+31 6 00 00 00 00</div></div></div>
+        <div class="info-item"><div class="info-dot">📍</div><div><div class="info-lbl">Based in</div><div class="info-val" data-setting="address_street">Amsterdam, Netherlands</div></div></div>
       </div>
       <div class="info-group">
         <div class="info-group-title">Office hours</div>
@@ -121,13 +121,13 @@
         <div class="info-group-title">Follow us</div>
         <div class="info-item">
           <div class="info-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg></div>
-          <div><div class="info-lbl">Facebook</div><div class="info-val">facebook.com/hutko.nl</div></div>
+          <div><div class="info-lbl">Facebook</div><div class="info-val" data-setting="facebook">facebook.com/hutkokitchen</div></div>
         </div>
         <div class="info-item">
           <div class="info-dot">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><defs><radialGradient id="ig2" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs><rect width="24" height="24" rx="5" fill="url(#ig2)"/><rect x="6.5" y="6.5" width="11" height="11" rx="3" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="12" cy="12" r="2.8" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="17" cy="7" r="1" fill="#fff"/></svg>
           </div>
-          <div><div class="info-lbl">Instagram</div><div class="info-val">@hutko.nl</div></div>
+          <div><div class="info-lbl">Instagram</div><div class="info-val" id="igHandle" data-setting="instagram">@hutko.kitchen</div></div>
         </div>
       </div>
     </aside>
@@ -140,6 +140,24 @@
   <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script>
+    // After i18n.js loadSettingsIntoPage runs, fix the href links too
+    document.addEventListener('DOMContentLoaded', () => {
+      // Small delay to let loadSettingsIntoPage finish
+      setTimeout(() => {
+        const email = document.querySelector('[data-setting="email_contact"]');
+        if (email) {
+          const el = document.getElementById('contactEmailLink');
+          if (el) el.href = 'mailto:' + email.textContent;
+        }
+        const ig = document.querySelector('[data-setting="instagram"]');
+        if (ig) {
+          const handle = ig.textContent.replace('@','');
+          const link   = document.getElementById('igLink');
+          if (link) link.href = 'https://instagram.com/' + handle;
+        }
+      }, 800);
+    });
+
     async function submitContact() {
       const required = [
         document.getElementById('cName'),

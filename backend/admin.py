@@ -12,14 +12,33 @@ from database import get_db
 
 admin_bp = Blueprint('admin', __name__)
 
-_admin_tokens = {}
+# ── Admin token helpers (DB-backed, survive restarts) ───────
+def _ensure_admin_tokens_table(conn):
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS admin_tokens (
+            token      TEXT PRIMARY KEY,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+    conn.commit()
+
+
+def _admin_token_valid(token: str) -> bool:
+    if not token:
+        return False
+    conn = get_db()
+    _ensure_admin_tokens_table(conn)
+    row = conn.execute("SELECT token FROM admin_tokens WHERE token = ?", (token,)).fetchone()
+    conn.close()
+    return row is not None
+
 
 def admin_required(f):
     from functools import wraps
     @wraps(f)
     def decorated(*args, **kwargs):
         token = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
-        if token not in _admin_tokens:
+        if not _admin_token_valid(token):
             return jsonify({'error': 'Admin access required.'}), 403
         return f(*args, **kwargs)
     return decorated
@@ -29,11 +48,18 @@ def admin_required(f):
 def admin_login():
     data     = request.get_json()
     password = data.get('password', '')
-    admin_pw = os.environ.get('ADMIN_PASSWORD', 'hutko-admin-2025')
+    admin_pw = os.environ.get('ADMIN_PASSWORD', '')
+    if not admin_pw:
+        print("⚠️  WARNING: ADMIN_PASSWORD env var is not set! Admin login is disabled.")
+        return jsonify({'error': 'Admin access is not configured.'}), 503
     if password != admin_pw:
         return jsonify({'error': 'Wrong password.'}), 401
     token = secrets.token_hex(32)
-    _admin_tokens[token] = True
+    conn = get_db()
+    _ensure_admin_tokens_table(conn)
+    conn.execute("INSERT INTO admin_tokens (token) VALUES (?)", (token,))
+    conn.commit()
+    conn.close()
     return jsonify({'token': token}), 200
 
 
