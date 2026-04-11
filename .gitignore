@@ -1,0 +1,5 @@
+# Visual Studio local files
+.vs/
+*.slnx
+*.user
+*.suo
