@@ -203,6 +203,18 @@ try:
 except Exception as _e:
     print(f"[STARTUP] DB init error: {_e}")
 
+# Copy Excel to persistent disk on first deploy so shop data survives redeploys
+_excel_src  = os.path.join(os.path.dirname(__file__), 'hutko_shop.xlsx')
+_excel_dest = os.environ.get('SHOP_EXCEL_PATH', 'hutko_shop.xlsx')
+if _excel_src != _excel_dest and os.path.exists(_excel_src) and not os.path.exists(_excel_dest):
+    try:
+        import shutil
+        os.makedirs(os.path.dirname(_excel_dest), exist_ok=True)
+        shutil.copy2(_excel_src, _excel_dest)
+        print(f"[STARTUP] Copied Excel to persistent disk: {_excel_dest}")
+    except Exception as _e:
+        print(f"[STARTUP] Excel copy failed: {_e}")
+
 # Start background threads once per process
 if os.environ.get('FLASK_ENV') != 'development' or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     threading.Thread(target=_backup_scheduler, daemon=True).start()

@@ -149,7 +149,13 @@
       window.location.href = redirect;
     }
 
-    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      // Only fire doLogin if focus is inside the email/password fields
+      const active = document.activeElement;
+      const isEmailOrPass = active && (active.id === 'loginEmail' || active.id === 'loginPassword');
+      if (isEmailOrPass) doLogin();
+    });
   </script>
 </body>
 </html>

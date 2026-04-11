@@ -296,67 +296,75 @@
   <script>
     // Load home preview from API
     async function loadHomePreviews() {
+      let products = [], bundles = [];
+
       try {
-        const res  = await Api.Shop.all();
-        if (!res.ok || !res.data) throw new Error('API error');
-        const data     = res.data;
-        const products = (data.products || []).slice(0, 3);
-        const bundles  = (data.bundles  || []).slice(0, 3);
-
-        // Render product cards
-        const pg = document.getElementById('homeProductGrid');
-        if (pg && products.length) {
-          ALL_PRODUCTS = data.products;
-          ALL_BUNDLES  = data.bundles;
-          pg.innerHTML = products.map(p => {
-            const name = p[`name_${lang()}`] || p.name_en;
-            const desc = p[`desc_${lang()}`] || p.desc_en;
-            const price = p.variants?.[0]?.price ?? p.base_price;
-            return `<div class="prod-card reveal">
-              ${p.badge ? `<span class="prod-badge">${p.badge}</span>` : ''}
-              <div class="prod-img-wrap">
-                <img src="${p.photo}" alt="${name}" loading="lazy" onerror="this.src='assets/IMG_7982.JPEG'">
-              </div>
-              <div class="prod-body">
-                <div class="prod-cat">${p.category}</div>
-                <div class="prod-name">${name}</div>
-                <div class="prod-desc" style="font-size:12px;">${desc}</div>
-                <div class="prod-price">from <strong>€${price}</strong> <span>/ ${p.unit}</span></div>
-              </div>
-              <div class="prod-footer">
-                <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:12px;">Order</a>
-              </div>
-            </div>`;
-          }).join('');
-        }
-
-        // Render bundle cards (compact)
-        const bg = document.getElementById('homeBundleGrid');
-        if (bg && bundles.length) {
-          bg.innerHTML = bundles.map(b => {
-            const name     = b[`name_${lang()}`] || b.name_en;
-            const featured = b.badge === 'Most popular';
-            const oldPrice = b.original_price !== b.discount_price
-              ? `<span class="pack-price-old">€${b.original_price}</span>` : '';
-            return `<div class="pack-card ${featured?'featured':''} reveal">
-              <div class="pack-img-wrap">
-                <img src="${b.photo}" alt="${name}" loading="lazy" onerror="this.src='assets/IMG_1259.JPG'">
-              </div>
-              <div class="pack-body">
-                <div class="pack-size-badge">${b.size_label}${b.badge?' · '+b.badge:''}</div>
-                <div class="pack-name" style="font-size:18px;">${name}</div>
-                <div class="pack-price-row">${oldPrice}<span class="pack-price-new" style="font-size:24px;">€${b.discount_price}</span></div>
-              </div>
-              <div class="pack-footer">
-                <a href="shop.html" class="btn ${featured?'btn-primary':'btn-blue'}" style="width:100%;justify-content:center;">See details</a>
-              </div>
-            </div>`;
-          }).join('');
+        const res = await Api.Shop.all();
+        if (res.ok && res.data && res.data.products && res.data.products.length) {
+          products = res.data.products;
+          bundles  = res.data.bundles || [];
+          ALL_PRODUCTS = products;
+          ALL_BUNDLES  = bundles;
+        } else {
+          throw new Error('empty');
         }
       } catch(e) {
-        // Fallback — just show links
-        const pg = document.getElementById('homeProductGrid');
-        if (pg) pg.innerHTML = '<div style="grid-column:1/-1;text-align:center;"><a href="shop.html" class="btn btn-dark">Browse all products →</a></div>';
+        // API unavailable — use built-in fallback from shop.js
+        products = typeof FALLBACK_PRODUCTS !== 'undefined' ? FALLBACK_PRODUCTS : [];
+        bundles  = typeof FALLBACK_BUNDLES  !== 'undefined' ? FALLBACK_BUNDLES  : [];
+      }
+
+      // Render product cards (first 3)
+      const pg = document.getElementById('homeProductGrid');
+      if (pg) {
+        const show = products.slice(0, 3);
+        pg.innerHTML = show.length ? show.map(p => {
+          const l     = typeof lang === 'function' ? lang() : 'en';
+          const name  = p[`name_${l}`]  || p.name_en  || p.id;
+          const desc  = p[`desc_${l}`]  || p.desc_en  || '';
+          const price = p.variants?.[0]?.price ?? p.base_price;
+          return `<div class="prod-card reveal">
+            ${p.badge ? `<span class="prod-badge">${p.badge}</span>` : ''}
+            <div class="prod-img-wrap">
+              <img src="${p.photo}" alt="${name}" loading="lazy" onerror="this.src='assets/IMG_7982.JPEG'">
+            </div>
+            <div class="prod-body">
+              <div class="prod-cat">${p.category}</div>
+              <div class="prod-name">${name}</div>
+              <div class="prod-desc" style="font-size:12px;">${desc}</div>
+              <div class="prod-price">from <strong>€${price}</strong> <span>/ ${p.unit}</span></div>
+            </div>
+            <div class="prod-footer">
+              <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:12px;">Order</a>
+            </div>
+          </div>`;
+        }).join('') : '<div style="grid-column:1/-1;text-align:center;"><a href="shop.html" class="btn btn-dark">Browse all products →</a></div>';
+      }
+
+      // Render bundle cards (first 3)
+      const bg = document.getElementById('homeBundleGrid');
+      if (bg) {
+        const show = bundles.slice(0, 3);
+        bg.innerHTML = show.length ? show.map(b => {
+          const l        = typeof lang === 'function' ? lang() : 'en';
+          const name     = b[`name_${l}`] || b.name_en || b.id;
+          const featured = b.badge === 'Most popular';
+          const oldPrice = b.original_price !== b.discount_price
+            ? `<span class="pack-price-old">€${b.original_price}</span>` : '';
+          return `<div class="pack-card ${featured?'featured':''} reveal">
+            <div class="pack-img-wrap">
+              <img src="${b.photo}" alt="${name}" loading="lazy" onerror="this.src='assets/IMG_1259.JPG'">
+            </div>
+            <div class="pack-body">
+              <div class="pack-size-badge">${b.size_label}${b.badge?' · '+b.badge:''}</div>
+              <div class="pack-name" style="font-size:18px;">${name}</div>
+              <div class="pack-price-row">${oldPrice}<span class="pack-price-new" style="font-size:24px;">€${b.discount_price}</span></div>
+            </div>
+            <div class="pack-footer">
+              <a href="shop.html" class="btn ${featured?'btn-primary':'btn-blue'}" style="width:100%;justify-content:center;">See details</a>
+            </div>
+          </div>`;
+        }).join('') : '<div style="text-align:center;"><a href="shop.html" class="btn btn-blue">View all packs →</a></div>';
       }
     }
     document.addEventListener('DOMContentLoaded', loadHomePreviews);

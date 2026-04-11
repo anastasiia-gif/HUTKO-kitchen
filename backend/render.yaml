@@ -4,11 +4,19 @@ services:
     runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --workers 1 --bind 0.0.0.0:$PORT --timeout 120
+    disk:
+      name: hutko-data
+      mountPath: /data
+      sizeGB: 1
     envVars:
       - key: FLASK_ENV
         value: production
       - key: SECRET_KEY
         generateValue: true
+      - key: DB_PATH
+        value: /data/hutko.db
+      - key: SHOP_EXCEL_PATH
+        value: /data/hutko_shop.xlsx
       - key: ADMIN_PASSWORD
         sync: false
       - key: RESEND_API_KEY
@@ -22,10 +30,8 @@ services:
       - key: RENDER_EXTERNAL_URL
         sync: false
       - key: MOLLIE_API_KEY
-        sync: false       # get from mollie.com — free account, NL iDEAL support
+        sync: false
       - key: TRELLO_API_KEY
         sync: false
       - key: TRELLO_TOKEN
         sync: false
-      # DATABASE_URL — leave unset to use SQLite (safe default)
-      # Add a Render PostgreSQL database manually when ready to upgrade
