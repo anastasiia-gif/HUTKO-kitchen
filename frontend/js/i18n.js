@@ -513,7 +513,8 @@ function applyTranslations() {
   const lang = getLang();
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
-    const val = (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || (TRANSLATIONS['en'] && TRANSLATIONS['en'][key]);
+    const val = (TRANSLATIONS[lang] && TRANSLATIONS[lang][key])
+             || (TRANSLATIONS['en'] && TRANSLATIONS['en'][key]);
     if (!val) return;
     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
       el.placeholder = val;

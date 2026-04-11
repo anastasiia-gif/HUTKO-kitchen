@@ -13,6 +13,11 @@ const NAV_LINKS = [
   { href:'contact.html',  key:'nav_contact',  label:'Contact' },
 ];
 
+function getUser() {
+  try { return JSON.parse(localStorage.getItem('hutko_user')) || null; } catch { return null; }
+}
+
+// Safe EN fallback in case i18n.js fails to load
 const EN_FALLBACK = {
   nav_home:'Home', nav_shop:'Shop / Order', nav_about:'About Us',
   nav_delivery:'Delivery & Info', nav_contact:'Contact',
@@ -21,20 +26,13 @@ const EN_FALLBACK = {
   nav_signout:'Sign out', nav_cart:'Cart', nav_register:'Register',
   footer_tagline:'Authentic Ukrainian frozen food, delivered across the Netherlands.',
   footer_pages:'Pages', footer_products:'Products', footer_contact:'Contact',
-  footer_copy:`© ${new Date().getFullYear()} HUTKO Frozen Food. All rights reserved.`,
+  footer_copy:'\u00a9 ' + new Date().getFullYear() + ' HUTKO Frozen Food. All rights reserved.',
   cart_title:'Your order', cart_empty:'Your cart is empty.',
   cart_total:'Total', cart_checkout:'Proceed to checkout',
 };
+// _tr: safe translation wrapper - works even if i18n.js crashed
+const _tr = (key) => (typeof t === 'function') ? t(key) : (EN_FALLBACK[key] || key);
 
-function getUser() {
-  try { return JSON.parse(localStorage.getItem('hutko_user')) || null; } catch { return null; }
-}
-
-// Safe wrapper — works even if i18n.js failed to load
-const _tr = (key) => {
-  if (typeof t === 'function') return t(key);
-  return EN_FALLBACK[key] || key;
-};
 async function logoutUser() {
   if (window.Api) await window.Api.Auth.logout();
   else { localStorage.removeItem('hutko_user'); localStorage.removeItem('hutko_token'); }
@@ -46,7 +44,7 @@ window.toggleUserMenu = toggleUserMenu;
 
 function renderNavbar() {
   const lang = (typeof getLang === 'function') ? getLang() : 'en';
-  const tr   = _tr;
+  const tr = _tr;
 
   const links = NAV_LINKS.map(l => `<li><a href="${l.href}" data-i18n="${l.key}">${tr(l.key) || l.label}</a></li>`).join('');
   const drawerLinks = NAV_LINKS.map(l => `<a href="${l.href}" data-i18n="${l.key}">${tr(l.key) || l.label}</a>`).join('');
