@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="assets/logo_nav.png">
+    <link rel="apple-touch-icon" href="assets/logo_nav.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HUTKO Kitchen — Ukrainian Frozen Food</title>
     <meta name="description" content="Authentic Ukrainian frozen food delivered across the Netherlands. Borscht, syrnyky, zrazy and more.">
@@ -119,12 +121,12 @@
             <h2 class="section-title reveal delay-1" style="text-align:center;max-width:500px;margin:0 auto 0.5rem;" data-i18n="home_why_title">Food for real life moments</h2>
             <div class="why-grid">
                 <div class="why-card reveal delay-1">
-                    <div class="why-icon">🌅</div>
+                    <div class="why-icon">??</div>
                     <div class="why-title" data-i18n="why_1_title">Calm mornings</div>
                     <div class="why-desc" data-i18n="why_1_desc">You want a real breakfast, not just a snack. Syrnyky are ready in 10 minutes — no mess, no stress.</div>
                 </div>
                 <div class="why-card reveal delay-2">
-                    <div class="why-icon">🌙</div>
+                    <div class="why-icon">??</div>
                     <div class="why-title" data-i18n="why_2_title">Easy evenings</div>
                     <div class="why-desc" data-i18n="why_2_desc">Guests showed up? Film night? Pull out something real — without cooking from scratch or ordering takeout.</div>
                 </div>
@@ -134,7 +136,7 @@
                     <div class="why-desc" data-i18n="why_3_desc">Everything is frozen right after cooking to lock in flavour. Your freezer always has something good.</div>
                 </div>
                 <div class="why-card reveal delay-1">
-                    <div class="why-icon">🫙</div>
+                    <div class="why-icon">??</div>
                     <div class="why-title" data-i18n="why_4_title">Small batches</div>
                     <div class="why-desc" data-i18n="why_4_desc">Made in small quantities at home, with real ingredients. You cook the final step — you're still involved.</div>
                 </div>
@@ -292,22 +294,77 @@
     <script src="js/main.js"></script>
     <script src="js/shop.js"></script>
     <script>
-        // Home previews — delegates entirely to shop.js (same data, same renderers)
+        // Load home preview from API
         async function loadHomePreviews() {
-            await loadShopData(); // waits for API + fallback, sets ALL_PRODUCTS / ALL_BUNDLES
+            let products = [], bundles = [];
 
-            const pg = document.getElementById('homeProductGrid');
-            if (pg) {
-                pg.innerHTML = ALL_PRODUCTS.slice(0, 3).map(p => productCard(p)).join('') ||
-                    '<div style="grid-column:1/-1;text-align:center;"><a href="shop.html" class="btn btn-dark">Browse all products →</a></div>';
-                initReveal();
+            try {
+                const res = await Api.Shop.all();
+                if (res.ok && res.data && res.data.products && res.data.products.length) {
+                    products = res.data.products;
+                    bundles = res.data.bundles || [];
+                    ALL_PRODUCTS = products;
+                    ALL_BUNDLES = bundles;
+                } else {
+                    throw new Error('empty');
+                }
+            } catch (e) {
+                // API unavailable — use built-in fallback from shop.js
+                products = typeof FALLBACK_PRODUCTS !== 'undefined' ? FALLBACK_PRODUCTS : [];
+                bundles = typeof FALLBACK_BUNDLES !== 'undefined' ? FALLBACK_BUNDLES : [];
             }
 
+            // Render product cards (first 3)
+            const pg = document.getElementById('homeProductGrid');
+            if (pg) {
+                const show = products.slice(0, 3);
+                pg.innerHTML = show.length ? show.map(p => {
+                    const l = typeof lang === 'function' ? lang() : 'en';
+                    const name = p[`name_${l}`] || p.name_en || p.id;
+                    const desc = p[`desc_${l}`] || p.desc_en || '';
+                    const price = p.variants?.[0]?.price ?? p.base_price;
+                    return `<div class="prod-card reveal">
+                ${p.badge ? `<span class="prod-badge">${p.badge}</span>` : ''}
+                <div class="prod-img-wrap">
+                  <img src="${p.photo}" alt="${name}" loading="lazy" onerror="this.src='assets/IMG_7982.JPEG'">
+                </div>
+                <div class="prod-body">
+                  <div class="prod-cat">${p.category}</div>
+                  <div class="prod-name">${name}</div>
+                  <div class="prod-desc" style="font-size:12px;">${desc}</div>
+                  <div class="prod-price">from <strong>€${price}</strong> <span>/ ${p.unit}</span></div>
+                </div>
+                <div class="prod-footer">
+                  <a href="shop.html" class="btn btn-dark" style="width:100%;justify-content:center;font-size:12px;">Order</a>
+                </div>
+              </div>`;
+                }).join('') : '<div style="grid-column:1/-1;text-align:center;"><a href="shop.html" class="btn btn-dark">Browse all products →</a></div>';
+            }
+
+            // Render bundle cards (first 3)
             const bg = document.getElementById('homeBundleGrid');
             if (bg) {
-                bg.innerHTML = ALL_BUNDLES.slice(0, 3).map(b => bundleCard(b)).join('') ||
-                    '<div style="text-align:center;"><a href="shop.html" class="btn btn-blue">View all packs →</a></div>';
-                initReveal();
+                const show = bundles.slice(0, 3);
+                bg.innerHTML = show.length ? show.map(b => {
+                    const l = typeof lang === 'function' ? lang() : 'en';
+                    const name = b[`name_${l}`] || b.name_en || b.id;
+                    const featured = b.badge === 'Most popular';
+                    const oldPrice = b.original_price !== b.discount_price
+                        ? `<span class="pack-price-old">€${b.original_price}</span>` : '';
+                    return `<div class="pack-card ${featured ? 'featured' : ''} reveal">
+                <div class="pack-img-wrap">
+                  <img src="${b.photo}" alt="${name}" loading="lazy" onerror="this.src='assets/IMG_1259.JPG'">
+                </div>
+                <div class="pack-body">
+                  <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>
+                  <div class="pack-name" style="font-size:18px;">${name}</div>
+                  <div class="pack-price-row">${oldPrice}<span class="pack-price-new" style="font-size:24px;">€${b.discount_price}</span></div>
+                </div>
+                <div class="pack-footer">
+                  <a href="shop.html" class="btn ${featured ? 'btn-primary' : 'btn-blue'}" style="width:100%;justify-content:center;">See details</a>
+                </div>
+              </div>`;
+                }).join('') : '<div style="text-align:center;"><a href="shop.html" class="btn btn-blue">View all packs →</a></div>';
             }
         }
         document.addEventListener('DOMContentLoaded', loadHomePreviews);

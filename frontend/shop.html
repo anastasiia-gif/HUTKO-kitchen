@@ -1,128 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shop — HUTKO Kitchen</title>
-  <meta name="description" content="Order authentic Ukrainian frozen food. Borscht, syrnyky, zrazy, chicken balls and more.">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/shop.css">
-  <style>
-    /* Shop tabs */
-    .shop-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 2rem;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 0;
-    }
-    .shop-tab {
-      background: none;
-      border: none;
-      font-family: var(--display);
-      font-size: 16px;
-      color: var(--ink-soft);
-      padding: 10px 20px 12px;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      margin-bottom: -2px;
-      transition: .2s;
-    }
-    .shop-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
-    .shop-tab:hover:not(.active) { color: var(--ink); }
-    .shop-panel { display: none; }
-    .shop-panel.active { display: block; }
-    /* Dietary tags */
-    .dietary-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
-    .dietary-tag { font-size: 14px; cursor: help; }
-    /* Variant select */
-    .variant-select {
-      width: 100%; margin-top: 10px;
-      background: var(--cream); border: 1.5px solid transparent;
-      border-radius: 8px; padding: 7px 10px;
-      font-size: 13px; font-family: var(--sans); color: var(--ink);
-      cursor: pointer; transition: .15s;
-    }
-    .variant-select:hover { border-color: var(--blue); }
-    .shop-loading { text-align: center; padding: 3rem; color: var(--ink-soft); font-size: 14px; }
-  </style>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="assets/logo_nav.png">
+    <link rel="apple-touch-icon" href="assets/logo_nav.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop — HUTKO Kitchen</title>
+    <meta name="description" content="Order authentic Ukrainian frozen food. Borscht, syrnyky, zrazy, chicken balls and more.">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/shop.css">
+    <style>
+        /* Shop tabs */
+        .shop-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0;
+        }
+
+        .shop-tab {
+            background: none;
+            border: none;
+            font-family: var(--display);
+            font-size: 16px;
+            color: var(--ink-soft);
+            padding: 10px 20px 12px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: .2s;
+        }
+
+            .shop-tab.active {
+                color: var(--blue);
+                border-bottom-color: var(--blue);
+            }
+
+            .shop-tab:hover:not(.active) {
+                color: var(--ink);
+            }
+
+        .shop-panel {
+            display: none;
+        }
+
+            .shop-panel.active {
+                display: block;
+            }
+        /* Dietary tags */
+        .dietary-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+
+        .dietary-tag {
+            font-size: 14px;
+            cursor: help;
+        }
+        /* Variant select */
+        .variant-select {
+            width: 100%;
+            margin-top: 10px;
+            background: var(--cream);
+            border: 1.5px solid transparent;
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-size: 13px;
+            font-family: var(--sans);
+            color: var(--ink);
+            cursor: pointer;
+            transition: .15s;
+        }
+
+            .variant-select:hover {
+                border-color: var(--blue);
+            }
+
+        .shop-loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--ink-soft);
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
 
-  <div id="navbar-placeholder"></div>
-  <div id="cart-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+    <div id="cart-placeholder"></div>
 
-  <!-- Page header -->
-  <div class="page-header" style="background:var(--cream);padding:3rem 2rem 2rem;border-bottom:1px solid var(--border);">
-    <div class="section-inner">
-      <div class="label" data-i18n="nav_shop">Shop</div>
-      <h1 class="section-title" style="margin:0.4rem 0 0;" data-i18n="shop_title">Order now</h1>
+    <!-- Page header -->
+    <div class="page-header" style="background:var(--cream);padding:3rem 2rem 2rem;border-bottom:1px solid var(--border);">
+        <div class="section-inner">
+            <div class="label" data-i18n="nav_shop">Shop</div>
+            <h1 class="section-title" style="margin:0.4rem 0 0;" data-i18n="shop_title">Order now</h1>
+        </div>
     </div>
-  </div>
 
-  <section style="background:var(--white);padding:3rem 2rem 5rem;">
-    <div class="section-inner">
+    <section style="background:var(--white);padding:3rem 2rem 5rem;">
+        <div class="section-inner">
 
-      <!-- Tabs -->
-      <div class="shop-tabs">
-        <button class="shop-tab active" onclick="switchTab('products',this)" data-i18n="shop_tab_products">
-          🛒 Products
-        </button>
-        <button class="shop-tab" onclick="switchTab('bundles',this)" data-i18n="shop_tab_bundles">
-          🎁 Bundles & Packs
-        </button>
-      </div>
+            <!-- Tabs -->
+            <div class="shop-tabs">
+                <button class="shop-tab active" onclick="switchTab('products',this)" data-i18n="shop_tab_products">
+                    🛒 Products
+                </button>
+                <button class="shop-tab" onclick="switchTab('bundles',this)" data-i18n="shop_tab_bundles">
+                    🎁 Bundles & Packs
+                </button>
+            </div>
 
-      <!-- PRODUCTS PANEL -->
-      <div id="panel-products" class="shop-panel active">
-        <!-- Filters -->
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:1.5rem;">
-          <button class="cat-btn active" data-cat="all" onclick="filterProducts('all')" data-i18n="shop_all">All</button>
-          <button class="cat-btn" data-cat="breakfast" onclick="filterProducts('breakfast')" data-i18n="cat_breakfast">Breakfast</button>
-          <button class="cat-btn" data-cat="soups" onclick="filterProducts('soups')" data-i18n="cat_soups">Soups</button>
-          <button class="cat-btn" data-cat="snacks" onclick="filterProducts('snacks')" data-i18n="cat_snacks">Snacks</button>
-          <button class="cat-btn" data-cat="mains" onclick="filterProducts('mains')" data-i18n="cat_main">Mains</button>
-          <span class="filter-info" id="filterInfo" style="margin-left:auto;font-size:12px;color:var(--ink-soft);"></span>
+            <!-- PRODUCTS PANEL -->
+            <div id="panel-products" class="shop-panel active">
+                <!-- Filters -->
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:1.5rem;">
+                    <button class="cat-btn active" data-cat="all" onclick="filterProducts('all')" data-i18n="shop_all">All</button>
+                    <button class="cat-btn" data-cat="breakfast" onclick="filterProducts('breakfast')" data-i18n="cat_breakfast">Breakfast</button>
+                    <button class="cat-btn" data-cat="soups" onclick="filterProducts('soups')" data-i18n="cat_soups">Soups</button>
+                    <button class="cat-btn" data-cat="snacks" onclick="filterProducts('snacks')" data-i18n="cat_snacks">Snacks</button>
+                    <button class="cat-btn" data-cat="mains" onclick="filterProducts('mains')" data-i18n="cat_main">Mains</button>
+                    <span class="filter-info" id="filterInfo" style="margin-left:auto;font-size:12px;color:var(--ink-soft);"></span>
+                </div>
+                <div class="product-grid" id="productGrid">
+                    <div class="shop-loading">Loading products…</div>
+                </div>
+            </div>
+
+            <!-- BUNDLES PANEL -->
+            <div id="panel-bundles" class="shop-panel">
+                <p style="font-size:14px;color:var(--ink-soft);margin-bottom:2rem;line-height:1.7;"
+                   data-i18n="shop_bundles_desc">
+                    Save when you order more. Bundles are pre-selected combinations — great value for families or stocking up the freezer.
+                </p>
+                <div class="packs-grid" id="bundleGrid">
+                    <div class="shop-loading">Loading bundles…</div>
+                </div>
+                <p style="text-align:center;font-size:13px;color:var(--ink-soft);margin-top:2rem;">
+                    Want a custom bundle?
+                    <a href="contact.html" style="color:var(--blue);font-weight:600;" data-i18n="shop_contact_us">Contact us</a>
+                </p>
+            </div>
+
         </div>
-        <div class="product-grid" id="productGrid">
-          <div class="shop-loading">Loading products…</div>
-        </div>
-      </div>
+    </section>
 
-      <!-- BUNDLES PANEL -->
-      <div id="panel-bundles" class="shop-panel">
-        <p style="font-size:14px;color:var(--ink-soft);margin-bottom:2rem;line-height:1.7;"
-           data-i18n="shop_bundles_desc">
-          Save when you order more. Bundles are pre-selected combinations — great value for families or stocking up the freezer.
-        </p>
-        <div class="packs-grid" id="bundleGrid">
-          <div class="shop-loading">Loading bundles…</div>
-        </div>
-        <p style="text-align:center;font-size:13px;color:var(--ink-soft);margin-top:2rem;">
-          Want a custom bundle?
-          <a href="contact.html" style="color:var(--blue);font-weight:600;" data-i18n="shop_contact_us">Contact us</a>
-        </p>
-      </div>
+    <div id="footer-placeholder"></div>
 
-    </div>
-  </section>
-
-  <div id="footer-placeholder"></div>
-
-  <script src="js/api.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/search.js"></script>
-  <script src="js/components.js"></script>
-  <script src="js/main.js"></script>
-  <script src="js/shop.js"></script>
-  <script>
-    function switchTab(name, btn) {
-      document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.shop-panel').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(`panel-${name}`).classList.add('active');
-    }
-    window.switchTab = switchTab;
-  </script>
+    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/shop.js"></script>
+    <script>
+        function switchTab(name, btn) {
+            document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.shop-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`panel-${name}`).classList.add('active');
+        }
+        window.switchTab = switchTab;
+    </script>
 </body>
 </html>
