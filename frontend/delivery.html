@@ -2,8 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="assets/logo_nav.png">
-    <link rel="apple-touch-icon" href="assets/logo_nav.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delivery & Info — HUTKO</title>
     <link rel="stylesheet" href="css/style.css">
@@ -42,23 +40,23 @@
     <section class="section-white">
         <div class="section-inner area-grid">
             <div>
-                <div class="label reveal" data-i18n="delivery_coverage_label">Coverage</div>
+                <div class="label reveal" data-i18n="delivery_coverage_label" data-i18n="delivery_coverage_badge">Coverage</div>
                 <h2 class="section-title reveal delay-1" data-i18n="delivery_coverage_title">Where we deliver</h2>
                 <div class="coverage-nl reveal delay-2">
                     <div class="nl-big-statement">
                         <div class="nl-flag-icon">🇳🇱</div>
-                        <div class="nl-big-text">We deliver across the <strong>entire Netherlands</strong> — from Amsterdam to Maastricht, from The Hague to Groningen.</div>
+                        <div class="nl-big-text">We deliver across the <strong>entire Netherlands</strong> — and offer free pick-up in 's-Hertogenbosch.</div>
                     </div>
                     <div class="delivery-time-cards">
-                        <div class="dt-card"><div class="dt-icon">⚡</div><div class="dt-label">Thu & Sat</div><div class="dt-sub">Fixed delivery days</div></div>
-                        <div class="dt-card"><div class="dt-icon">📦</div><div class="dt-label">Insulated</div><div class="dt-sub">Stays frozen en route</div></div>
-                        <div class="dt-card"><div class="dt-icon">🏠</div><div class="dt-label">Door to door</div><div class="dt-sub">No pickup needed</div></div>
+                        <div class="dt-card"><div class="dt-icon">⚡</div><div class="dt-label">Thu & Sat</div><div class="dt-sub">16:00 – 20:00</div></div>
+                        <div class="dt-card"><div class="dt-icon">📦</div><div class="dt-label" data-i18n="delivery_insulated">Insulated</div><div class="dt-sub" data-i18n="delivery_frozen_route">Stays frozen en route</div></div>
+                        <div class="dt-card"><div class="dt-icon">🏠</div><div class="dt-label">Pick-up</div><div class="dt-sub">Mon–Fri, free</div></div>
                     </div>
                 </div>
                 <div class="info-cards reveal delay-3">
                     <div class="info-card"><div class="info-icon">📦</div><div><div class="ic-title" data-i18n="min_order_title">Minimum order</div><div class="ic-text" data-i18n="min_order_text">Minimum order value is €25. Orders below this amount are not eligible for delivery.</div></div></div>
-                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title" data-i18n="delivery_cost_title">Delivery cost</div><div class="ic-text" data-i18n="delivery_cost_text">Flat rate €5 delivery. Free delivery on orders over €60 anywhere in the Netherlands.</div></div></div>
-                    <div class="info-card"><div class="info-icon">📅</div><div><div class="ic-title" data-i18n="cutoff_title">Order cutoff</div><div class="ic-text" data-i18n="cutoff_text">Orders placed before 14:00 are processed the same day. Later orders are processed next morning.</div></div></div>
+                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title">Delivery cost</div><div class="ic-text">€10 in Amsterdam (A10 area) or 's-Hertogenbosch. €15 everywhere else in the Netherlands. Free pick-up at Graafseweg 194B, 's-Hertogenbosch.</div></div></div>
+                    <div class="info-card"><div class="info-icon">📍</div><div><div class="ic-title">Pick-up address</div><div class="ic-text">Graafseweg 194B, 's-Hertogenbosch. Available Monday–Friday during working hours. Unlimited spots — just select pick-up at checkout.</div></div></div>
                 </div>
             </div>
             <div class="map-box reveal delay-2">
@@ -175,13 +173,12 @@
     <!-- DELIVERY BOOKING INFO -->
     <section class="section-white">
         <div class="section-inner">
-            <div class="label reveal" style="text-align:center;">Book your delivery</div>
+            <div class="label reveal" style="text-align:center;" data-i18n="delivery_book_label">Book your delivery</div>
             <h2 class="section-title reveal delay-1" style="text-align:center;max-width:560px;margin:0 auto 0.75rem;">
-                Choose your delivery date
+                <span data-i18n="delivery_book_title">Choose your delivery date</span>
             </h2>
             <p class="section-sub reveal delay-2" style="text-align:center;margin:0 auto 2.5rem;">
-                Delivery slots are selected during checkout — no separate booking needed.
-                We deliver on <strong>Thursdays and Saturdays</strong> across the Netherlands.
+                Delivery slots are selected during checkout — no separate booking needed. We deliver on <strong>Thursdays and Saturdays, 16:00–20:00</strong>. Or pick up for free in 's-Hertogenbosch.
             </p>
 
             <div style="max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:16px;">
@@ -192,9 +189,9 @@
                         <div style="font-family:var(--display);font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;">How it works</div>
                         <ol style="margin:0;padding-left:1.2rem;color:rgba(255,255,255,0.85);font-size:14px;line-height:2.2;">
                             <li><a href="shop.html" style="color:#fff;font-weight:600;">Browse the shop</a> and add items to your cart</li>
-                            <li>Go to checkout — pick your delivery date right there</li>
+                            <li>Go to checkout — choose delivery or free pick-up</li>
                             <li>We confirm by email within 1 hour with payment details</li>
-                            <li>Your order arrives fresh-frozen on the chosen day 🚚</li>
+                            <li>Delivery Thu &amp; Sat 16:00–20:00, or pick up Mon–Fri at Graafseweg 194B 🚚</li>
                         </ol>
                     </div>
                 </div>
@@ -203,23 +200,23 @@
                     <div style="background:var(--cream);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1rem;text-align:center;">
                         <div style="font-size:1.5rem;margin-bottom:8px;">📅</div>
                         <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;">Delivery days</div>
-                        <div style="font-size:12px;color:var(--ink-soft);" data-setting="delivery_days">Thu &amp; Sat</div>
+                        <div style="font-size:12px;color:var(--ink-soft);">Thu &amp; Sat · 16:00–20:00</div>
                     </div>
                     <div style="background:var(--cream);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1rem;text-align:center;">
-                        <div style="font-size:1.5rem;margin-bottom:8px;">👥</div>
-                        <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;">Capacity</div>
-                        <div style="font-size:12px;color:var(--ink-soft);">Max <span data-setting="max_per_day">15</span> orders/day</div>
+                        <div style="font-size:1.5rem;margin-bottom:8px;">📍</div>
+                        <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;">Free pick-up</div>
+                        <div style="font-size:12px;color:var(--ink-soft);">Graafseweg 194B, Den Bosch</div>
                     </div>
                     <div style="background:var(--cream);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1rem;text-align:center;">
                         <div style="font-size:1.5rem;margin-bottom:8px;">🚚</div>
-                        <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;">Coverage</div>
-                        <div style="font-size:12px;color:var(--ink-soft);">Entire Netherlands</div>
+                        <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;">Delivery cost</div>
+                        <div style="font-size:12px;color:var(--ink-soft);">€10 A'dam / Den Bosch · €15 elsewhere</div>
                     </div>
                 </div>
 
                 <div style="text-align:center;padding-top:0.5rem;">
                     <a href="shop.html" class="btn btn-primary" style="font-size:15px;padding:14px 36px;">
-                        Order now — choose date at checkout →
+                        <span data-i18n="delivery_order_btn">Order now — choose date at checkout →</span>
                     </a>
                 </div>
 

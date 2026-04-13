@@ -1,260 +1,356 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkout — HUTKO</title>
-  <link rel="stylesheet" href="css/style.css">
-  <style>
-    /* ── FIELD HELPERS ── */
-    .field { display:flex; flex-direction:column; gap:5px; }
-    .field label { font-size:13px; font-weight:600; color:var(--ink); }
-    .field input, .field select, .field textarea {
-      padding:10px 13px; border:1.5px solid var(--border); border-radius:10px;
-      font-size:14px; color:var(--ink); background:var(--white);
-      transition:.15s; width:100%; box-sizing:border-box;
-    }
-    .field input:focus, .field select:focus { border-color:var(--blue); outline:none; }
-    .field input.error, .field select.error { border-color:#e84b22; }
-    .field .hint { font-size:12px; color:var(--ink-soft); line-height:1.5; }
-    .field .hint a { color:var(--blue); font-weight:600; }
-    .optional { font-weight:400; opacity:.5; font-size:12px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout — HUTKO</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ── FIELD HELPERS ── */
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
 
-    /* ── DATE PICKER ── */
-    .slot-grid {
-      display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:8px; margin-top:4px;
-    }
-    .slot-btn {
-      border:1.5px solid var(--border); border-radius:10px; background:var(--white);
-      padding:10px 8px; cursor:pointer; text-align:center; transition:.15s;
-    }
-    .slot-btn:hover:not(:disabled) { border-color:var(--blue); }
-    .slot-btn.selected { border-color:var(--blue); background:rgba(27,63,206,.06); }
-    .slot-btn:disabled { opacity:.4; cursor:not-allowed; background:var(--cream); }
-    .slot-date { font-size:13px; font-weight:600; color:var(--ink); }
-    .slot-day  { font-size:11px; color:var(--ink-soft); margin-bottom:2px; }
-    .slot-cap  { font-size:11px; color:var(--ink-soft); margin-top:3px; }
-    .slot-cap.full { color:#e84b22; }
-    .slot-loading { font-size:13px; color:var(--ink-soft); padding:12px 0; }
-  </style>
+            .field label {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--ink);
+            }
+
+            .field input, .field select, .field textarea {
+                padding: 10px 13px;
+                border: 1.5px solid var(--border);
+                border-radius: 10px;
+                font-size: 14px;
+                color: var(--ink);
+                background: var(--white);
+                transition: .15s;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+                .field input:focus, .field select:focus {
+                    border-color: var(--blue);
+                    outline: none;
+                }
+
+                .field input.error, .field select.error {
+                    border-color: #e84b22;
+                }
+
+            .field .hint {
+                font-size: 12px;
+                color: var(--ink-soft);
+                line-height: 1.5;
+            }
+
+                .field .hint a {
+                    color: var(--blue);
+                    font-weight: 600;
+                }
+
+        .optional {
+            font-weight: 400;
+            opacity: .5;
+            font-size: 12px;
+        }
+
+        /* ── DATE PICKER ── */
+        .slot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill,minmax(130px,1fr));
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .slot-btn {
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            background: var(--white);
+            padding: 10px 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: .15s;
+        }
+
+            .slot-btn:hover:not(:disabled) {
+                border-color: var(--blue);
+            }
+
+            .slot-btn.selected {
+                border-color: var(--blue);
+                background: rgba(27,63,206,.06);
+            }
+
+            .slot-btn:disabled {
+                opacity: .4;
+                cursor: not-allowed;
+                background: var(--cream);
+            }
+
+        .slot-date {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .slot-day {
+            font-size: 11px;
+            color: var(--ink-soft);
+            margin-bottom: 2px;
+        }
+
+        .slot-cap {
+            font-size: 11px;
+            color: var(--ink-soft);
+            margin-top: 3px;
+        }
+
+            .slot-cap.full {
+                color: #e84b22;
+            }
+
+        .slot-loading {
+            font-size: 13px;
+            color: var(--ink-soft);
+            padding: 12px 0;
+        }
+    </style>
 </head>
 <body>
-  <div id="navbar-placeholder"></div>
-  <div id="cart-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+    <div id="cart-placeholder"></div>
 
-  <!-- EMPTY CART GUARD -->
-  <div id="emptyGuard" style="display:none;text-align:center;padding:5rem 2rem;">
-    <div style="font-size:48px;margin-bottom:1rem;">🛒</div>
-    <h2 style="font-family:var(--display);font-size:28px;color:var(--blue);margin-bottom:.75rem;">Your cart is empty</h2>
-    <p style="color:var(--ink-soft);margin-bottom:2rem;">Add some products before checking out.</p>
-    <a href="shop.html" class="btn btn-primary">Browse products</a>
-  </div>
-
-  <!-- CHECKOUT BODY -->
-  <div id="checkoutBody" style="background:var(--cream);">
-    <div style="max-width:var(--max-w);margin:0 auto;padding:1.5rem 2rem 0;">
-      <div class="label">Almost there</div>
-      <h1 style="font-family:var(--display);font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;color:var(--blue);margin-bottom:0;">Checkout</h1>
+    <!-- EMPTY CART GUARD -->
+    <div id="emptyGuard" style="display:none;text-align:center;padding:5rem 2rem;">
+        <div style="font-size:48px;margin-bottom:1rem;">🛒</div>
+        <h2 style="font-family:var(--display);font-size:28px;color:var(--blue);margin-bottom:.75rem;">Your cart is empty</h2>
+        <p style="color:var(--ink-soft);margin-bottom:2rem;">Add some products before checking out.</p>
+        <a href="shop.html" class="btn btn-primary">Browse products</a>
     </div>
-    <div class="checkout-layout">
 
-      <!-- LEFT: FORMS -->
-      <div class="checkout-main">
-
-        <!-- 1. CONTACT -->
-        <div class="checkout-block">
-          <div class="checkout-block-head">
-            <div class="checkout-block-num">1</div>
-            <h3>Contact information</h3>
-          </div>
-          <div class="checkout-block-body">
-            <div class="field-row">
-              <div class="field">
-                <label for="coFirst">First name</label>
-                <input type="text" id="coFirst" placeholder="Anna" autocomplete="given-name">
-              </div>
-              <div class="field">
-                <label for="coLast">Last name</label>
-                <input type="text" id="coLast" placeholder="Kovalenko" autocomplete="family-name">
-              </div>
-            </div>
-            <div class="field">
-              <label for="coEmail">Email address</label>
-              <input type="email" id="coEmail" placeholder="anna@email.com" autocomplete="email">
-              <span class="hint">Your order confirmation will be sent here.</span>
-            </div>
-            <div class="field">
-              <label for="coPhone">Phone number</label>
-              <input type="tel" id="coPhone" placeholder="+31 6 00 00 00 00" autocomplete="tel">
-              <span class="hint">So we can reach you if there's a delivery question.</span>
-            </div>
-          </div>
+    <!-- CHECKOUT BODY -->
+    <div id="checkoutBody" style="background:var(--cream);">
+        <div style="max-width:var(--max-w);margin:0 auto;padding:1.5rem 2rem 0;">
+            <div class="label">Almost there</div>
+            <h1 style="font-family:var(--display);font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;color:var(--blue);margin-bottom:0;">Checkout</h1>
         </div>
+        <div class="checkout-layout">
 
-        <!-- 2. DELIVERY ADDRESS -->
-        <div class="checkout-block">
-          <div class="checkout-block-head">
-            <div class="checkout-block-num">2</div>
-            <h3>Delivery address</h3>
-          </div>
-          <div class="checkout-block-body">
-            <div class="field">
-              <label for="coStreet">Street address & house number</label>
-              <input type="text" id="coStreet" placeholder="Damrak 1" autocomplete="street-address">
-            </div>
-            <div class="field">
-              <label for="coPost">Postcode</label>
-              <input type="text" id="coPost" placeholder="1012 LG" autocomplete="postal-code" style="max-width:180px;">
-            </div>
-            <div class="field">
-              <label for="coCity">City</label>
-              <input type="text" id="coCity" placeholder="Amsterdam" autocomplete="address-level2">
-            </div>
-            <div class="field">
-              <label for="coProvince">Province</label>
-              <div class="select-wrap">
-                <select id="coProvince">
-                  <option value="" disabled selected>Select your province…</option>
-                  <option>Noord-Holland</option><option>Zuid-Holland</option><option>Utrecht</option>
-                  <option>Flevoland</option><option>Noord-Brabant</option><option>Gelderland</option>
-                  <option>Overijssel</option><option>Friesland</option><option>Drenthe</option>
-                  <option>Groningen</option><option>Zeeland</option><option>Limburg</option>
-                </select>
-              </div>
-            </div>
-            <div class="field">
-              <label for="coNotes">Delivery notes <span class="optional">optional</span></label>
-              <input type="text" id="coNotes" placeholder="e.g. ring bell 2nd floor, leave at door">
-              <span class="hint">Apartment number, gate code, or anything useful for the driver.</span>
-            </div>
-          </div>
-        </div>
+            <!-- LEFT: FORMS -->
+            <div class="checkout-main">
 
-        <!-- 3. DELIVERY DATE -->
-        <div class="checkout-block">
-          <div class="checkout-block-head">
-            <div class="checkout-block-num">3</div>
-            <h3>Choose delivery date</h3>
-          </div>
-          <div class="checkout-block-body">
-            <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">
-              We deliver on <strong>Thursdays and Saturdays</strong> across the Netherlands.
-              Each day has a maximum of 15 orders.
-            </p>
-            <div id="slotGrid" class="slot-grid">
-              <div class="slot-loading">Loading available dates…</div>
-            </div>
-            <div id="slotError" style="display:none;font-size:13px;color:#e84b22;margin-top:8px;"></div>
-          </div>
-        </div>
-
-        <!-- 4. DELIVERY METHOD -->
-        <div class="checkout-block">
-          <div class="checkout-block-head">
-            <div class="checkout-block-num">4</div>
-            <h3>Delivery method</h3>
-          </div>
-          <div class="checkout-block-body">
-            <div class="delivery-options">
-              <label class="delivery-option selected" id="opt-standard">
-                <input type="radio" name="delivery" value="standard" checked onchange="selectDelivery(this)">
-                <div class="delivery-option-info">
-                  <div class="delivery-option-name">Standard delivery</div>
-                  <div class="delivery-option-desc">Insulated packaging • Nationwide</div>
+                <!-- 1. CONTACT -->
+                <div class="checkout-block">
+                    <div class="checkout-block-head">
+                        <div class="checkout-block-num">1</div>
+                        <h3>Contact information</h3>
+                    </div>
+                    <div class="checkout-block-body">
+                        <div class="field-row">
+                            <div class="field">
+                                <label for="coFirst">First name</label>
+                                <input type="text" id="coFirst" placeholder="Anna" autocomplete="given-name">
+                            </div>
+                            <div class="field">
+                                <label for="coLast">Last name</label>
+                                <input type="text" id="coLast" placeholder="Kovalenko" autocomplete="family-name">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="coEmail">Email address</label>
+                            <input type="email" id="coEmail" placeholder="anna@email.com" autocomplete="email">
+                            <span class="hint">Your order confirmation will be sent here.</span>
+                        </div>
+                        <div class="field">
+                            <label for="coPhone">Phone number</label>
+                            <input type="tel" id="coPhone" placeholder="+31 6 00 00 00 00" autocomplete="tel">
+                            <span class="hint">So we can reach you if there's a delivery question.</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="delivery-option-price">€5.00</div>
-              </label>
-              <label class="delivery-option" id="opt-express">
-                <input type="radio" name="delivery" value="express" onchange="selectDelivery(this)">
-                <div class="delivery-option-info">
-                  <div class="delivery-option-name">Express delivery</div>
-                  <div class="delivery-option-desc">Priority packaging • Contact us first</div>
+
+                <!-- 2. DELIVERY METHOD -->
+                <div class="checkout-block">
+                    <div class="checkout-block-head">
+                        <div class="checkout-block-num">2</div>
+                        <h3>Delivery method</h3>
+                    </div>
+                    <div class="checkout-block-body">
+                        <div class="delivery-options">
+                            <label class="delivery-option selected" id="opt-delivery-local">
+                                <input type="radio" name="delivery" value="delivery_local" checked onchange="selectDelivery(this)">
+                                <div class="delivery-option-info">
+                                    <div class="delivery-option-name">Delivery — Amsterdam (A10) or 's-Hertogenbosch</div>
+                                    <div class="delivery-option-desc">Thu & Sat · 16:00–20:00 · Insulated packaging</div>
+                                </div>
+                                <div class="delivery-option-price">€10.00</div>
+                            </label>
+                            <label class="delivery-option" id="opt-delivery-other">
+                                <input type="radio" name="delivery" value="delivery_other" onchange="selectDelivery(this)">
+                                <div class="delivery-option-info">
+                                    <div class="delivery-option-name">Delivery — rest of the Netherlands</div>
+                                    <div class="delivery-option-desc">Thu & Sat · 16:00–20:00 · Insulated packaging</div>
+                                </div>
+                                <div class="delivery-option-price">€15.00</div>
+                            </label>
+                            <label class="delivery-option" id="opt-pickup">
+                                <input type="radio" name="delivery" value="pickup" onchange="selectDelivery(this)">
+                                <div class="delivery-option-info">
+                                    <div class="delivery-option-name">Pick-up — Graafseweg 194B, 's-Hertogenbosch</div>
+                                    <div class="delivery-option-desc">Mon–Fri during working hours · Unlimited spots</div>
+                                </div>
+                                <div class="delivery-option-price">Free</div>
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                <div class="delivery-option-price">€12.00</div>
-              </label>
-              <label class="delivery-option" id="opt-free" style="opacity:.5;pointer-events:none;">
-                <input type="radio" name="delivery" value="free" disabled>
-                <div class="delivery-option-info">
-                  <div class="delivery-option-name">Free delivery</div>
-                  <div class="delivery-option-desc">Available on orders over €60</div>
+
+                <!-- 3a. DELIVERY ADDRESS (shown for delivery only) -->
+                <div class="checkout-block" id="addressBlock">
+                    <div class="checkout-block-head">
+                        <div class="checkout-block-num">3</div>
+                        <h3>Delivery address</h3>
+                    </div>
+                    <div class="checkout-block-body">
+                        <div class="field">
+                            <label for="coStreet">Street address & house number</label>
+                            <input type="text" id="coStreet" placeholder="Damrak 1" autocomplete="street-address">
+                        </div>
+                        <div class="field">
+                            <label for="coPost">Postcode</label>
+                            <input type="text" id="coPost" placeholder="1012 LG" autocomplete="postal-code" style="max-width:180px;">
+                        </div>
+                        <div class="field">
+                            <label for="coCity">City</label>
+                            <input type="text" id="coCity" placeholder="Amsterdam" autocomplete="address-level2">
+                        </div>
+                        <div class="field">
+                            <label for="coProvince">Province</label>
+                            <div class="select-wrap">
+                                <select id="coProvince">
+                                    <option value="" disabled selected>Select your province…</option>
+                                    <option>Noord-Holland</option>
+                                    <option>Zuid-Holland</option>
+                                    <option>Utrecht</option>
+                                    <option>Flevoland</option>
+                                    <option>Noord-Brabant</option>
+                                    <option>Gelderland</option>
+                                    <option>Overijssel</option>
+                                    <option>Friesland</option>
+                                    <option>Drenthe</option>
+                                    <option>Groningen</option>
+                                    <option>Zeeland</option>
+                                    <option>Limburg</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="coNotes">Delivery notes <span class="optional">optional</span></label>
+                            <input type="text" id="coNotes" placeholder="e.g. ring bell 2nd floor, leave at door">
+                            <span class="hint">Apartment number, gate code, or anything useful for the driver.</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="delivery-option-price">€0.00</div>
-              </label>
+
+                <!-- 4. DELIVERY DATE (shown for delivery only) -->
+                <div class="checkout-block" id="dateBlock">
+                    <div class="checkout-block-head">
+                        <div class="checkout-block-num">4</div>
+                        <h3>Choose delivery date</h3>
+                    </div>
+                    <div class="checkout-block-body">
+                        <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">
+                            We deliver on <strong>Thursdays and Saturdays</strong>, between <strong>16:00 and 20:00</strong>.
+                            Each day has a maximum of 15 orders.
+                        </p>
+                        <div id="slotGrid" class="slot-grid">
+                            <div class="slot-loading">Loading available dates…</div>
+                        </div>
+                        <div id="slotError" style="display:none;font-size:13px;color:#e84b22;margin-top:8px;"></div>
+                    </div>
+                </div>
+
+                <!-- 5. PAYMENT (pickup) or 5. PAYMENT (delivery) -->
+                <div class="checkout-block">
+                    <div class="checkout-block-head">
+                        <div class="checkout-block-num">5</div>
+                        <h3>Payment</h3>
+                    </div>
+                    <div class="checkout-block-body">
+                        <div style="background:var(--cream);border-radius:10px;padding:1.25rem;display:flex;gap:14px;align-items:flex-start;">
+                            <div style="font-size:22px;">💳</div>
+                            <div>
+                                <div style="font-size:14px;font-weight:600;color:var(--blue);margin-bottom:4px;">Payment on delivery or via bank transfer</div>
+                                <div style="font-size:13px;color:var(--ink-soft);line-height:1.65;">
+                                    After placing your order you'll receive a confirmation email with our bank details.
+                                    Payment by cash on delivery is also accepted.
+                                    Online payment coming soon.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-          </div>
-        </div>
 
-        <!-- 5. PAYMENT -->
-        <div class="checkout-block">
-          <div class="checkout-block-head">
-            <div class="checkout-block-num">5</div>
-            <h3>Payment</h3>
-          </div>
-          <div class="checkout-block-body">
-            <div style="background:var(--cream);border-radius:10px;padding:1.25rem;display:flex;gap:14px;align-items:flex-start;">
-              <div style="font-size:22px;">💳</div>
-              <div>
-                <div style="font-size:14px;font-weight:600;color:var(--blue);margin-bottom:4px;">Payment on delivery or via bank transfer</div>
-                <div style="font-size:13px;color:var(--ink-soft);line-height:1.65;">
-                  After placing your order you'll receive a confirmation email with our bank details.
-                  Payment by cash on delivery is also accepted.
-                  Online payment coming soon.
+            <!-- RIGHT: ORDER SUMMARY -->
+            <div class="checkout-summary">
+                <div class="summary-head"><h3>Order summary</h3></div>
+                <div class="summary-items" id="summaryItems">
+                    <div class="summary-empty">No items in cart</div>
                 </div>
-              </div>
+                <div class="summary-totals" id="summaryTotals"></div>
+                <div class="summary-foot">
+                    <button class="checkout-submit" id="placeOrderBtn" onclick="placeOrder()">Place order →</button>
+                    <p class="summary-note">By placing your order you agree to our delivery terms. A confirmation email will be sent immediately.</p>
+                </div>
             </div>
-          </div>
-        </div>
 
-      </div>
-
-      <!-- RIGHT: ORDER SUMMARY -->
-      <div class="checkout-summary">
-        <div class="summary-head"><h3>Order summary</h3></div>
-        <div class="summary-items" id="summaryItems">
-          <div class="summary-empty">No items in cart</div>
         </div>
-        <div class="summary-totals" id="summaryTotals"></div>
-        <div class="summary-foot">
-          <button class="checkout-submit" id="placeOrderBtn" onclick="placeOrder()">Place order →</button>
-          <p class="summary-note">By placing your order you agree to our delivery terms. A confirmation email will be sent immediately.</p>
-        </div>
-      </div>
-
     </div>
-  </div>
 
-  <!-- SUCCESS SCREEN -->
-  <div id="successScreen" style="display:none;">
-    <div class="checkout-success">
-      <div class="checkout-success-icon">🎉</div>
-      <h2>Order placed!</h2>
-      <p style="font-size:13px;color:var(--ink-soft);margin-bottom:.25rem;">Order reference</p>
-      <p style="font-family:var(--display);font-size:22px;color:var(--blue);margin-bottom:.5rem;" id="orderRef">—</p>
-      <p id="orderDeliveryDate" style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:1rem;"></p>
-      <p>Thank you! We've received your order and will send a confirmation email with payment details within 1 hour.</p>
-      <div style="display:flex;flex-direction:column;gap:10px;align-items:center;margin-top:1.5rem;">
-        <button id="payOnlineBtn" class="btn btn-primary" style="display:none;font-size:15px;padding:14px 36px;width:100%;max-width:320px;">
-          💳 Pay online now (iDEAL) →
-        </button>
-        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-          <a href="account.html#orders" class="btn btn-dark">View my orders</a>
-          <a href="shop.html" class="btn btn-ghost">Continue shopping</a>
+    <!-- SUCCESS SCREEN -->
+    <div id="successScreen" style="display:none;">
+        <div class="checkout-success">
+            <div class="checkout-success-icon">🎉</div>
+            <h2>Order placed!</h2>
+            <p style="font-size:13px;color:var(--ink-soft);margin-bottom:.25rem;">Order reference</p>
+            <p style="font-family:var(--display);font-size:22px;color:var(--blue);margin-bottom:.5rem;" id="orderRef">—</p>
+            <p id="orderDeliveryDate" style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:1rem;"></p>
+            <p>Thank you! We've received your order and will send a confirmation email with payment details within 1 hour.</p>
+            <div style="display:flex;flex-direction:column;gap:10px;align-items:center;margin-top:1.5rem;">
+                <button id="payOnlineBtn" class="btn btn-primary" style="display:none;font-size:15px;padding:14px 36px;width:100%;max-width:320px;">
+                    💳 Pay online now (iDEAL) →
+                </button>
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                    <a href="account.html#orders" class="btn btn-dark">View my orders</a>
+                    <a href="shop.html" class="btn btn-ghost">Continue shopping</a>
+                </div>
+                <p style="font-size:12px;color:var(--ink-soft);margin-top:4px;">Or pay by bank transfer / cash on delivery — details in your confirmation email.</p>
+            </div>
         </div>
-        <p style="font-size:12px;color:var(--ink-soft);margin-top:4px;">Or pay by bank transfer / cash on delivery — details in your confirmation email.</p>
-      </div>
     </div>
-  </div>
 
-  <div id="footer-placeholder"></div>
-  <script src="js/api.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/search.js"></script>
-  <script src="js/components.js"></script>
-  <script src="js/main.js"></script>
-  <script>
-    const DELIVERY_PRICES = { standard: 5, express: 12, free: 0 };
-    let selectedDelivery = 'standard';
+    <div id="footer-placeholder"></div>
+    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+    const DELIVERY_PRICES = { delivery_local: 10, delivery_other: 15, pickup: 0 };
+    let selectedDelivery = 'delivery_local';
     let selectedDate     = null;
+
+    // Show/hide address & date blocks depending on method
+    function toggleBlocks() {
+      const isPickup = selectedDelivery === 'pickup';
+      document.getElementById('addressBlock').style.display = isPickup ? 'none' : '';
+      document.getElementById('dateBlock').style.display    = isPickup ? 'none' : '';
+    }
 
     // ── DELIVERY DATE SLOTS ─────────────────────────────
     const MAX_PER_DAY = 15;
@@ -325,6 +421,7 @@
       selectedDelivery = radio.value;
       document.querySelectorAll('.delivery-option').forEach(el => el.classList.remove('selected'));
       radio.closest('.delivery-option').classList.add('selected');
+      toggleBlocks();
       renderSummary();
     }
     window.selectDelivery = selectDelivery;
@@ -345,11 +442,8 @@
       }
 
       const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
-      const delivery = subtotal >= 60 ? 0 : DELIVERY_PRICES[selectedDelivery];
+      const delivery = DELIVERY_PRICES[selectedDelivery] ?? 10;
       const total    = subtotal + delivery;
-
-      const freeOpt = document.getElementById('opt-free');
-      if (subtotal >= 60) { freeOpt.style.opacity='1'; freeOpt.style.pointerEvents='auto'; }
 
       si.innerHTML = items.map(i => `
         <div class="summary-item">
@@ -369,8 +463,13 @@
 
     // ── PLACE ORDER ─────────────────────────────────────
     async function placeOrder() {
-      // Validate fields
-      const required = ['coFirst','coLast','coEmail','coPhone','coStreet','coPost','coCity','coProvince'];
+      const isPickup = selectedDelivery === 'pickup';
+
+      // Validate contact fields always
+      const contactFields = ['coFirst','coLast','coEmail','coPhone'];
+      // Validate address fields only for delivery
+      const addressFields = isPickup ? [] : ['coStreet','coPost','coCity','coProvince'];
+      const required = [...contactFields, ...addressFields];
       let ok = true;
       required.forEach(id => {
         const el = document.getElementById(id);
@@ -379,10 +478,10 @@
       });
       if (!ok) { showToast('Please fill in all required fields.'); return; }
 
-      if (!selectedDate) {
+      if (!isPickup && !selectedDate) {
         document.getElementById('slotError').textContent = 'Please choose a delivery date.';
         document.getElementById('slotError').style.display = 'block';
-        document.querySelector('.checkout-block:nth-child(3)').scrollIntoView({behavior:'smooth'});
+        document.getElementById('dateBlock').scrollIntoView({behavior:'smooth'});
         return;
       }
 
@@ -399,13 +498,13 @@
         last_name:       document.getElementById('coLast').value.trim(),
         email:           document.getElementById('coEmail').value.trim(),
         phone:           document.getElementById('coPhone').value.trim(),
-        street:          document.getElementById('coStreet').value.trim(),
-        postcode:        document.getElementById('coPost').value.trim(),
-        city:            document.getElementById('coCity').value.trim(),
-        province:        document.getElementById('coProvince').value.trim(),
+        street:          isPickup ? 'PICKUP: Graafseweg 194B, \'s-Hertogenbosch' : document.getElementById('coStreet').value.trim(),
+        postcode:        isPickup ? '' : document.getElementById('coPost').value.trim(),
+        city:            isPickup ? '\'s-Hertogenbosch' : document.getElementById('coCity').value.trim(),
+        province:        isPickup ? 'Noord-Brabant' : document.getElementById('coProvince').value.trim(),
         notes:           document.getElementById('coNotes').value.trim(),
         delivery_method: selectedDelivery,
-        delivery_date:   selectedDate,
+        delivery_date:   isPickup ? '' : selectedDate,
         items:           items.map(i => ({ name:i.name, qty:i.qty, price:i.price })),
       };
 
@@ -499,9 +598,10 @@
           if (user.addr_province) document.getElementById('coProvince').value = user.addr_province;
         }
       }
+      toggleBlocks();
       loadSlots();
       renderSummary();
     });
-  </script>
+    </script>
 </body>
 </html>

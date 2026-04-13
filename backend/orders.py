@@ -14,7 +14,7 @@ from trello import create_order_card, move_card, add_comment, get_card_by_order_
 
 orders_bp = Blueprint('orders', __name__)
 
-DELIVERY_PRICES = {'standard': 5.0, 'express': 12.0, 'free': 0.0}
+DELIVERY_PRICES = {'delivery_local': 10.0, 'delivery_other': 15.0, 'pickup': 0.0}
 
 
 def make_ref():
@@ -26,8 +26,10 @@ def make_ref():
 @optional_token
 def checkout():
     data = request.get_json()
-    required = ['first_name', 'last_name', 'email', 'phone',
-                'street', 'postcode', 'city', 'province', 'items']
+    required = ['first_name', 'last_name', 'email', 'phone', 'items']
+    delivery_method = data.get('delivery_method', 'delivery_local')
+    if delivery_method != 'pickup':
+        required += ['street', 'postcode', 'city', 'province']
     for field in required:
         if not data.get(field):
             return jsonify({'error': f'Missing required field: {field}'}), 400
@@ -36,9 +38,8 @@ def checkout():
     if not items:
         return jsonify({'error': 'Cart is empty.'}), 400
 
-    delivery_method = data.get('delivery_method', 'standard')
     subtotal     = sum(i['price'] * i['qty'] for i in items)
-    delivery_cost = 0.0 if subtotal >= 60 else DELIVERY_PRICES.get(delivery_method, 5.0)
+    delivery_cost = DELIVERY_PRICES.get(delivery_method, 10.0)
     total        = subtotal + delivery_cost
     order_ref    = make_ref()
     user_id      = g.user['id'] if g.user else None

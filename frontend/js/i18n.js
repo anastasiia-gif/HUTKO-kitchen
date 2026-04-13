@@ -136,8 +136,8 @@ const TRANSLATIONS = {
         step4_name: 'At your door', step4_desc: 'Your order arrives fresh-frozen. Store in the freezer and cook when ready.',
         /* Min order etc */
         min_order_title: 'Minimum order', min_order_text: 'Minimum order value is €25.',
-        delivery_cost_title: 'Delivery cost', delivery_cost_text: 'Flat rate €5. Free delivery on orders over €60.',
-        cutoff_title: 'Order cutoff', cutoff_text: 'Orders placed before 14:00 are processed the same day.',
+        delivery_cost_title: 'Delivery cost', delivery_cost_text: '€10 in Amsterdam (A10) or \'s-Hertogenbosch. €15 everywhere else. Free pick-up at Graafseweg 194B, \'s-Hertogenbosch.',
+        cutoff_title: 'Pick-up address', cutoff_text: 'Graafseweg 194B, \'s-Hertogenbosch. Available Mon–Fri during working hours.',
         /* Apply */
         driver_desc: 'Help us bring authentic Ukrainian food to families across the Netherlands. Flexible hours, fair pay, and a warm team to work with.',
         partner_desc: 'Are you a shop, cafe or event organiser? Partner with HUTKO to offer our frozen products to your audience.',
