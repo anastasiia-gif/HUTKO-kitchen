@@ -1424,12 +1424,37 @@ p {
 }
 
 @media (max-width: 768px) {
-    .nav-links, .nav-search {
+    /* Hide nav links — go into drawer */
+    .nav-links {
         display: none;
     }
 
+    /* Hide lang switcher and auth from navbar — both go into drawer */
+    .nav-right .lang-switcher,
+    .nav-auth {
+        display: none;
+    }
+
+    /* Show hamburger */
     .nav-hamburger {
         display: flex;
+    }
+
+    /* Search bar: keep visible, expand to fill space */
+    .nav-search {
+        flex: 1;
+        max-width: 240px;
+    }
+
+        .nav-search input {
+            width: 100%;
+            min-width: 0;
+        }
+
+    /* Tighter navbar padding on mobile */
+    .navbar-inner {
+        padding: 0 1.25rem;
+        gap: 0.5rem;
     }
 
     .section-inner {
@@ -1459,6 +1484,39 @@ p {
     }
 }
 
+/* ── DRAWER LANG SWITCHER ────────────────────────── */
+.drawer-lang {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.drawer-lang-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+}
+
+/* Ensure the lang-switcher inside the drawer stays visible
+   (nav-right version is hidden by the rule above) */
+.nav-drawer .lang-switcher {
+    display: flex;
+}
+
+/* Auth links in drawer get the same icon treatment */
+.nav-drawer a svg {
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    margin-right: 2px;
+    opacity: 0.6;
+}
+
 @media (max-width: 480px) {
     .footer-grid {
         grid-template-columns: 1fr;
@@ -1483,12 +1541,7 @@ p {
         overflow-wrap: break-word;
     }
 
-    /* Navbar lang switcher — avoids compression on narrow screens */
-    .lang-switcher button {
-        padding: 5px 8px;
-        font-size: 10px;
-        min-width: 28px;
-    }
+    /* Navbar lang switcher rule removed — hidden at 768px, lives in drawer on mobile */
 
     /* Cart panel full width on small phones */
     .cart-panel {

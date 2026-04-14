@@ -4,6 +4,7 @@ const TRANSLATIONS = {
     en: {
         nav_home: 'Home', nav_shop: 'Shop / Order', nav_about: 'About Us',
         nav_delivery: 'Delivery & Info', nav_contact: 'Contact',
+        nav_language: 'Language',
         nav_search: 'Search products...', nav_signin: 'Sign in',
         nav_myaccount: 'My account', nav_myorders: 'My orders',
         nav_signout: 'Sign out', nav_cart: 'Cart', nav_register: 'Register',
@@ -278,6 +279,7 @@ const TRANSLATIONS = {
         nav_about: '\u041f\u0440\u043e \u043d\u0430\u0441',
         nav_delivery: '\u0414\u043e\u0441\u0442\u0430\u0432\u043a\u0430 \u0442\u0430 \u0456\u043d\u0444\u043e',
         nav_contact: '\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u0438',
+        nav_language: 'Мова',
         nav_search: '\u041f\u043e\u0448\u0443\u043a \u043f\u0440\u043e\u0434\u0443\u043a\u0442\u0456\u0432...',
         nav_signin: '\u0423\u0432\u0456\u0439\u0442\u0438',
         nav_myaccount: '\u041c\u0456\u0439 \u0430\u043a\u0430\u0443\u043d\u0442',
@@ -610,6 +612,7 @@ const TRANSLATIONS = {
     nl: {
         nav_home: 'Home', nav_shop: 'Winkel / Bestellen', nav_about: 'Over ons',
         nav_delivery: 'Bezorging & info', nav_contact: 'Contact',
+        nav_language: 'Taal',
         nav_search: 'Zoek producten...', nav_signin: 'Inloggen',
         nav_myaccount: 'Mijn account', nav_myorders: 'Mijn bestellingen',
         nav_signout: 'Uitloggen', nav_cart: 'Winkelwagen', nav_register: 'Registreren',
