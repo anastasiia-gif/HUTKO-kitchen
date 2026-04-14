@@ -4,9 +4,10 @@ Uses token-based auth via Authorization header.
 """
 
 import json
+import os
 import random
 import string
-from flask import Blueprint, request, jsonify, g
+from flask import Blueprint, request, jsonify, g, redirect
 from database import get_db
 from auth import optional_token, token_required
 from emails import send_order_confirmation, send_order_notification, send_delivery_dispatch
@@ -169,7 +170,6 @@ def update_order_status(ref):
     from admin import _admin_tokens
     token = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
     webhook_secret = request.headers.get('X-Webhook-Secret', '')
-    import os
     expected_secret = os.environ.get('WEBHOOK_SECRET', '')
     if token not in _admin_tokens and not (expected_secret and webhook_secret == expected_secret):
         return jsonify({'error': 'Admin access required.'}), 403
@@ -238,7 +238,6 @@ def confirm_delivery_link(ref):
     Confirms delivery, moves Trello card, then redirects to frontend success page.
     No JS required — works as a plain GET link.
     """
-    from flask import redirect
     frontend = os.environ.get('FRONTEND_URL', 'https://hutko-kitchen.com').rstrip('/')
 
     conn = get_db()
