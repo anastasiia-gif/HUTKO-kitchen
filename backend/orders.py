@@ -230,7 +230,46 @@ def update_order_status(ref):
     return jsonify({'order_ref': ref, 'status': new_status}), 200
 
 
-# ── DELIVERY CONFIRMATION (customer confirms receipt) ────
+# ── ONE-CLICK DELIVERY CONFIRMATION (from email link) ───
+@orders_bp.route('/api/orders/<ref>/confirm-delivery-link', methods=['GET'])
+def confirm_delivery_link(ref):
+    """
+    Called directly from the email button.
+    Confirms delivery, moves Trello card, then redirects to frontend success page.
+    No JS required — works as a plain GET link.
+    """
+    from flask import redirect
+    frontend = os.environ.get('FRONTEND_URL', 'https://hutko-kitchen.com').rstrip('/')
+
+    conn = get_db()
+    row  = conn.execute("SELECT * FROM orders WHERE order_ref=?", (ref,)).fetchone()
+    if not row:
+        conn.close()
+        return redirect(f"{frontend}/?confirm=notfound&ref={ref}")
+
+    if row['status'] in ('ok_confirmed', 'delivered'):
+        conn.close()
+        return redirect(f"{frontend}/?confirm=already&ref={ref}")
+
+    conn.execute("UPDATE orders SET status='ok_confirmed' WHERE order_ref=?", (ref,))
+    conn.commit()
+    conn.close()
+
+    # Move Trello card to Ok: Confirmed
+    try:
+        card_id = row['trello_card_id'] if 'trello_card_id' in row.keys() else None
+        if not card_id:
+            card_id = get_card_by_order_ref(ref)
+        if card_id:
+            move_card(card_id, 'ok_confirmed')
+            add_comment(card_id, f"✅ Customer confirmed delivery via email link!\n⭐ (Rating left on website)")
+    except Exception as e:
+        print(f"[TRELLO CONFIRM LINK ERROR] {e}")
+
+    return redirect(f"{frontend}/?confirm=success&ref={ref}")
+
+
+# ── DELIVERY CONFIRMATION (customer confirms receipt via frontend) ────
 @orders_bp.route('/api/orders/<ref>/confirm-delivery', methods=['POST'])
 def confirm_delivery(ref):
     data    = request.get_json()

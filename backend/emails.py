@@ -313,7 +313,9 @@ def send_order_notification(order_ref: str, name: str, email: str,
 def send_delivery_dispatch(order_ref: str, name: str, email: str,
                             delivery_date: str = ''):
     first = name.split()[0]
-    confirm_url = f"{SITE_URL}/confirm-delivery.html?ref={order_ref}"
+    # Link goes directly to the backend — no frontend file needed
+    api_base     = os.environ.get('RENDER_EXTERNAL_URL', 'https://hutko-kitchen.onrender.com')
+    confirm_url  = f"{api_base}/api/orders/{order_ref}/confirm-delivery-link"
 
     content = f"""
       <h1 style="margin:0 0 4px;font-size:26px;font-weight:900;color:#111;">
