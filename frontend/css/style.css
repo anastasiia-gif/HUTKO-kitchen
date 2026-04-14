@@ -1424,15 +1424,13 @@ p {
 }
 
 @media (max-width: 768px) {
-    /* Hide nav links — go into drawer */
-    .nav-links {
-        display: none;
-    }
-
-    /* Hide lang switcher and auth from navbar — both go into drawer */
-    .nav-right .lang-switcher,
-    .nav-auth {
-        display: none;
+    /* Hide EVERYTHING from navbar except logo + hamburger */
+    .nav-links,
+    .nav-search,
+    .lang-switcher,
+    .nav-auth,
+    .nav-cart-btn {
+        display: none !important;
     }
 
     /* Show hamburger */
@@ -1440,21 +1438,11 @@ p {
         display: flex;
     }
 
-    /* Search bar: keep visible, expand to fill space */
-    .nav-search {
-        flex: 1;
-        max-width: 240px;
-    }
-
-        .nav-search input {
-            width: 100%;
-            min-width: 0;
-        }
-
-    /* Tighter navbar padding on mobile */
+    /* Tighten navbar padding */
     .navbar-inner {
         padding: 0 1.25rem;
-        gap: 0.5rem;
+        gap: 0;
+        justify-content: space-between;
     }
 
     .section-inner {
@@ -1484,7 +1472,62 @@ p {
     }
 }
 
-/* ── DRAWER LANG SWITCHER ────────────────────────── */
+/* ── DRAWER CONTENTS ─────────────────────────────── */
+
+/* Search bar at top of drawer */
+.drawer-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(17,17,17,.07);
+    border-radius: 100px;
+    padding: 10px 16px;
+    margin-bottom: 8px;
+}
+
+    .drawer-search svg {
+        flex-shrink: 0;
+        opacity: 0.5;
+    }
+
+.drawer-search-input {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    width: 100%;
+    font-family: var(--sans);
+}
+
+    .drawer-search-input::placeholder {
+        color: rgba(17,17,17,.38);
+    }
+
+/* Cart button in drawer */
+.drawer-cart-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    border-radius: var(--radius);
+    padding: 13px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: var(--sans);
+    cursor: pointer;
+    margin: 6px 0;
+    transition: var(--transition);
+}
+
+    .drawer-cart-btn:hover {
+        background: var(--blue);
+    }
+
+/* Language switcher row */
 .drawer-lang {
     display: flex;
     align-items: center;
@@ -1502,19 +1545,19 @@ p {
     flex-shrink: 0;
 }
 
-/* Ensure the lang-switcher inside the drawer stays visible
-   (nav-right version is hidden by the rule above) */
+/* Keep the lang-switcher visible inside the drawer
+   (the nav-right one is hidden by !important above) */
 .nav-drawer .lang-switcher {
     display: flex;
 }
 
-/* Auth links in drawer get the same icon treatment */
+/* Auth links icon alignment */
 .nav-drawer a svg {
     width: 14px;
     height: 14px;
     vertical-align: middle;
-    margin-right: 2px;
-    opacity: 0.6;
+    margin-right: 4px;
+    opacity: 0.55;
 }
 
 @media (max-width: 480px) {

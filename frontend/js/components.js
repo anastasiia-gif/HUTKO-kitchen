@@ -63,7 +63,7 @@ function renderNavbar() {
         </div>
         <div class="lang-switcher">${langBtns}</div>
         <div class="nav-auth">${authBtn}</div>
-        <button class="btn btn-dark" style="padding:9px 16px;gap:8px;font-size:13px;" onclick="toggleCart()">
+        <button class="btn btn-dark nav-cart-btn" style="padding:9px 16px;gap:8px;font-size:13px;" onclick="toggleCart()">
           ${CART_SVG} <span data-i18n="nav_cart">${tr('nav_cart')}</span>
           <span class="cart-count" style="background:#E84B22;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:700;">0</span>
         </button>
@@ -72,7 +72,16 @@ function renderNavbar() {
     </div>
   </nav>
   <div class="nav-drawer" id="navDrawer">
+    <div class="drawer-search">
+      ${SEARCH_ICON}
+      <input type="text" class="drawer-search-input" placeholder="${tr('nav_search')}"
+             onkeydown="if(event.key==='Enter'&&this.value.trim()){window.location.href='shop.html?q='+encodeURIComponent(this.value.trim());}">
+    </div>
     ${drawerLinks}
+    <button class="drawer-cart-btn" onclick="toggleCart();document.getElementById('navDrawer').classList.remove('open');document.getElementById('navHamburger').classList.remove('open');">
+      ${CART_SVG} <span data-i18n="nav_cart">${tr('nav_cart')}</span>
+      <span class="cart-count" style="background:#E84B22;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:700;margin-left:auto;">0</span>
+    </button>
     <div class="drawer-lang">
       <span class="drawer-lang-label">${tr('nav_language') || 'Language'}</span>
       <div class="lang-switcher">${langBtns}</div>
