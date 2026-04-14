@@ -45,18 +45,18 @@
                 <div class="coverage-nl reveal delay-2">
                     <div class="nl-big-statement">
                         <div class="nl-flag-icon">🇳🇱</div>
-                        <div class="nl-big-text">We deliver across the <strong>entire Netherlands</strong> — and offer free pick-up in 's-Hertogenbosch.</div>
+                        <div class="nl-big-text" data-i18n="delivery_nl_text">We deliver across the <strong>entire Netherlands</strong> — and offer free pick-up in 's-Hertogenbosch.</div>
                     </div>
                     <div class="delivery-time-cards">
-                        <div class="dt-card"><div class="dt-icon">⚡</div><div class="dt-label">Thu & Sat</div><div class="dt-sub">16:00 – 20:00</div></div>
+                        <div class="dt-card"><div class="dt-icon">⚡</div><div class="dt-label" data-i18n="delivery_thu_sat">Thu & Sat</div><div class="dt-sub">16:00 – 20:00</div></div>
                         <div class="dt-card"><div class="dt-icon">📦</div><div class="dt-label" data-i18n="delivery_insulated">Insulated</div><div class="dt-sub" data-i18n="delivery_frozen_route">Stays frozen en route</div></div>
-                        <div class="dt-card"><div class="dt-icon">🏠</div><div class="dt-label">Pick-up</div><div class="dt-sub">Mon–Fri, free</div></div>
+                        <div class="dt-card"><div class="dt-icon">🏠</div><div class="dt-label" data-i18n="delivery_pickup_label">Pick-up</div><div class="dt-sub" data-i18n="delivery_pickup_hours">Mon–Fri, free</div></div>
                     </div>
                 </div>
                 <div class="info-cards reveal delay-3">
                     <div class="info-card"><div class="info-icon">📦</div><div><div class="ic-title" data-i18n="min_order_title">Minimum order</div><div class="ic-text" data-i18n="min_order_text">Minimum order value is €25. Orders below this amount are not eligible for delivery.</div></div></div>
-                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title">Delivery cost</div><div class="ic-text">€10 in Amsterdam (A10 area) or 's-Hertogenbosch. €15 everywhere else in the Netherlands. Free pick-up at Graafseweg 194B, 's-Hertogenbosch.</div></div></div>
-                    <div class="info-card"><div class="info-icon">📍</div><div><div class="ic-title">Pick-up address</div><div class="ic-text">Graafseweg 194B, 's-Hertogenbosch. Available Monday–Friday during working hours. Unlimited spots — just select pick-up at checkout.</div></div></div>
+                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title" data-i18n="delivery_cost_title">Delivery cost</div><div class="ic-text" data-i18n="delivery_cost_text">€10 in Amsterdam (A10 area) or 's-Hertogenbosch. €15 everywhere else in the Netherlands. Free pick-up at Graafseweg 194B, 's-Hertogenbosch.</div></div></div>
+                    <div class="info-card"><div class="info-icon">📍</div><div><div class="ic-title" data-i18n="cutoff_title">Pick-up address</div><div class="ic-text" data-i18n="cutoff_text">Graafseweg 194B, 's-Hertogenbosch. Available Monday–Friday during working hours. Unlimited spots — just select pick-up at checkout.</div></div></div>
                 </div>
             </div>
             <div class="map-box reveal delay-2">
@@ -97,24 +97,24 @@
                     <div class="apply-title" data-i18n="delivery_driver_title">Part-time delivery driver</div>
                     <p class="apply-desc" data-i18n="driver_desc">Help us bring authentic Ukrainian food to families across the Netherlands. Flexible hours, fair pay, and a warm team to work with.</p>
                     <ul class="apply-perks">
-                        <li>Flexible schedule — you choose your hours</li>
-                        <li>Competitive per-delivery pay</li>
-                        <li>Car or cargo bike welcome</li>
-                        <li>Part of a friendly Ukrainian community</li>
+                        <li data-i18n="apply_driver_perk1">Flexible schedule — you choose your hours</li>
+                        <li data-i18n="apply_driver_perk2">Competitive per-delivery pay</li>
+                        <li data-i18n="apply_driver_perk3">Car or cargo bike welcome</li>
+                        <li data-i18n="apply_driver_perk4">Part of a friendly Ukrainian community</li>
                     </ul>
-                    <button class="btn btn-primary" onclick="openApply('driver')" style="width:100%;justify-content:center;">Apply as driver</button>
+                    <button class="btn btn-primary" onclick="openApply('driver')" style="width:100%;justify-content:center;" data-i18n="delivery_driver_btn">Apply as driver</button>
                 </div>
                 <div class="apply-card reveal delay-2">
                     <div class="apply-icon">🤝</div>
                     <div class="apply-title" data-i18n="delivery_partner_title">Become a partner</div>
                     <p class="apply-desc" data-i18n="partner_desc">Are you a shop, café, Ukrainian community centre or event organiser? Partner with HUTKO to offer our frozen products to your audience.</p>
                     <ul class="apply-perks">
-                        <li>Wholesale pricing for bulk orders</li>
-                        <li>Co-branding & marketing support</li>
-                        <li>Flexible delivery schedules</li>
-                        <li>Dedicated account manager</li>
+                        <li data-i18n="apply_partner_perk1">Wholesale pricing for bulk orders</li>
+                        <li data-i18n="apply_partner_perk2">Co-branding & marketing support</li>
+                        <li data-i18n="apply_partner_perk3">Flexible delivery schedules</li>
+                        <li data-i18n="apply_partner_perk4">Dedicated account manager</li>
                     </ul>
-                    <button class="btn btn-primary" onclick="openApply('partner')" style="width:100%;justify-content:center;">Apply as partner</button>
+                    <button class="btn btn-primary" onclick="openApply('partner')" style="width:100%;justify-content:center;" data-i18n="delivery_partner_btn">Apply as partner</button>
                 </div>
             </div>
         </div>
@@ -132,37 +132,37 @@
              color:var(--orange);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px;"></div>
                 <div class="field-row">
                     <div class="field">
-                        <label for="applyFirst">First name</label>
+                        <label for="applyFirst" data-i18n="checkout_fname">First name</label>
                         <input type="text" id="applyFirst" placeholder="Anna" autocomplete="given-name">
                     </div>
                     <div class="field">
-                        <label for="applyLast">Last name</label>
+                        <label for="applyLast" data-i18n="checkout_lname">Last name</label>
                         <input type="text" id="applyLast" placeholder="Kovalenko" autocomplete="family-name">
                     </div>
                 </div>
                 <div class="field">
-                    <label for="applyEmail">Email</label>
+                    <label for="applyEmail" data-i18n="checkout_email">Email</label>
                     <input type="email" id="applyEmail" placeholder="anna@email.com" autocomplete="email">
                 </div>
                 <div class="field">
-                    <label for="applyPhone">Phone</label>
+                    <label for="applyPhone" data-i18n="checkout_phone">Phone</label>
                     <input type="tel" id="applyPhone" placeholder="+31 6 00 00 00 00" autocomplete="tel">
                 </div>
                 <div class="field" id="driverField">
-                    <label for="applyCity">City / region you can deliver in</label>
+                    <label for="applyCity" data-i18n="apply_city_label">City / region you can deliver in</label>
                     <input type="text" id="applyCity" placeholder="e.g. Amsterdam, Utrecht">
                 </div>
                 <div class="field" id="partnerField" style="display:none">
-                    <label for="applyBiz">Your business or organisation name</label>
+                    <label for="applyBiz" data-i18n="apply_biz_label">Your business or organisation name</label>
                     <input type="text" id="applyBiz" placeholder="e.g. Café Kyiv">
                 </div>
                 <div class="field">
-                    <label for="applyBio">Tell us about yourself</label>
-                    <textarea id="applyBio" placeholder="A few sentences about you and why you'd like to work with HUTKO…"></textarea>
+                    <label for="applyBio" data-i18n="apply_bio_label">Tell us about yourself</label>
+                    <textarea id="applyBio" data-i18n="apply_bio_ph" placeholder="A few sentences about you and why you'd like to work with HUTKO…"></textarea>
                 </div>
             </div>
             <div class="modal-foot">
-                <button class="btn btn-primary" id="applyBtn" style="width:100%;justify-content:center;" onclick="submitApply()">
+                <button class="btn btn-primary" id="applyBtn" style="width:100%;justify-content:center;" onclick="submitApply()" data-i18n="apply_send_btn">
                     Send application →
                 </button>
             </div>
@@ -177,7 +177,7 @@
             <h2 class="section-title reveal delay-1" style="text-align:center;max-width:560px;margin:0 auto 0.75rem;">
                 <span data-i18n="delivery_book_title">Choose your delivery date</span>
             </h2>
-            <p class="section-sub reveal delay-2" style="text-align:center;margin:0 auto 2.5rem;">
+            <p class="section-sub reveal delay-2" style="text-align:center;margin:0 auto 2.5rem;" data-i18n="delivery_book_sub">
                 Delivery slots are selected during checkout — no separate booking needed. We deliver on <strong>Thursdays and Saturdays, 16:00–20:00</strong>. Or pick up for free in 's-Hertogenbosch.
             </p>
 
@@ -186,12 +186,12 @@
                 <div style="background:var(--blue);border-radius:20px;padding:2rem 2.5rem;display:flex;align-items:flex-start;gap:20px;">
                     <div style="font-size:2.5rem;flex-shrink:0;">🛒</div>
                     <div>
-                        <div style="font-family:var(--display);font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;">How it works</div>
+                        <div style="font-family:var(--display);font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;" data-i18n="delivery_how_title">How it works</div>
                         <ol style="margin:0;padding-left:1.2rem;color:rgba(255,255,255,0.85);font-size:14px;line-height:2.2;">
-                            <li><a href="shop.html" style="color:#fff;font-weight:600;">Browse the shop</a> and add items to your cart</li>
-                            <li>Go to checkout — choose delivery or free pick-up</li>
-                            <li>We confirm by email within 1 hour with payment details</li>
-                            <li>Delivery Thu &amp; Sat 16:00–20:00, or pick up Mon–Fri at Graafseweg 194B 🚚</li>
+                            <li data-i18n="delivery_how_step1"><a href="shop.html" style="color:#fff;font-weight:600;">Browse the shop</a> and add items to your cart</li>
+                            <li data-i18n="delivery_how_step2">Go to checkout — choose delivery or free pick-up</li>
+                            <li data-i18n="delivery_how_step3">We confirm by email within 1 hour with payment details</li>
+                            <li data-i18n="delivery_how_step4">Delivery Thu &amp; Sat 16:00–20:00, or pick up Mon–Fri at Graafseweg 194B 🚚</li>
                         </ol>
                     </div>
                 </div>
@@ -199,18 +199,18 @@
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
                     <div style="background:var(--cream);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1rem;text-align:center;">
                         <div style="font-size:1.5rem;margin-bottom:8px;">📅</div>
-                        <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;">Delivery days</div>
-                        <div style="font-size:12px;color:var(--ink-soft);">Thu &amp; Sat · 16:00–20:00</div>
+                        <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;" data-i18n="delivery_days_label">Delivery days</div>
+                        <div style="font-size:12px;color:var(--ink-soft);" data-i18n="delivery_days_card_sub">Thu &amp; Sat · 16:00–20:00</div>
                     </div>
                     <div style="background:var(--cream);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1rem;text-align:center;">
                         <div style="font-size:1.5rem;margin-bottom:8px;">📍</div>
-                        <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;">Free pick-up</div>
-                        <div style="font-size:12px;color:var(--ink-soft);">Graafseweg 194B, Den Bosch</div>
+                        <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;" data-i18n="delivery_pickup_card_label">Free pick-up</div>
+                        <div style="font-size:12px;color:var(--ink-soft);" data-i18n="delivery_pickup_card_value">Graafseweg 194B, Den Bosch</div>
                     </div>
                     <div style="background:var(--cream);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1rem;text-align:center;">
                         <div style="font-size:1.5rem;margin-bottom:8px;">🚚</div>
-                        <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;">Delivery cost</div>
-                        <div style="font-size:12px;color:var(--ink-soft);">€10 A'dam / Den Bosch · €15 elsewhere</div>
+                        <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;" data-i18n="delivery_cost_title">Delivery cost</div>
+                        <div style="font-size:12px;color:var(--ink-soft);" data-i18n="delivery_cost_card_value">€10 A'dam / Den Bosch · €15 elsewhere</div>
                     </div>
                 </div>
 
@@ -236,7 +236,7 @@
         function openApply(type) {
             _applyRole = type;
             document.getElementById('modalWrap').classList.add('open');
-            document.getElementById('modalTitle').textContent = type === 'driver' ? 'Apply as delivery driver' : 'Apply as partner';
+            document.getElementById('modalTitle').textContent = type === 'driver' ? t('delivery_driver_title') : t('delivery_partner_title');
             document.getElementById('driverField').style.display = type === 'driver' ? 'flex' : 'none';
             document.getElementById('partnerField').style.display = type === 'partner' ? 'flex' : 'none';
             document.getElementById('applyError').style.display = 'none';
