@@ -1463,6 +1463,54 @@ p {
     .footer-grid {
         grid-template-columns: 1fr;
     }
+
+    /* Page header (about, delivery, contact) */
+    .page-header-inner h1 {
+        font-size: clamp(2rem, 8vw, 2.8rem);
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+
+    .page-header-inner {
+        padding: 2.5rem 1.25rem;
+    }
+
+    /* Section titles across all pages */
+    .section-title {
+        font-size: clamp(1.7rem, 7.5vw, 2.2rem);
+        hyphens: auto;
+        overflow-wrap: break-word;
+    }
+
+    /* Navbar lang switcher — avoids compression on narrow screens */
+    .lang-switcher button {
+        padding: 5px 8px;
+        font-size: 10px;
+        min-width: 28px;
+    }
+
+    /* Cart panel full width on small phones */
+    .cart-panel {
+        width: 100vw;
+    }
+
+    /* Checkout layout tighter on small screens */
+    .checkout-layout {
+        padding: 1rem;
+    }
+
+    /* Delivery options stack better */
+    .delivery-option {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    /* Buttons full-width in checkout summary */
+    .checkout-submit {
+        font-size: 15px;
+        padding: 14px 20px;
+    }
 }
 
 /* ── PAGE HEADER (shop, about, delivery, contact) ── */
