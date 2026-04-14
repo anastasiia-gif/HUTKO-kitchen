@@ -20,6 +20,7 @@ LISTS = {
     'in_storage':       '69d29b6e70155674b2fe1157',
     'out_for_delivery': '69d29b792569d8d839a78dc3',
     'delivered':        '69d29b87e98a49718dddd4a5',
+    'ok_confirmed':     '69d29b87e98a49718dddd4a5',  # TODO: replace with your "Ok: Confirmed" list ID if separate
     'cancelled':        '69d29b94c21f6521a96e613a',
 }
 

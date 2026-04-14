@@ -9,12 +9,12 @@ import string
 from flask import Blueprint, request, jsonify, g
 from database import get_db
 from auth import optional_token, token_required
-from emails import send_order_confirmation, send_order_notification
+from emails import send_order_confirmation, send_order_notification, send_delivery_dispatch
 from trello import create_order_card, move_card, add_comment, get_card_by_order_ref
 
 orders_bp = Blueprint('orders', __name__)
 
-DELIVERY_PRICES = {'delivery_local': 10.0, 'delivery_other': 15.0, 'pickup': 0.0}
+DELIVERY_PRICES = {'standard': 5.0, 'express': 12.0, 'free': 0.0}
 
 
 def make_ref():
@@ -26,10 +26,8 @@ def make_ref():
 @optional_token
 def checkout():
     data = request.get_json()
-    required = ['first_name', 'last_name', 'email', 'phone', 'items']
-    delivery_method = data.get('delivery_method', 'delivery_local')
-    if delivery_method != 'pickup':
-        required += ['street', 'postcode', 'city', 'province']
+    required = ['first_name', 'last_name', 'email', 'phone',
+                'street', 'postcode', 'city', 'province', 'items']
     for field in required:
         if not data.get(field):
             return jsonify({'error': f'Missing required field: {field}'}), 400
@@ -38,8 +36,9 @@ def checkout():
     if not items:
         return jsonify({'error': 'Cart is empty.'}), 400
 
+    delivery_method = data.get('delivery_method', 'standard')
     subtotal     = sum(i['price'] * i['qty'] for i in items)
-    delivery_cost = DELIVERY_PRICES.get(delivery_method, 10.0)
+    delivery_cost = 0.0 if subtotal >= 60 else DELIVERY_PRICES.get(delivery_method, 5.0)
     total        = subtotal + delivery_cost
     order_ref    = make_ref()
     user_id      = g.user['id'] if g.user else None
@@ -179,18 +178,19 @@ def update_order_status(ref):
     new_status = data.get('status', '')
     comment    = data.get('comment', '')
 
-    valid = ['confirmed', 'cooking', 'storage', 'delivery', 'delivered', 'cancelled']
+    valid = ['confirmed', 'cooking', 'storage', 'delivery', 'delivered', 'ok_confirmed', 'cancelled']
     if new_status not in valid:
         return jsonify({'error': f'Invalid status. Use: {valid}'}), 400
 
     # Status → Trello list mapping
     trello_map = {
-        'confirmed':  'confirmed',
-        'cooking':    'confirmed',
-        'storage':    'in_storage',
-        'delivery':   'out_for_delivery',
-        'delivered':  'delivered',
-        'cancelled':  'cancelled',
+        'confirmed':    'confirmed',
+        'cooking':      'confirmed',
+        'storage':      'in_storage',
+        'delivery':     'out_for_delivery',
+        'delivered':    'delivered',
+        'ok_confirmed': 'ok_confirmed',
+        'cancelled':    'cancelled',
     }
 
     conn = get_db()
@@ -201,6 +201,18 @@ def update_order_status(ref):
 
     conn.execute("UPDATE orders SET status=? WHERE order_ref=?", (new_status, ref))
     conn.commit()
+
+    # Send dispatch email when order goes out for delivery
+    if new_status == 'delivery':
+        try:
+            send_delivery_dispatch(
+                ref,
+                row['customer_name'],
+                row['customer_email'],
+                row.get('delivery_date', '') or ''
+            )
+        except Exception as e:
+            print(f"[DISPATCH EMAIL ERROR] {e}")
 
     # Move Trello card
     try:
@@ -231,7 +243,7 @@ def confirm_delivery(ref):
         conn.close()
         return jsonify({'error': 'Order not found'}), 404
 
-    conn.execute("UPDATE orders SET status='delivered' WHERE order_ref=?", (ref,))
+    conn.execute("UPDATE orders SET status='ok_confirmed' WHERE order_ref=?", (ref,))
     conn.commit()
     conn.close()
 
