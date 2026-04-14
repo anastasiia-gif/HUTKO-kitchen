@@ -2,8 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="assets/logo_nav.png">
-    <link rel="apple-touch-icon" href="assets/logo_nav.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HUTKO Kitchen — Ukrainian Frozen Food</title>
     <meta name="description" content="Authentic Ukrainian frozen food delivered across the Netherlands. Borscht, syrnyky, zrazy and more.">
@@ -92,7 +90,7 @@
                 <a href="shop.html" class="btn btn-outline reveal delay-1" data-i18n="home_view_all">View all</a>
             </div>
             <!-- Shows first 3 products, rest visible in shop -->
-            <div class="product-grid" id="homeProductGrid" style="grid-template-columns:repeat(3,1fr);">
+            <div class="product-grid" id="homeProductGrid">
                 <div style="text-align:center;padding:2rem;color:var(--ink-soft);font-size:13px;grid-column:1/-1;">Loading…</div>
             </div>
         </div>
@@ -108,7 +106,7 @@
                 </div>
                 <a href="shop.html#bundles" class="btn btn-outline reveal delay-1" data-i18n="home_view_all">View all packs</a>
             </div>
-            <div class="packs-grid" id="homeBundleGrid" style="grid-template-columns:repeat(3,1fr);">
+            <div class="packs-grid" id="homeBundleGrid">
                 <div style="text-align:center;padding:2rem;color:var(--ink-soft);font-size:13px;grid-column:1/-1;">Loading…</div>
             </div>
         </div>
@@ -294,21 +292,21 @@
     <script src="js/main.js"></script>
     <script src="js/shop.js"></script>
     <script>
-        // Delegates entirely to shop.js — same data, same card renderers, correct images
+        // Home previews — delegates entirely to shop.js (same data, same renderers)
         async function loadHomePreviews() {
-            await loadShopData(); // populates ALL_PRODUCTS + ALL_BUNDLES, handles API + fallback
+            await loadShopData(); // waits for API + fallback, sets ALL_PRODUCTS / ALL_BUNDLES
 
             const pg = document.getElementById('homeProductGrid');
             if (pg) {
-                const html = ALL_PRODUCTS.slice(0, 3).map(p => productCard(p)).join('');
-                pg.innerHTML = html || '<div style="grid-column:1/-1;text-align:center;"><a href="shop.html" class="btn btn-dark">Browse all products →</a></div>';
+                pg.innerHTML = ALL_PRODUCTS.slice(0, 3).map(p => productCard(p)).join('') ||
+                    '<div style="grid-column:1/-1;text-align:center;"><a href="shop.html" class="btn btn-dark">Browse all products →</a></div>';
                 initReveal();
             }
 
             const bg = document.getElementById('homeBundleGrid');
             if (bg) {
-                const html = ALL_BUNDLES.slice(0, 3).map(b => bundleCard(b)).join('');
-                bg.innerHTML = html || '<div style="text-align:center;"><a href="shop.html" class="btn btn-blue">View all packs →</a></div>';
+                bg.innerHTML = ALL_BUNDLES.slice(0, 3).map(b => bundleCard(b)).join('') ||
+                    '<div style="text-align:center;"><a href="shop.html" class="btn btn-blue">View all packs →</a></div>';
                 initReveal();
             }
         }
