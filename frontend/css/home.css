@@ -790,16 +790,16 @@
 
 /* ── SMALL MOBILE (≤480px) ───────────────────────── */
 @media (max-width: 480px) {
-    /* Fix hero title overflow — the main cut-off bug */
+    /* Fix hero title overflow — text cut-off bug */
     .hero-title {
-        font-size: clamp(1.9rem, 8.5vw, 2.6rem);
+        font-size: clamp(1.75rem, 8vw, 2.4rem);
         word-break: break-word;
         overflow-wrap: break-word;
         hyphens: auto;
     }
 
     .hero {
-        overflow: visible; /* prevents text clipping */
+        overflow: hidden; /* keep clip, rely on font-size fix */
     }
 
     .hero-content {

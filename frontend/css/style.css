@@ -30,6 +30,7 @@
 html {
     scroll-behavior: smooth;
     font-size: 16px;
+    overflow-x: hidden;
 }
 
 body {
@@ -1424,24 +1425,25 @@ p {
 }
 
 @media (max-width: 768px) {
-    /* Hide EVERYTHING from navbar except logo + hamburger */
-    .nav-links,
-    .nav-search,
-    .lang-switcher,
-    .nav-auth,
-    .nav-cart-btn {
+    /* ── MOBILE NAV: only logo + hamburger visible ── */
+    /* Hide every child of nav-right except the hamburger button */
+    .nav-right > *:not(.nav-hamburger) {
         display: none !important;
     }
 
     /* Show hamburger */
     .nav-hamburger {
-        display: flex;
+        display: flex !important;
+    }
+
+    /* Also hide nav links (they're outside nav-right) */
+    .nav-links {
+        display: none !important;
     }
 
     /* Tighten navbar padding */
     .navbar-inner {
         padding: 0 1.25rem;
-        gap: 0;
         justify-content: space-between;
     }
 
