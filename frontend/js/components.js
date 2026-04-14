@@ -72,23 +72,18 @@ function renderNavbar() {
     </div>
   </nav>
   <div class="nav-drawer" id="navDrawer">
-    <div class="drawer-search">
-      ${SEARCH_ICON}
-      <input type="text" class="drawer-search-input" placeholder="${tr('nav_search')}"
-             onkeydown="if(event.key==='Enter'&&this.value.trim()){window.location.href='shop.html?q='+encodeURIComponent(this.value.trim());}">
-    </div>
     ${drawerLinks}
-    <button class="drawer-cart-btn" onclick="toggleCart();document.getElementById('navDrawer').classList.remove('open');document.getElementById('navHamburger').classList.remove('open');">
-      ${CART_SVG} <span data-i18n="nav_cart">${tr('nav_cart')}</span>
-      <span class="cart-count" style="background:#E84B22;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:700;margin-left:auto;">0</span>
-    </button>
     <div class="drawer-lang">
       <span class="drawer-lang-label">${tr('nav_language') || 'Language'}</span>
       <div class="lang-switcher">${langBtns}</div>
     </div>
+    <a href="${user ? 'account.html' : 'login.html'}" style="display:flex;align-items:center;gap:8px;">${USER_SVG} ${user ? tr('nav_myaccount') : tr('nav_signin')}</a>
     ${user
-            ? `<a href="account.html">${USER_SVG}&nbsp;${tr('nav_myaccount')}</a><a href="account.html#orders">${tr('nav_myorders')}</a><a href="#" onclick="logoutUser()">${tr('nav_signout')}</a>`
-            : `<a href="login.html">${USER_SVG}&nbsp;${tr('nav_signin')}</a><a href="register.html">${tr('nav_register')}</a>`}
+            ? `<a href="account.html#orders">${tr('nav_myorders')}</a><a href="#" onclick="logoutUser()">${tr('nav_signout')}</a>`
+            : `<a href="register.html">${tr('nav_register')}</a>`}
+    <button style="display:flex;align-items:center;gap:8px;background:var(--ink);color:var(--cream);border:none;border-radius:10px;padding:12px 16px;font-size:15px;font-weight:600;font-family:var(--sans);cursor:pointer;width:100%;" onclick="toggleCart();document.getElementById('navDrawer').classList.remove('open');document.getElementById('navHamburger').classList.remove('open');">
+      ${CART_SVG} <span data-i18n="nav_cart">${tr('nav_cart')}</span>
+    </button>
   </div>`;
 
     /* Hamburger */

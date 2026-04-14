@@ -30,7 +30,6 @@
 html {
     scroll-behavior: smooth;
     font-size: 16px;
-    overflow-x: hidden;
 }
 
 body {
@@ -1425,26 +1424,16 @@ p {
 }
 
 @media (max-width: 768px) {
-    /* ── MOBILE NAV: only logo + hamburger visible ── */
-    /* Hide every child of nav-right except the hamburger button */
-    .nav-right > *:not(.nav-hamburger) {
-        display: none !important;
+    .nav-links, .nav-search, .lang-switcher, .nav-auth, .nav-cart-btn {
+        display: none;
     }
 
-    /* Show hamburger */
-    .nav-hamburger {
-        display: flex !important;
-    }
-
-    /* Also hide nav links (they're outside nav-right) */
-    .nav-links {
-        display: none !important;
-    }
-
-    /* Tighten navbar padding */
     .navbar-inner {
         padding: 0 1.25rem;
-        justify-content: space-between;
+    }
+
+    .nav-hamburger {
+        display: flex;
     }
 
     .section-inner {
@@ -1474,62 +1463,13 @@ p {
     }
 }
 
-/* ── DRAWER CONTENTS ─────────────────────────────── */
-
-/* Search bar at top of drawer */
-.drawer-search {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(17,17,17,.07);
-    border-radius: 100px;
-    padding: 10px 16px;
-    margin-bottom: 8px;
+@media (max-width: 480px) {
+    .footer-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
-    .drawer-search svg {
-        flex-shrink: 0;
-        opacity: 0.5;
-    }
-
-.drawer-search-input {
-    border: none;
-    background: transparent;
-    font-size: 14px;
-    color: var(--ink);
-    outline: none;
-    width: 100%;
-    font-family: var(--sans);
-}
-
-    .drawer-search-input::placeholder {
-        color: rgba(17,17,17,.38);
-    }
-
-/* Cart button in drawer */
-.drawer-cart-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    background: var(--ink);
-    color: var(--cream);
-    border: none;
-    border-radius: var(--radius);
-    padding: 13px 16px;
-    font-size: 15px;
-    font-weight: 600;
-    font-family: var(--sans);
-    cursor: pointer;
-    margin: 6px 0;
-    transition: var(--transition);
-}
-
-    .drawer-cart-btn:hover {
-        background: var(--blue);
-    }
-
-/* Language switcher row */
+/* ── MOBILE DRAWER EXTRAS ────────────────────────── */
 .drawer-lang {
     display: flex;
     align-items: center;
@@ -1547,68 +1487,8 @@ p {
     flex-shrink: 0;
 }
 
-/* Keep the lang-switcher visible inside the drawer
-   (the nav-right one is hidden by !important above) */
 .nav-drawer .lang-switcher {
     display: flex;
-}
-
-/* Auth links icon alignment */
-.nav-drawer a svg {
-    width: 14px;
-    height: 14px;
-    vertical-align: middle;
-    margin-right: 4px;
-    opacity: 0.55;
-}
-
-@media (max-width: 480px) {
-    .footer-grid {
-        grid-template-columns: 1fr;
-    }
-
-    /* Page header (about, delivery, contact) */
-    .page-header-inner h1 {
-        font-size: clamp(2rem, 8vw, 2.8rem);
-        word-break: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
-    }
-
-    .page-header-inner {
-        padding: 2.5rem 1.25rem;
-    }
-
-    /* Section titles across all pages */
-    .section-title {
-        font-size: clamp(1.7rem, 7.5vw, 2.2rem);
-        hyphens: auto;
-        overflow-wrap: break-word;
-    }
-
-    /* Navbar lang switcher rule removed — hidden at 768px, lives in drawer on mobile */
-
-    /* Cart panel full width on small phones */
-    .cart-panel {
-        width: 100vw;
-    }
-
-    /* Checkout layout tighter on small screens */
-    .checkout-layout {
-        padding: 1rem;
-    }
-
-    /* Delivery options stack better */
-    .delivery-option {
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-
-    /* Buttons full-width in checkout summary */
-    .checkout-submit {
-        font-size: 15px;
-        padding: 14px 20px;
-    }
 }
 
 /* ── PAGE HEADER (shop, about, delivery, contact) ── */
