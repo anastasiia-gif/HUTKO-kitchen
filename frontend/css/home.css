@@ -761,6 +761,30 @@
         grid-template-columns: 1fr;
     }
 
+    /* Product card: horizontal layout on mobile so image + info side by side */
+    .prod-card {
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+    .prod-img-wrap {
+        width: 130px;
+        flex-shrink: 0;
+        aspect-ratio: auto;
+    }
+
+    /* Pack card: horizontal too */
+    .pack-card {
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+    .pack-img-wrap {
+        width: 130px;
+        flex-shrink: 0;
+        aspect-ratio: auto;
+    }
+
     .why-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
@@ -785,64 +809,5 @@
 
     .vision-photo.large {
         aspect-ratio: 3/4;
-    }
-}
-
-/* ── SMALL MOBILE (≤480px) ───────────────────────── */
-@media (max-width: 480px) {
-    /* Fix hero title overflow — text cut-off bug */
-    .hero-title {
-        font-size: clamp(1.75rem, 8vw, 2.4rem);
-        word-break: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
-    }
-
-    .hero {
-        overflow: hidden; /* keep clip, rely on font-size fix */
-    }
-
-    .hero-content {
-        padding: 2.5rem 1.25rem 2rem;
-    }
-
-    .hero-tag {
-        font-size: 9px;
-        letter-spacing: 1.5px;
-        padding: 6px 12px;
-    }
-
-    .hero-sub {
-        font-size: 14px;
-    }
-
-    .hero-badges {
-        gap: 0.75rem;
-        flex-wrap: wrap;
-    }
-
-    .hero-badge {
-        font-size: 11px;
-    }
-
-    .hero-actions {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    /* Vision section */
-    .vision-text .big-quote {
-        font-size: 1.6rem;
-    }
-
-    /* Map section */
-    .delivery-day-chip {
-        font-size: 12px;
-        padding: 7px 14px;
-    }
-
-    .province-chips span {
-        font-size: 11px;
-        padding: 4px 10px;
     }
 }
