@@ -1,195 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Confirm delivery — HUTKO Kitchen</title>
-  <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm delivery — HUTKO Kitchen</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div id="navbar-placeholder"></div>
+    <div id="navbar-placeholder"></div>
 
-  <div style="min-height:calc(100vh - 68px);background:var(--cream);display:flex;align-items:center;justify-content:center;padding:2rem 1.25rem;">
-    <div style="width:100%;max-width:520px;">
+    <div style="min-height:calc(100vh - 68px);background:var(--cream);display:flex;align-items:center;justify-content:center;padding:2rem 1.25rem;">
+        <div style="width:100%;max-width:520px;">
 
-      <!-- Loading -->
-      <div id="loadingState" style="text-align:center;padding:4rem 0;">
-        <div style="font-size:40px;margin-bottom:1rem;">⏳</div>
-        <p style="color:var(--ink-soft);font-size:15px;">Loading your order...</p>
-      </div>
-
-      <!-- Error -->
-      <div id="errorState" style="display:none;text-align:center;padding:4rem 0;">
-        <div style="font-size:40px;margin-bottom:1rem;">😕</div>
-        <h2 style="font-family:var(--display);font-size:24px;color:var(--ink);margin-bottom:.5rem;">Order not found</h2>
-        <p style="color:var(--ink-soft);font-size:15px;margin-bottom:2rem;">We couldn't find this order. Please check the link or contact us.</p>
-        <a href="contact.html" class="btn btn-blue">Contact us</a>
-      </div>
-
-      <!-- Already confirmed -->
-      <div id="alreadyConfirmed" style="display:none;text-align:center;padding:4rem 0;">
-        <div style="font-size:52px;margin-bottom:1rem;">✅</div>
-        <h2 style="font-family:var(--display);font-size:28px;color:var(--ink);margin-bottom:.5rem;">Already confirmed!</h2>
-        <p style="color:var(--ink-soft);font-size:15px;">This delivery has already been confirmed. Thank you!</p>
-      </div>
-
-      <!-- Confirm form -->
-      <div id="confirmState" style="display:none;">
-        <div style="background:#fff;border-radius:20px;border:1px solid var(--border);padding:2.5rem;box-shadow:0 4px 32px rgba(0,0,0,.06);">
-
-          <div style="text-align:center;margin-bottom:2rem;">
-            <div style="font-size:52px;margin-bottom:.75rem;">📦</div>
-            <h1 style="font-family:var(--display);font-size:28px;color:var(--ink);margin-bottom:.4rem;">Did you receive your order?</h1>
-            <p style="font-size:14px;color:var(--ink-soft);">Order <strong id="orderRefDisplay" style="color:var(--blue);"></strong></p>
-          </div>
-
-          <!-- Star rating -->
-          <div style="margin-bottom:1.5rem;">
-            <p style="font-size:13px;font-weight:600;color:var(--ink);opacity:.65;margin-bottom:.75rem;letter-spacing:.3px;">How was your order?</p>
-            <div id="starRating" style="display:flex;gap:8px;justify-content:center;">
-              <span class="star" data-val="1" style="font-size:36px;cursor:pointer;opacity:.3;transition:.15s;">⭐</span>
-              <span class="star" data-val="2" style="font-size:36px;cursor:pointer;opacity:.3;transition:.15s;">⭐</span>
-              <span class="star" data-val="3" style="font-size:36px;cursor:pointer;opacity:.3;transition:.15s;">⭐</span>
-              <span class="star" data-val="4" style="font-size:36px;cursor:pointer;opacity:.3;transition:.15s;">⭐</span>
-              <span class="star" data-val="5" style="font-size:36px;cursor:pointer;opacity:.3;transition:.15s;">⭐</span>
+            <!-- Loading -->
+            <div id="loadingState" style="text-align:center;padding:4rem 0;">
+                <div style="font-size:40px;margin-bottom:1rem;">⏳</div>
+                <p style="color:var(--ink-soft);font-size:15px;">Loading your order...</p>
             </div>
-            <p id="ratingLabel" style="text-align:center;font-size:13px;color:var(--ink-soft);margin-top:.5rem;height:18px;"></p>
-          </div>
 
-          <!-- Message -->
-          <div style="margin-bottom:1.5rem;">
-            <p style="font-size:13px;font-weight:600;color:var(--ink);opacity:.65;margin-bottom:.5rem;letter-spacing:.3px;">Leave a comment <span style="font-weight:400;opacity:.5;">(optional)</span></p>
-            <textarea id="reviewMessage"
-              placeholder="How was the food? Any suggestions? We read every message..."
-              style="width:100%;background:var(--cream);border:1.5px solid transparent;border-radius:12px;
+            <!-- Error -->
+            <div id="errorState" style="display:none;text-align:center;padding:4rem 0;">
+                <div style="font-size:40px;margin-bottom:1rem;">😕</div>
+                <h2 style="font-family:var(--display);font-size:24px;color:var(--ink);margin-bottom:.5rem;">Order not found</h2>
+                <p style="color:var(--ink-soft);font-size:15px;margin-bottom:2rem;">We couldn't find this order. Please check the link or contact us.</p>
+                <a href="contact.html" class="btn btn-blue">Contact us</a>
+            </div>
+
+            <!-- Already confirmed -->
+            <div id="alreadyConfirmed" style="display:none;text-align:center;padding:4rem 0;">
+                <div style="font-size:52px;margin-bottom:1rem;">✅</div>
+                <h2 style="font-family:var(--display);font-size:28px;color:var(--ink);margin-bottom:.5rem;">Already confirmed!</h2>
+                <p style="color:var(--ink-soft);font-size:15px;">This delivery has already been confirmed. Thank you!</p>
+            </div>
+
+            <!-- Confirm form -->
+            <div id="confirmState" style="display:none;">
+                <div style="background:#fff;border-radius:20px;border:1px solid var(--border);padding:2.5rem;box-shadow:0 4px 32px rgba(0,0,0,.06);">
+
+                    <div style="text-align:center;margin-bottom:2rem;">
+                        <div style="font-size:52px;margin-bottom:.75rem;">📦</div>
+                        <h1 style="font-family:var(--display);font-size:28px;color:var(--ink);margin-bottom:.4rem;">Did you receive your order?</h1>
+                        <p style="font-size:14px;color:var(--ink-soft);">Order <strong id="orderRefDisplay" style="color:var(--blue);"></strong></p>
+                    </div>
+
+                    <!-- Star rating -->
+                    <div style="margin-bottom:1.5rem;">
+                        <p style="font-size:13px;font-weight:600;color:var(--ink);opacity:.65;margin-bottom:.75rem;letter-spacing:.3px;">How was your order?</p>
+                        <div id="starRating" style="display:flex;gap:8px;justify-content:center;">
+                            <span class="star" data-val="1" style="font-size:36px;cursor:pointer;opacity:.3;transition:.15s;">⭐</span>
+                            <span class="star" data-val="2" style="font-size:36px;cursor:pointer;opacity:.3;transition:.15s;">⭐</span>
+                            <span class="star" data-val="3" style="font-size:36px;cursor:pointer;opacity:.3;transition:.15s;">⭐</span>
+                            <span class="star" data-val="4" style="font-size:36px;cursor:pointer;opacity:.3;transition:.15s;">⭐</span>
+                            <span class="star" data-val="5" style="font-size:36px;cursor:pointer;opacity:.3;transition:.15s;">⭐</span>
+                        </div>
+                        <p id="ratingLabel" style="text-align:center;font-size:13px;color:var(--ink-soft);margin-top:.5rem;height:18px;"></p>
+                    </div>
+
+                    <!-- Message -->
+                    <div style="margin-bottom:1.5rem;">
+                        <p style="font-size:13px;font-weight:600;color:var(--ink);opacity:.65;margin-bottom:.5rem;letter-spacing:.3px;">Leave a comment <span style="font-weight:400;opacity:.5;">(optional)</span></p>
+                        <textarea id="reviewMessage"
+                                  placeholder="How was the food? Any suggestions? We read every message..."
+                                  style="width:100%;background:var(--cream);border:1.5px solid transparent;border-radius:12px;
                      padding:13px 16px;font-size:14px;font-family:var(--sans);color:var(--ink);
                      outline:none;resize:vertical;min-height:110px;line-height:1.6;transition:.2s;"
-              onfocus="this.style.background='#fff';this.style.borderColor='var(--blue)'"
-              onblur="this.style.background='var(--cream)';this.style.borderColor='transparent'"
-            ></textarea>
-          </div>
+                                  onfocus="this.style.background='#fff';this.style.borderColor='var(--blue)'"
+                                  onblur="this.style.background='var(--cream)';this.style.borderColor='transparent'"></textarea>
+                    </div>
 
-          <button id="confirmBtn" onclick="submitConfirmation()"
-            style="width:100%;background:var(--orange);color:#fff;border:none;border-radius:100px;
+                    <button id="confirmBtn" onclick="submitConfirmation()"
+                            style="width:100%;background:var(--orange);color:#fff;border:none;border-radius:100px;
                    padding:15px;font-size:15px;font-family:var(--sans);font-weight:700;
                    cursor:pointer;transition:.2s;">
-            ✅ Confirm delivery
-          </button>
+                        ✅ Confirm delivery
+                    </button>
 
-          <p style="text-align:center;font-size:12px;color:var(--ink-soft);margin-top:1rem;">
-            Having an issue?
-            <a href="contact.html" style="color:var(--blue);font-weight:600;">Contact us</a>
-          </p>
+                    <p style="text-align:center;font-size:12px;color:var(--ink-soft);margin-top:1rem;">
+                        Having an issue?
+                        <a href="contact.html" style="color:var(--blue);font-weight:600;">Contact us</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Success -->
+            <div id="successState" style="display:none;text-align:center;padding:2rem 0;">
+                <div style="background:#fff;border-radius:20px;border:1px solid var(--border);padding:2.5rem;">
+                    <div style="font-size:60px;margin-bottom:1rem;">🎉</div>
+                    <h2 style="font-family:var(--display);font-size:28px;color:var(--ink);margin-bottom:.75rem;">Thank you!</h2>
+                    <p style="font-size:15px;color:var(--ink-soft);line-height:1.7;margin-bottom:2rem;">
+                        Delivery confirmed! Your feedback means a lot to us.
+                        We hope you enjoyed your HUTKO Kitchen meal! 🇺🇦
+                    </p>
+                    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                        <a href="shop.html" class="btn btn-blue">Order again</a>
+                        <a href="index.html" class="btn btn-outline">Back to home</a>
+                    </div>
+                </div>
+            </div>
+
         </div>
-      </div>
-
-      <!-- Success -->
-      <div id="successState" style="display:none;text-align:center;padding:2rem 0;">
-        <div style="background:#fff;border-radius:20px;border:1px solid var(--border);padding:2.5rem;">
-          <div style="font-size:60px;margin-bottom:1rem;">🎉</div>
-          <h2 style="font-family:var(--display);font-size:28px;color:var(--ink);margin-bottom:.75rem;">Thank you!</h2>
-          <p style="font-size:15px;color:var(--ink-soft);line-height:1.7;margin-bottom:2rem;">
-            Delivery confirmed! Your feedback means a lot to us.
-            We hope you enjoyed your HUTKO Kitchen meal! 🇺🇦
-          </p>
-          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-            <a href="shop.html" class="btn btn-blue">Order again</a>
-            <a href="index.html" class="btn btn-outline">Back to home</a>
-          </div>
-        </div>
-      </div>
-
     </div>
-  </div>
 
-  <div id="footer-placeholder"></div>
+    <div id="footer-placeholder"></div>
 
-  <script src="js/api.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/components.js"></script>
-  <script src="js/main.js"></script>
-  <script>
-    const API_BASE = 'https://hutko-kitchen.onrender.com';
-    const params   = new URLSearchParams(window.location.search);
-    const orderRef = params.get('ref') || '';
-    let   selectedRating = 0;
+    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // API_BASE is defined in api.js
+        const params = new URLSearchParams(window.location.search);
+        const orderRef = params.get('ref') || '';
+        let selectedRating = 0;
 
-    const RATING_LABELS = ['', 'Not great 😕', 'Could be better 🤔', 'Pretty good 😊', 'Really good! 😄', 'Amazing! 🤩'];
+        const RATING_LABELS = ['', 'Not great 😕', 'Could be better 🤔', 'Pretty good 😊', 'Really good! 😄', 'Amazing! 🤩'];
 
-    // Star rating interaction
-    document.querySelectorAll('.star').forEach(star => {
-      star.addEventListener('mouseover', () => highlightStars(+star.dataset.val));
-      star.addEventListener('mouseout',  () => highlightStars(selectedRating));
-      star.addEventListener('click', () => {
-        selectedRating = +star.dataset.val;
-        highlightStars(selectedRating);
-        document.getElementById('ratingLabel').textContent = RATING_LABELS[selectedRating];
-      });
-    });
-
-    function highlightStars(val) {
-      document.querySelectorAll('.star').forEach(s => {
-        s.style.opacity = +s.dataset.val <= val ? '1' : '0.3';
-      });
-    }
-
-    // Load order on page load
-    document.addEventListener('DOMContentLoaded', async () => {
-      if (!orderRef) {
-        show('errorState'); return;
-      }
-
-      try {
-        const res = await fetch(`${API_BASE}/api/orders/${orderRef}`);
-        if (!res.ok) { show('errorState'); return; }
-
-        const data = await res.json();
-        const order = data.order;
-
-        if (order.status === 'ok_confirmed') {
-          show('alreadyConfirmed'); return;
-        }
-
-        document.getElementById('orderRefDisplay').textContent = `#${orderRef}`;
-        show('confirmState');
-
-      } catch(e) {
-        show('errorState');
-      }
-    });
-
-    async function submitConfirmation() {
-      const message = document.getElementById('reviewMessage').value.trim();
-      const btn     = document.getElementById('confirmBtn');
-
-      btn.textContent = 'Confirming...';
-      btn.disabled    = true;
-
-      try {
-        const res = await fetch(`${API_BASE}/api/orders/${orderRef}/confirm-delivery`, {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ message, rating: selectedRating || 5 })
+        // Star rating interaction
+        document.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('mouseover', () => highlightStars(+star.dataset.val));
+            star.addEventListener('mouseout', () => highlightStars(selectedRating));
+            star.addEventListener('click', () => {
+                selectedRating = +star.dataset.val;
+                highlightStars(selectedRating);
+                document.getElementById('ratingLabel').textContent = RATING_LABELS[selectedRating];
+            });
         });
 
-        if (res.ok) {
-          show('successState');
-        } else {
-          btn.textContent = '✅ Confirm delivery';
-          btn.disabled    = false;
-          alert('Something went wrong. Please try again.');
+        function highlightStars(val) {
+            document.querySelectorAll('.star').forEach(s => {
+                s.style.opacity = +s.dataset.val <= val ? '1' : '0.3';
+            });
         }
-      } catch(e) {
-        btn.textContent = '✅ Confirm delivery';
-        btn.disabled    = false;
-        alert('Network error. Please try again.');
-      }
-    }
 
-    function show(id) {
-      ['loadingState','errorState','alreadyConfirmed','confirmState','successState']
-        .forEach(s => document.getElementById(s).style.display = s === id ? 'block' : 'none');
-    }
-  </script>
+        // Load order on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!orderRef) {
+                show('errorState'); return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/orders/${orderRef}`);
+                if (!res.ok) { show('errorState'); return; }
+
+                const data = await res.json();
+                const order = data.order;
+
+                if (order.status === 'ok_confirmed' || order.status === 'delivered') {
+                    show('alreadyConfirmed'); return;
+                }
+
+                document.getElementById('orderRefDisplay').textContent = `#${orderRef}`;
+                show('confirmState');
+
+            } catch (e) {
+                show('errorState');
+            }
+        });
+
+        async function submitConfirmation() {
+            const message = document.getElementById('reviewMessage').value.trim();
+            const btn = document.getElementById('confirmBtn');
+
+            btn.textContent = 'Confirming...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/orders/${orderRef}/confirm-delivery`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, rating: selectedRating || 5 })
+                });
+
+                if (res.ok) {
+                    show('successState');
+                } else {
+                    btn.textContent = '✅ Confirm delivery';
+                    btn.disabled = false;
+                    alert('Something went wrong. Please try again.');
+                }
+            } catch (e) {
+                btn.textContent = '✅ Confirm delivery';
+                btn.disabled = false;
+                alert('Network error. Please try again.');
+            }
+        }
+
+        function show(id) {
+            ['loadingState', 'errorState', 'alreadyConfirmed', 'confirmState', 'successState']
+                .forEach(s => document.getElementById(s).style.display = s === id ? 'block' : 'none');
+        }
+    </script>
 </body>
 </html>

@@ -1424,8 +1424,12 @@ p {
 }
 
 @media (max-width: 768px) {
-    .nav-links, .nav-search {
+    .nav-links, .nav-search, .lang-switcher, .nav-auth, .nav-cart-btn {
         display: none;
+    }
+
+    .navbar-inner {
+        padding: 0 1.25rem;
     }
 
     .nav-hamburger {
@@ -1463,6 +1467,28 @@ p {
     .footer-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* ── MOBILE DRAWER EXTRAS ────────────────────────── */
+.drawer-lang {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.drawer-lang-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+}
+
+.nav-drawer .lang-switcher {
+    display: flex;
 }
 
 /* ── PAGE HEADER (shop, about, delivery, contact) ── */

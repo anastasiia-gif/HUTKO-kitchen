@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="assets/logo_nav.png">
+    <link rel="apple-touch-icon" href="assets/logo_nav.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in — HUTKO</title>
     <link rel="stylesheet" href="css/style.css">
@@ -42,34 +44,32 @@
                 </div>
             </div>
 
-            <!-- Email section — wrapped so we can hide it when Google is used -->
-            <div id="emailLoginSection">
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;">
-                    <div style="flex:1;height:1px;background:var(--border);"></div>
-                    <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">or with email</span>
-                    <div style="flex:1;height:1px;background:var(--border);"></div>
-                </div>
+            <!-- Divider -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;">
+                <div style="flex:1;height:1px;background:var(--border);"></div>
+                <span style="font-size:12px;color:var(--ink-soft);font-weight:500;">or with email</span>
+                <div style="flex:1;height:1px;background:var(--border);"></div>
+            </div>
 
-                <div class="auth-error" id="loginError">Incorrect email or password. Please try again.</div>
+            <div class="auth-error" id="loginError">Incorrect email or password. Please try again.</div>
 
-                <div class="auth-form">
-                    <div class="field">
-                        <label>Email address</label>
-                        <input type="email" id="loginEmail" placeholder="anna@email.com" autocomplete="email">
-                    </div>
-                    <div class="field">
-                        <label>Password</label>
-                        <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password">
-                    </div>
-                    <button class="auth-submit" onclick="doLogin()">Sign in</button>
+            <div class="auth-form">
+                <div class="field">
+                    <label>Email address</label>
+                    <input type="email" id="loginEmail" placeholder="anna@email.com" autocomplete="email">
                 </div>
+                <div class="field">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password">
+                </div>
+                <button class="auth-submit" onclick="doLogin()">Sign in</button>
+            </div>
 
-                <div class="auth-divider">
-                    Don't have an account? <a href="register.html">Register here</a>
-                </div>
-                <div class="auth-divider" style="margin-top:8px;">
-                    <a href="index.html" style="font-weight:400;opacity:0.6;">← Back to homepage</a>
-                </div>
+            <div class="auth-divider">
+                Don't have an account? <a href="register.html">Register here</a>
+            </div>
+            <div class="auth-divider" style="margin-top:8px;">
+                <a href="index.html" style="font-weight:400;opacity:0.6;">← Back to homepage</a>
             </div>
         </div>
     </div>
@@ -84,42 +84,19 @@
         /* Redirect if already logged in */
         if (getToken && getToken() && getUser()) window.location.href = 'account.html';
 
-        // Track which method the user chose
-        let _googleUsed = false;
-
-        function _hideEmailForm() {
-            document.getElementById('emailLoginSection').style.display = 'none';
-        }
-        function _showEmailForm() {
-            document.getElementById('emailLoginSection').style.display = 'block';
-        }
-
-        /* Google login */
+        /* Google login — same handler as register.html */
         async function handleGoogleLogin(response) {
-            _googleUsed = true;
-            _hideEmailForm(); // hide email form — Google is handling it
-
             const base64 = response.credential.split('.')[1];
             const payload = JSON.parse(atob(base64));
             const { name, email, sub: googleId } = payload;
             const err = document.getElementById('loginError');
             err.style.display = 'none';
 
-            // Show loading state
-            const wrap = document.getElementById('google-btn-wrap');
-            wrap.innerHTML = '<div style="text-align:center;padding:12px;font-size:13px;color:var(--ink-soft);">Signing in with Google…</div>';
-
-            // Try login first, then auto-register for new Google users
+            // Try login first, then register (for first-time Google users landing on login)
             let res = await Api.Auth.login(email, `google_${googleId}`);
-            if (!res.ok && res.status !== 401) {
-                // Cold start — retry once
-                await new Promise(r => setTimeout(r, 2000));
-                res = await Api.Auth.login(email, `google_${googleId}`);
-            }
             if (!res.ok) {
                 res = await Api.Auth.register(name, email, `google_${googleId}`, '');
             }
-
             if (res.ok) {
                 if (res.data.user) {
                     const u = res.data.user;
@@ -132,32 +109,19 @@
                 const redirect = new URLSearchParams(window.location.search).get('redirect') || 'account.html';
                 window.location.href = redirect;
             } else {
-                _googleUsed = false;
-                _showEmailForm();
-                wrap.innerHTML = `<div id="g_id_onload"
-              data-client_id="41618761055-34k8r3fj6dfm0shhe63mkgoj63abkk0p.apps.googleusercontent.com"
-              data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
-              <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline"
-              data-text="signin_with" data-shape="pill" data-width="380" data-logo_alignment="left"></div>`;
-                if (window.google) google.accounts.id.renderButton(
-                    wrap.querySelector('.g_id_signin'), { type: 'standard', size: 'large', theme: 'outline', text: 'signin_with', shape: 'pill', width: 380 }
-                );
-                err.textContent = 'Google sign-in failed. Please try again or use email below.';
+                err.textContent = 'Google sign-in failed. Please try with email.';
                 err.style.display = 'block';
             }
         }
 
         async function doLogin() {
-            // If Google was already used successfully, don't validate email form
-            if (_googleUsed) return;
-
             const email = document.getElementById('loginEmail').value.trim();
             const pass = document.getElementById('loginPassword').value;
             const err = document.getElementById('loginError');
             err.style.display = 'none';
 
             if (!email || !pass) {
-                err.textContent = 'Please fill in your email and password.';
+                err.textContent = 'Please fill in all fields.';
                 err.style.display = 'block'; return;
             }
 
@@ -175,6 +139,7 @@
                 return;
             }
 
+            // Save user info before redirect
             if (res.data.user) {
                 localStorage.setItem('hutko_user', JSON.stringify({
                     id: res.data.user.id,
@@ -188,6 +153,7 @@
 
         document.addEventListener('keydown', e => {
             if (e.key !== 'Enter') return;
+            // Only fire doLogin if focus is inside the email/password fields
             const active = document.activeElement;
             const isEmailOrPass = active && (active.id === 'loginEmail' || active.id === 'loginPassword');
             if (isEmailOrPass) doLogin();

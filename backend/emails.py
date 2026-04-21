@@ -309,6 +309,64 @@ def send_order_notification(order_ref: str, name: str, email: str,
     )
 
 
+# ── DELIVERY DISPATCH (to customer when out for delivery) ───
+def send_delivery_dispatch(order_ref: str, name: str, email: str,
+                            delivery_date: str = ''):
+    first = name.split()[0]
+    # Link goes directly to the backend — no frontend file needed
+    api_base     = os.environ.get('RENDER_EXTERNAL_URL', 'https://hutko-kitchen.onrender.com')
+    confirm_url  = f"{api_base}/api/orders/{order_ref}/confirm-delivery-link"
+
+    content = f"""
+      <h1 style="margin:0 0 4px;font-size:26px;font-weight:900;color:#111;">
+        Your order is on its way! 🚚
+      </h1>
+      <p style="margin:0 0 24px;font-size:15px;color:#666;line-height:1.6;">
+        Hi {first}! Your order <strong style="color:{BRAND_BLUE};">#{order_ref}</strong>
+        is out for delivery today.
+        {f'Expected between <strong>16:00–20:00 on {delivery_date}</strong>.' if delivery_date else 'Expected between <strong>16:00–20:00</strong>.'}
+      </p>
+
+      <div style="background:{BRAND_CREAM};border-radius:12px;padding:20px 24px;margin:0 0 28px;">
+        <p style="margin:0 0 10px;font-size:14px;color:#444;">
+          🧊 &nbsp;Keep the insulated bag closed until you're ready to store the food.
+        </p>
+        <p style="margin:0 0 10px;font-size:14px;color:#444;">
+          ❄️ &nbsp;Transfer to your freezer as soon as possible after delivery.
+        </p>
+        <p style="margin:0;font-size:14px;color:#444;">
+          📲 &nbsp;Any issues? Reply to this email or message us on Instagram.
+        </p>
+      </div>
+
+      <p style="margin:0 0 16px;font-size:15px;font-weight:700;color:#111;text-align:center;">
+        Once you receive your order, please confirm delivery:
+      </p>
+
+      <table cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td align="center">
+            <a href="{confirm_url}"
+               style="display:inline-block;background:{BRAND_ORANGE};color:#fff;
+                      text-decoration:none;font-size:15px;font-weight:700;
+                      padding:15px 40px;border-radius:100px;letter-spacing:0.2px;">
+              ✅ Confirm I received my order →
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:20px 0 0;font-size:12px;color:#bbb;text-align:center;">
+        Or copy this link: {confirm_url}
+      </p>
+    """
+    send_email(
+        email,
+        f"Your order #{order_ref} is on its way! 🚚",
+        _base_template(content, f"Order #{order_ref} is out for delivery today — confirm receipt when it arrives.")
+    )
+
+
 # ── CONTACT FORM AUTO-REPLY (to customer) ───────────────
 def send_contact_reply(name: str, email: str, topic: str, body: str):
     first = name.split()[0]

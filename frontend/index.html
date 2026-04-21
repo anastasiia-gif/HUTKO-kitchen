@@ -313,6 +313,25 @@
         }
         document.addEventListener('DOMContentLoaded', loadHomePreviews);
 
+        // Handle confirm-delivery redirect: show toast and clean URL
+        (function () {
+            const p = new URLSearchParams(window.location.search);
+            const confirm = p.get('confirm');
+            if (!confirm) return;
+            // Clean the URL without reloading
+            history.replaceState({}, '', window.location.pathname);
+            const msgs = {
+                success: '✅ Delivery confirmed! Thank you for your feedback.',
+                already: 'ℹ️ This delivery was already confirmed — thank you!',
+                notfound: '😕 Order not found. Please contact us if you need help.',
+            };
+            const msg = msgs[confirm] || msgs.notfound;
+            // Wait for components to render before showing toast
+            setTimeout(() => {
+                if (typeof showToast === 'function') showToast(msg, 5000);
+            }, 600);
+        })();
+
         // Reveal on scroll
         const reveals = document.querySelectorAll('.reveal');
         const observer = new IntersectionObserver((entries) => {

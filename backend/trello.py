@@ -20,8 +20,54 @@ LISTS = {
     'in_storage':       '69d29b6e70155674b2fe1157',
     'out_for_delivery': '69d29b792569d8d839a78dc3',
     'delivered':        '69d29b87e98a49718dddd4a5',
+    'ok_confirmed':     None,   # fetched dynamically — see _resolve_list_id()
     'cancelled':        '69d29b94c21f6521a96e613a',
 }
+
+# Names to search for when doing dynamic lookup (case-insensitive substring match)
+LIST_NAME_HINTS = {
+    'ok_confirmed': ['ok: confirmed', 'ok confirmed', 'confirmed delivery', 'customer confirmed'],
+}
+
+_list_id_cache: dict = {}
+
+
+def _resolve_list_id(list_key: str) -> str | None:
+    """
+    Return the Trello list ID for list_key.
+    Uses the hardcoded value if set, otherwise searches the board by name.
+    Results are cached for the process lifetime.
+    """
+    if list_key in _list_id_cache:
+        return _list_id_cache[list_key]
+
+    hardcoded = LISTS.get(list_key)
+    if hardcoded:
+        _list_id_cache[list_key] = hardcoded
+        return hardcoded
+
+    # Dynamic lookup by name
+    if not TRELLO_API_KEY or not TRELLO_TOKEN:
+        return None
+    try:
+        res = requests.get(
+            f'https://api.trello.com/1/boards/{BOARD_ID}/lists',
+            params={**_auth(), 'fields': 'id,name'},
+            timeout=10
+        )
+        res.raise_for_status()
+        hints = LIST_NAME_HINTS.get(list_key, [list_key.replace('_', ' ')])
+        for board_list in res.json():
+            name_lower = board_list['name'].lower()
+            if any(hint in name_lower for hint in hints):
+                found_id = board_list['id']
+                print(f'[TRELLO] Resolved list "{list_key}" → "{board_list["name"]}" ({found_id})')
+                _list_id_cache[list_key] = found_id
+                LISTS[list_key] = found_id  # cache back into LISTS
+                return found_id
+    except Exception as e:
+        print(f'[TRELLO ERROR] _resolve_list_id({list_key}): {e}')
+    return None
 
 # Cook time per unit (minutes) based on Excel production data
 # Batch sizes: Syrnyky=100pcs/1.5h, Chicken=100pcs/1.5h, Zrazy=30pcs/1.5h
@@ -190,15 +236,19 @@ def move_card(card_id: str, list_name: str) -> bool:
     """
     Move a card to a different list.
     list_name: 'new_orders' | 'confirmed' | 'in_storage' |
-               'out_for_delivery' | 'delivered' | 'cancelled'
+               'out_for_delivery' | 'delivered' | 'ok_confirmed' | 'cancelled'
     """
-    if not card_id or list_name not in LISTS:
+    if not card_id:
+        return False
+    list_id = _resolve_list_id(list_name)
+    if not list_id:
+        print(f'[TRELLO] move_card: could not resolve list "{list_name}"')
         return False
     try:
         res = requests.put(
             f'https://api.trello.com/1/cards/{card_id}',
             params=_auth(),
-            json={'idList': LISTS[list_name]},
+            json={'idList': list_id},
             timeout=10
         )
         res.raise_for_status()
