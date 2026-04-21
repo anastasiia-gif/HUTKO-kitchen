@@ -94,7 +94,12 @@ def _load_excel():
                 if str(d.get('active', 'yes')).lower() != 'yes': continue
 
                 pid   = str(d['id'])
-                photo = images.get(pid) or str(d.get('photo_file', '') or '')
+                raw_photo = images.get(pid) or str(d.get('photo_file', '') or '')
+                # Ensure correct subfolder prefix
+                if raw_photo and '/' not in raw_photo:
+                    photo = 'assets/products/' + raw_photo
+                else:
+                    photo = raw_photo
 
                 products.append({
                     'id':        pid,
@@ -160,7 +165,12 @@ def _load_excel():
                 if str(d.get('active', 'yes')).lower() != 'yes': continue
 
                 bid   = str(d['id'])
-                photo = images.get(bid) or str(d.get('photo_file', '') or '')
+                raw_photo = images.get(bid) or str(d.get('photo_file', '') or '')
+                # Ensure correct subfolder prefix
+                if raw_photo and '/' not in raw_photo:
+                    photo = 'assets/Bundles/' + raw_photo
+                else:
+                    photo = raw_photo
 
                 items = []
                 for part in str(d.get('items', '') or '').split(','):

@@ -1,6 +1,6 @@
 /* ── HUTKO — components.js ────────────────────────── */
 
-const LOGO_SVG = `<img src="assets/logo_nav.png" alt="Hutko logo" class="nav-logo-img">`;
+const LOGO_SVG = `<img src="assets/logos/logo_nav.png" alt="Hutko logo" class="nav-logo-img">`;
 const CART_SVG = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 1h2.5l2 8h7l1.5-5.5H4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="13.5" r="1.2" fill="currentColor"/><circle cx="11.5" cy="13.5" r="1.2" fill="currentColor"/></svg>`;
 const USER_SVG = `<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="4.5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M1 14c0-3.314 2.91-6 6.5-6s6.5 2.686 6.5 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
 const SEARCH_ICON = `<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="#111111" stroke-width="1.3" opacity="0.5"/><path d="M9 9L12 12" stroke="#111111" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/></svg>`;
@@ -135,7 +135,7 @@ function renderFooter() {
     document.getElementById('footer-placeholder').innerHTML = `
   <footer class="footer"><div class="footer-inner">
     <div class="footer-grid">
-      <div><div class="footer-brand"><img src="assets/logo_nav.png" alt="Hutko" class="footer-logo-img"><span class="footer-brand-name">HUTKO</span></div><p class="footer-tagline" data-i18n="footer_tagline">${tr('footer_tagline')}</p></div>
+      <div><div class="footer-brand"><img src="assets/logos/logo_nav.png" alt="Hutko" class="footer-logo-img"><span class="footer-brand-name">HUTKO</span></div><p class="footer-tagline" data-i18n="footer_tagline">${tr('footer_tagline')}</p></div>
       <div class="footer-col"><h4 data-i18n="footer_pages">${tr('footer_pages')}</h4>${links}</div>
       <div class="footer-col"><h4 data-i18n="footer_products">${tr('footer_products')}</h4>
         <a href="shop.html">Syrnyky</a><a href="shop.html">Borscht</a>
@@ -155,7 +155,7 @@ function renderFooter() {
           <a href="https://www.instagram.com/hutko.kitchen/" target="_blank" rel="noopener" title="Instagram">ig</a>
         </div>
         <a href="https://liminex.com" target="_blank" rel="noopener" class="dev-credit">
-          <img src="assets/logo2.png" alt="Liminex" style="height:18px;opacity:0.5;vertical-align:middle;filter:invert(1);">
+          <img src="assets/logos/liminex_logo.png" alt="Liminex" style="height:18px;opacity:0.5;vertical-align:middle;filter:invert(1);">
           <span>Developed by Liminex</span>
         </a>
       </div>

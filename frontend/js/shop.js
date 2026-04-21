@@ -52,7 +52,7 @@ function productCard(p) {
     return `<div class="prod-card reveal" data-cat="${p.category}">
     ${p.badge ? `<span class="prod-badge">${p.badge}</span>` : ''}
     <div class="prod-img-wrap">
-      <img src="${p.photo}" alt="${pName(p)}" loading="lazy" onerror="this.src='assets/IMG_7982.JPEG'">
+      <img src="${p.photo}" alt="${pName(p)}" loading="lazy" onerror="this.onerror=null;this.src='assets/products/syrnyky.png'">
     </div>
     <div class="prod-body">
       <div class="prod-cat">${p.category}</div>
@@ -83,7 +83,7 @@ function bundleCard(b) {
 
     return `<div class="pack-card ${featured ? 'featured' : ''} reveal">
     <div class="pack-img-wrap">
-      <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="this.onerror=null;this.src='assets/IMG_7982.JPEG'">
+      <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="this.onerror=null;this.src='assets/Bundles/s_pack_orange.png'">
     </div>
     <div class="pack-body">
       <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>
@@ -179,37 +179,37 @@ const FALLBACK_PRODUCTS = [
     {
         id: 'syrnyky', name_en: 'Syrnyky', name_ua: 'Сирники', name_nl: 'Syrnyky', category: 'breakfast',
         desc_en: 'Ukrainian cottage cheese pancakes. Warm, real, no fuss.', base_price: 13, unit: '8 pcs', badge: '',
-        photo: 'assets/nobg/syrnyky.png', dietary: ['vegetarian'],
+        photo: 'assets/products/syrnyky.png', dietary: ['vegetarian'],
         variants: [{ label: '8 pcs', price: 13 }, { label: '16 pcs', price: 23 }, { label: '24 pcs', price: 31 }]
     },
     {
         id: 'chicken', name_en: 'Kyiv Chicken Balls', name_ua: 'Курячі кульки', name_nl: 'Kyiv Chicken Balls', category: 'snacks',
         desc_en: 'Crispy outside, herb butter inside.', base_price: 15, unit: '8 pcs', badge: 'Popular',
-        photo: 'assets/nobg/chicken.png', dietary: [],
+        photo: 'assets/products/chicken.png', dietary: [],
         variants: [{ label: '8 pcs', price: 15 }, { label: '16 pcs', price: 28 }, { label: '20 pcs', price: 34 }]
     },
     {
         id: 'borscht', name_en: 'Borscht', name_ua: 'Борщ', name_nl: 'Borsjt', category: 'soups',
         desc_en: 'Classic Ukrainian beetroot soup. Just heat — 8 min.', base_price: 13, unit: '900ml', badge: '',
-        photo: 'assets/nobg/borscht.png', dietary: ['vegetarian', 'gluten-free'],
+        photo: 'assets/products/borscht.png', dietary: ['vegetarian', 'gluten-free'],
         variants: [{ label: '900ml', price: 13 }]
     },
     {
         id: 'solyanka', name_en: 'Solyanka', name_ua: 'Солянка', name_nl: 'Solyanka', category: 'soups',
         desc_en: 'Rich meat soup with olives and lemon.', base_price: 16, unit: '900ml', badge: '',
-        photo: 'assets/nobg/solyanka.png', dietary: ['gluten-free'],
+        photo: 'assets/products/solyanka.png', dietary: ['gluten-free'],
         variants: [{ label: '900ml', price: 16 }]
     },
     {
         id: 'shakshuka', name_en: 'Shakshuka', name_ua: 'Шакшука', name_nl: 'Shakshuka', category: 'mains',
         desc_en: 'Spiced tomato base. 1 portion = 2 hearts × 100g.', base_price: 6, unit: '200g', badge: 'New',
-        photo: 'assets/nobg/shakshuka.png', dietary: ['vegetarian', 'vegan', 'gluten-free'],
+        photo: 'assets/products/shakshuka.png', dietary: ['vegetarian', 'vegan', 'gluten-free'],
         variants: [{ label: '200g', price: 6 }]
     },
     {
         id: 'zrazy', name_en: 'Zrazy', name_ua: 'Зрази', name_nl: 'Zrazy', category: 'snacks',
         desc_en: 'Pan-fried potato patties with mushroom & cheese.', base_price: 15, unit: '6 pcs', badge: '',
-        photo: 'assets/nobg/zrazy.png', dietary: ['vegetarian'],
+        photo: 'assets/products/zrazy.png', dietary: ['vegetarian'],
         variants: [{ label: '6 pcs', price: 15 }, { label: '12 pcs', price: 28 }]
     },
 ];
@@ -217,22 +217,22 @@ const FALLBACK_BUNDLES = [
     {
         id: 'pack-s1', name_en: 'Starter Pack — Borscht', name_ua: 'Стартовий набір — Борщ', name_nl: 'Starterpakket — Borsjt',
         size_label: 'Pack S', items: [{ product_id: 'syrnyky', qty: 8 }, { product_id: 'borscht', qty: 1 }, { product_id: 'zrazy', qty: 6 }, { product_id: 'chicken', qty: 8 }],
-        original_price: 41, discount_price: 37, photo: 'hf_20260308_101724_332ed7b633c04af6be57da9339c4624d.jpeg', badge: ''
+        original_price: 41, discount_price: 37, photo: 'assets/Bundles/s_pack_orange.png', badge: ''
     },
     {
         id: 'pack-s2', name_en: 'Starter Pack — Solyanka', name_ua: 'Стартовий набір — Солянка', name_nl: 'Starterpakket — Solyanka',
         size_label: 'Pack S', items: [{ product_id: 'syrnyky', qty: 8 }, { product_id: 'solyanka', qty: 1 }, { product_id: 'zrazy', qty: 6 }, { product_id: 'chicken', qty: 8 }],
-        original_price: 44, discount_price: 39, photo: 'hf_20260308_101754_0817f1096b73448d87eb3531e411155b.png', badge: ''
+        original_price: 44, discount_price: 39, photo: 'assets/Bundles/s_pack_blue.jpeg', badge: ''
     },
     {
         id: 'pack-m1', name_en: 'Family Pack — Classic', name_ua: 'Сімейний набір — Класик', name_nl: 'Familiepakket — Klassiek',
         size_label: 'Pack M', items: [{ product_id: 'syrnyky', qty: 16 }, { product_id: 'borscht', qty: 2 }, { product_id: 'zrazy', qty: 12 }, { product_id: 'chicken', qty: 16 }],
-        original_price: 77, discount_price: 69, photo: 'hf_20260308_102232_0b1e6e0deade4ce2934cc28ee2635165.png', badge: 'Most popular'
+        original_price: 77, discount_price: 69, photo: 'assets/Bundles/m_pack_orange.png', badge: 'Most popular'
     },
     {
         id: 'pack-l1', name_en: 'Big Pack', name_ua: 'Великий набір', name_nl: 'Groot pakket',
         size_label: 'Pack L', items: [{ product_id: 'syrnyky', qty: 24 }, { product_id: 'borscht', qty: 2 }, { product_id: 'solyanka', qty: 1 }, { product_id: 'zrazy', qty: 16 }, { product_id: 'chicken', qty: 20 }],
-        original_price: 107, discount_price: 97, photo: 'hf_20260308_102551_7e65581e179545a7a46d6504b44e7e7b.png', badge: ''
+        original_price: 107, discount_price: 97, photo: 'assets/Bundles/l_pack_blue.png', badge: ''
     },
 ];
 // ── TAB SWITCHING ─────────────────────────────────────
