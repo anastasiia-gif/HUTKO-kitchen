@@ -83,7 +83,7 @@ function bundleCard(b) {
 
     return `<div class="pack-card ${featured ? 'featured' : ''} reveal">
     <div class="pack-img-wrap">
-      <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="this.src='assets/IMG_1259.JPG'">
+      <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="this.onerror=null;this.src='assets/IMG_7982.JPEG'">
     </div>
     <div class="pack-body">
       <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>
@@ -215,19 +215,24 @@ const FALLBACK_PRODUCTS = [
 ];
 const FALLBACK_BUNDLES = [
     {
-        id: 'pack-s1', name_en: 'Starter Pack', name_ua: 'Стартовий набір', name_nl: 'Starterpakket',
-        size_label: 'Pack S', items: [{ product_id: 'syrnyky', qty: 8 }, { product_id: 'borscht', qty: 1 }, { product_id: 'chicken', qty: 6 }],
-        original_price: 41, discount_price: 37, photo: 'assets/IMG_1259.JPG', badge: ''
+        id: 'pack-s1', name_en: 'Starter Pack — Borscht', name_ua: 'Стартовий набір — Борщ', name_nl: 'Starterpakket — Borsjt',
+        size_label: 'Pack S', items: [{ product_id: 'syrnyky', qty: 8 }, { product_id: 'borscht', qty: 1 }, { product_id: 'zrazy', qty: 6 }, { product_id: 'chicken', qty: 8 }],
+        original_price: 41, discount_price: 37, photo: 'hf_20260308_101724_332ed7b633c04af6be57da9339c4624d.jpeg', badge: ''
     },
     {
-        id: 'pack-m1', name_en: 'Family Pack', name_ua: 'Сімейний набір', name_nl: 'Familiepakket',
-        size_label: 'Pack M', items: [{ product_id: 'syrnyky', qty: 16 }, { product_id: 'borscht', qty: 2 }, { product_id: 'chicken', qty: 16 }],
-        original_price: 77, discount_price: 69, photo: 'assets/hf_20260308_102232_0b1e6e0deade4ce2934cc28ee2635165.png', badge: 'Most popular'
+        id: 'pack-s2', name_en: 'Starter Pack — Solyanka', name_ua: 'Стартовий набір — Солянка', name_nl: 'Starterpakket — Solyanka',
+        size_label: 'Pack S', items: [{ product_id: 'syrnyky', qty: 8 }, { product_id: 'solyanka', qty: 1 }, { product_id: 'zrazy', qty: 6 }, { product_id: 'chicken', qty: 8 }],
+        original_price: 44, discount_price: 39, photo: 'hf_20260308_101754_0817f1096b73448d87eb3531e411155b.png', badge: ''
+    },
+    {
+        id: 'pack-m1', name_en: 'Family Pack — Classic', name_ua: 'Сімейний набір — Класик', name_nl: 'Familiepakket — Klassiek',
+        size_label: 'Pack M', items: [{ product_id: 'syrnyky', qty: 16 }, { product_id: 'borscht', qty: 2 }, { product_id: 'zrazy', qty: 12 }, { product_id: 'chicken', qty: 16 }],
+        original_price: 77, discount_price: 69, photo: 'hf_20260308_102232_0b1e6e0deade4ce2934cc28ee2635165.png', badge: 'Most popular'
     },
     {
         id: 'pack-l1', name_en: 'Big Pack', name_ua: 'Великий набір', name_nl: 'Groot pakket',
-        size_label: 'Pack L', items: [{ product_id: 'syrnyky', qty: 16 }, { product_id: 'borscht', qty: 2 }, { product_id: 'solyanka', qty: 1 }, { product_id: 'chicken', qty: 20 }],
-        original_price: 107, discount_price: 97, photo: 'assets/hf_20260308_102551_7e65581e179545a7a46d6504b44e7e7b.png', badge: ''
+        size_label: 'Pack L', items: [{ product_id: 'syrnyky', qty: 24 }, { product_id: 'borscht', qty: 2 }, { product_id: 'solyanka', qty: 1 }, { product_id: 'zrazy', qty: 16 }, { product_id: 'chicken', qty: 20 }],
+        original_price: 107, discount_price: 97, photo: 'hf_20260308_102551_7e65581e179545a7a46d6504b44e7e7b.png', badge: ''
     },
 ];
 // ── TAB SWITCHING ─────────────────────────────────────
