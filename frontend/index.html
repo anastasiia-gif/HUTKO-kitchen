@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/logo_nav.png">
     <title>HUTKO Kitchen — Ukrainian Frozen Food</title>
     <meta name="description" content="Authentic Ukrainian frozen food delivered across the Netherlands. Borscht, syrnyky, zrazy and more.">
     <link rel="stylesheet" href="css/style.css">
@@ -26,11 +27,11 @@
             </h1>
             <p class="hero-sub anim-fade-up delay-1" data-i18n="home_hero_sub">
                 Frozen fresh. Always ready in your freezer.<br>
-                Delivery in Amsterdam &amp; Den Bosch · Pickup available
+                Delivery in selected areas of the Netherlands &bull; Pickup in Amsterdam and Den Bosch
             </p>
             <div class="hero-actions anim-fade-up delay-2">
-                <a href="shop.html" class="btn btn-primary">Order a box</a>
-                <a href="shop.html" class="btn btn-outline">View menu</a>
+                <a href="shop.html#bundles" class="btn btn-primary" data-i18n="home_cta_order">Order a box</a>
+                <a href="shop.html#products" class="btn btn-outline" data-i18n="home_cta_menu">View menu</a>
             </div>
             <div class="hero-badges anim-fade-up delay-3">
                 <div class="hero-badge"><div class="hero-badge-dot"></div><span data-i18n="home_badge_1">Homemade batches</span></div>
@@ -38,16 +39,22 @@
                 <div class="hero-badge"><div class="hero-badge-dot"></div><span data-i18n="home_badge_3">AMS &amp; Den Bosch</span></div>
             </div>
         </div>
-        <div class="hero-visual" style="background:var(--cream);">
+        <div class="hero-visual hero-visual--text">
             <img src="assets/IMG_4156.PNG"
                  alt="HUTKO — Syrnyky, Borscht &amp; Chicken Balls"
                  class="hero-img-main"
                  style="object-position:center center;"
                  loading="eager">
-            <div class="hero-price-badge">
-                <div class="from" data-i18n="home_from">from</div>
-                <div class="price">€13</div>
-                <div class="unit" data-i18n="home_price_unit">per portion</div>
+            <div class="hero-text-overlay">
+                <div class="hero-overlay-title" data-i18n="home_overlay_title">READY IN 10 MINUTES<br>YOUR BACKUP PLAN</div>
+                <div class="hero-overlay-sub" data-i18n="home_overlay_sub">
+                    FROZEN FRESH. ALWAYS READY IN YOUR FREEZER.<br>
+                    DELIVERY IN SELECTED AREAS OF THE NETHERLANDS &bull; PICKUP IN AMSTERDAM AND DEN BOSCH
+                </div>
+                <div class="hero-overlay-actions">
+                    <a href="shop.html#bundles" class="btn btn-primary hero-overlay-btn" data-i18n="home_cta_order">Order a box</a>
+                    <a href="shop.html#products" class="btn btn-outline-cream hero-overlay-btn" data-i18n="home_cta_menu">View menu</a>
+                </div>
             </div>
         </div>
     </section>
@@ -85,7 +92,7 @@
                 </div>
                 <a href="shop.html" class="btn btn-outline reveal delay-1" data-i18n="home_view_all">View all packs</a>
             </div>
-            <div class="packs-grid" id="homeBundleGrid" style="grid-template-columns:repeat(3,1fr);">
+            <div class="packs-grid" id="homeBundleGrid">
                 <div style="text-align:center;padding:2rem;color:var(--ink-soft);font-size:13px;grid-column:1/-1;">Loading…</div>
             </div>
         </div>
@@ -101,7 +108,7 @@
                 </div>
                 <a href="shop.html" class="btn btn-outline reveal delay-1" data-i18n="home_view_all">View all</a>
             </div>
-            <div class="product-grid" id="homeProductGrid" style="grid-template-columns:repeat(3,1fr);">
+            <div class="product-grid" id="homeProductGrid">
                 <div style="text-align:center;padding:2rem;color:var(--ink-soft);font-size:13px;grid-column:1/-1;">Loading…</div>
             </div>
         </div>
