@@ -175,7 +175,7 @@
 
 /* ── MARQUEE STRIP ───────────────────────────────── */
 .marquee-strip {
-    background: var(--blue);
+    background: var(--blue-dk);
     overflow: hidden;
     white-space: nowrap;
     padding: 14px 0;
@@ -759,30 +759,6 @@
 
     .packs-grid {
         grid-template-columns: 1fr;
-    }
-
-    /* Product card: horizontal layout on mobile so image + info side by side */
-    .prod-card {
-        flex-direction: row;
-        align-items: stretch;
-    }
-
-    .prod-img-wrap {
-        width: 130px;
-        flex-shrink: 0;
-        aspect-ratio: auto;
-    }
-
-    /* Pack card: horizontal too */
-    .pack-card {
-        flex-direction: row;
-        align-items: stretch;
-    }
-
-    .pack-img-wrap {
-        width: 130px;
-        flex-shrink: 0;
-        aspect-ratio: auto;
     }
 
     .why-grid {

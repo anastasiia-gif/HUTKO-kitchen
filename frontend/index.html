@@ -79,6 +79,22 @@
         </div>
     </div>
 
+    <!-- ── BUNDLES PREVIEW (1 row, compact) ──────────── -->
+    <section class="section-cream" style="padding:3rem 2rem;">
+        <div class="section-inner">
+            <div class="products-header" style="margin-bottom:1.5rem;">
+                <div class="products-header-left">
+                    <div class="label reveal" data-i18n="home_packs_label">Ready packs</div>
+                    <h2 class="section-title reveal delay-1" style="font-size:clamp(1.4rem,3vw,2rem);margin-bottom:0;" data-i18n="home_packs_title">Bundle up &amp; save</h2>
+                </div>
+                <a href="shop.html" class="btn btn-outline reveal delay-1" data-i18n="home_view_all">View all packs</a>
+            </div>
+            <div class="packs-grid" id="homeBundleGrid" style="grid-template-columns:repeat(3,1fr);">
+                <div style="text-align:center;padding:2rem;color:var(--ink-soft);font-size:13px;grid-column:1/-1;">Loading…</div>
+            </div>
+        </div>
+    </section>
+
     <!-- ── PRODUCTS PREVIEW (1 row, API-driven) ──────── -->
     <section class="section-white" style="padding:3rem 2rem;">
         <div class="section-inner">
@@ -89,24 +105,7 @@
                 </div>
                 <a href="shop.html" class="btn btn-outline reveal delay-1" data-i18n="home_view_all">View all</a>
             </div>
-            <!-- Shows first 3 products, rest visible in shop -->
             <div class="product-grid" id="homeProductGrid" style="grid-template-columns:repeat(3,1fr);">
-                <div style="text-align:center;padding:2rem;color:var(--ink-soft);font-size:13px;grid-column:1/-1;">Loading…</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── BUNDLES PREVIEW (1 row, compact) ──────────── -->
-    <section class="section-cream" style="padding:3rem 2rem;">
-        <div class="section-inner">
-            <div class="products-header" style="margin-bottom:1.5rem;">
-                <div class="products-header-left">
-                    <div class="label reveal" data-i18n="home_packs_label">Ready packs</div>
-                    <h2 class="section-title reveal delay-1" style="font-size:clamp(1.4rem,3vw,2rem);margin-bottom:0;" data-i18n="home_packs_title">Bundle up &amp; save</h2>
-                </div>
-                <a href="shop.html#bundles" class="btn btn-outline reveal delay-1" data-i18n="home_view_all">View all packs</a>
-            </div>
-            <div class="packs-grid" id="homeBundleGrid" style="grid-template-columns:repeat(3,1fr);">
                 <div style="text-align:center;padding:2rem;color:var(--ink-soft);font-size:13px;grid-column:1/-1;">Loading…</div>
             </div>
         </div>
@@ -188,27 +187,27 @@
         </div>
     </section>
 
-    <!-- ── DELIVERY MAP ───────────────────────────────── -->
+    <!-- ── DELIVERY AREAS ────────────────────────────── -->
     <section class="section-blue">
         <div class="section-inner">
             <div class="map-inner">
                 <div class="map-text">
                     <div class="label reveal" data-i18n="home_delivery_label">Delivery area</div>
-                    <h2 class="section-title reveal delay-1" data-i18n="home_delivery_title">We deliver across<br>the Netherlands</h2>
-                    <p class="section-sub reveal delay-2" data-i18n="home_delivery_sub">
-                        Order by Wednesday for Thursday, or by Friday for Saturday. Frozen and insulated packaging — arrives fresh.
+                    <h2 class="section-title reveal delay-1">Amsterdam<br>&amp; Den Bosch</h2>
+                    <p class="section-sub reveal delay-2">
+                        Thu &amp; Sat · 16:00–21:00. Frozen and insulated — arrives fresh to your door.
                     </p>
                     <div class="delivery-days reveal delay-2">
-                        <div class="delivery-day-chip" data-i18n="delivery_thu">Thursday</div>
-                        <div class="delivery-day-chip" data-i18n="delivery_sat">Saturday</div>
+                        <div class="delivery-day-chip">Thursday</div>
+                        <div class="delivery-day-chip">Saturday</div>
                     </div>
                     <div class="province-chips reveal delay-3">
-                        <span>Noord-Holland</span>
-                        <span>Zuid-Holland</span>
-                        <span>Utrecht</span>
-                        <span>Noord-Brabant</span>
-                        <span>Gelderland</span>
-                        <span>+ All provinces</span>
+                        <span>Amsterdam (A10 &amp; nearby)</span>
+                        <span>Amstelveen</span>
+                        <span>Diemen</span>
+                        <span>Duivendrecht</span>
+                        <span>Badhoevedorp</span>
+                        <span>Den Bosch</span>
                     </div>
                     <div style="margin-top:2rem;" class="reveal delay-3">
                         <a href="delivery.html" class="btn btn-outline-white" data-i18n="home_delivery_cta">Check delivery info</a>
@@ -216,26 +215,28 @@
                 </div>
                 <div class="map-visual reveal delay-2">
                     <svg viewBox="0 0 280 320" xmlns="http://www.w3.org/2000/svg" class="nl-map">
-                        <g opacity="0.85">
-                            <path d="M165 20L210 18L215 35L200 50L170 55L155 38Z" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" />
-                            <path d="M90 25L155 22L155 38L130 55L100 60L80 45Z" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" />
-                            <path d="M170 55L200 50L210 80L185 95L160 80L155 60Z" fill="rgba(255,255,255,0.22)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" />
-                            <path d="M160 80L185 95L190 125L155 130L140 110L150 90Z" fill="rgba(255,255,255,0.28)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" />
-                            <path d="M110 80L140 75L145 105L120 115L100 100Z" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" />
-                            <path d="M80 45L100 60L100 100L80 110L55 95L50 65L65 45Z" fill="rgba(255,255,255,0.30)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" />
-                            <path d="M110 100L140 105L135 130L110 135L100 115Z" fill="rgba(255,255,255,0.22)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" />
-                            <path d="M140 110L155 130L190 125L195 160L155 170L125 160L120 135L135 130Z" fill="rgba(255,255,255,0.26)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" />
-                            <path d="M55 105L100 100L100 115L110 135L90 155L60 160L40 140L45 115Z" fill="rgba(255,255,255,0.22)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" />
-                            <path d="M40 160L70 155L75 190L55 200L30 185L25 170Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" />
-                            <path d="M75 165L120 160L155 170L160 200L120 215L80 210L60 190Z" fill="rgba(255,255,255,0.28)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" />
-                            <path d="M155 170L195 160L200 195L185 230L160 235L148 205L150 180Z" fill="rgba(255,255,255,0.20)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" />
+                        <g opacity="0.4">
+                            <path d="M165 20L210 18L215 35L200 50L170 55L155 38Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                            <path d="M90 25L155 22L155 38L130 55L100 60L80 45Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                            <path d="M170 55L200 50L210 80L185 95L160 80L155 60Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                            <path d="M160 80L185 95L190 125L155 130L140 110L150 90Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                            <path d="M110 80L140 75L145 105L120 115L100 100Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                            <path d="M80 45L100 60L100 100L80 110L55 95L50 65L65 45Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                            <path d="M110 100L140 105L135 130L110 135L100 115Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                            <path d="M140 110L155 130L190 125L195 160L155 170L125 160L120 135L135 130Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                            <path d="M55 105L100 100L100 115L110 135L90 155L60 160L40 140L45 115Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                            <path d="M40 160L70 155L75 190L55 200L30 185L25 170Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                            <path d="M75 165L120 160L155 170L160 200L120 215L80 210L60 190Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                            <path d="M155 170L195 160L200 195L185 230L160 235L148 205L150 180Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
                         </g>
-                        <!-- Amsterdam marker -->
+                        <!-- Amsterdam — highlighted -->
+                        <path d="M80 45L100 60L100 100L80 110L55 95L50 65L65 45Z" fill="var(--orange)" opacity="0.9" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" />
                         <circle cx="82" cy="98" r="6" fill="var(--orange)" stroke="#fff" stroke-width="2" />
-                        <text x="92" y="102" font-size="9" fill="#fff" font-family="'Dela Gothic One',sans-serif" font-weight="400">Amsterdam</text>
-                        <!-- Rotterdam marker -->
-                        <circle cx="72" cy="145" r="4" fill="#fff" stroke="var(--orange)" stroke-width="1.5" />
-                        <text x="80" y="149" font-size="8" fill="rgba(255,255,255,0.7)" font-family="'DM Sans',sans-serif">Rotterdam</text>
+                        <text x="92" y="102" font-size="9" fill="#fff" font-family="'Dela Gothic One',sans-serif">Amsterdam</text>
+                        <!-- Den Bosch — highlighted -->
+                        <path d="M140 110L155 130L190 125L195 160L155 170L125 160L120 135L135 130Z" fill="var(--orange)" opacity="0.75" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" />
+                        <circle cx="158" cy="148" r="5" fill="var(--orange)" stroke="#fff" stroke-width="2" />
+                        <text x="168" y="152" font-size="8" fill="#fff" font-family="'DM Sans',sans-serif" font-weight="600">Den Bosch</text>
                     </svg>
                 </div>
             </div>
@@ -312,25 +313,6 @@
             }
         }
         document.addEventListener('DOMContentLoaded', loadHomePreviews);
-
-        // Handle confirm-delivery redirect: show toast and clean URL
-        (function () {
-            const p = new URLSearchParams(window.location.search);
-            const confirm = p.get('confirm');
-            if (!confirm) return;
-            // Clean the URL without reloading
-            history.replaceState({}, '', window.location.pathname);
-            const msgs = {
-                success: '✅ Delivery confirmed! Thank you for your feedback.',
-                already: 'ℹ️ This delivery was already confirmed — thank you!',
-                notfound: '😕 Order not found. Please contact us if you need help.',
-            };
-            const msg = msgs[confirm] || msgs.notfound;
-            // Wait for components to render before showing toast
-            setTimeout(() => {
-                if (typeof showToast === 'function') showToast(msg, 5000);
-            }, 600);
-        })();
 
         // Reveal on scroll
         const reveals = document.querySelectorAll('.reveal');

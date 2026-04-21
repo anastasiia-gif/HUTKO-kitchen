@@ -7,45 +7,6 @@
   <meta name="description" content="Order authentic Ukrainian frozen food. Borscht, syrnyky, zrazy, chicken balls and more.">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/shop.css">
-  <style>
-    /* Shop tabs */
-    .shop-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 2rem;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 0;
-    }
-    .shop-tab {
-      background: none;
-      border: none;
-      font-family: var(--display);
-      font-size: 16px;
-      color: var(--ink-soft);
-      padding: 10px 20px 12px;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      margin-bottom: -2px;
-      transition: .2s;
-    }
-    .shop-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
-    .shop-tab:hover:not(.active) { color: var(--ink); }
-    .shop-panel { display: none; }
-    .shop-panel.active { display: block; }
-    /* Dietary tags */
-    .dietary-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
-    .dietary-tag { font-size: 14px; cursor: help; }
-    /* Variant select */
-    .variant-select {
-      width: 100%; margin-top: 10px;
-      background: var(--cream); border: 1.5px solid transparent;
-      border-radius: 8px; padding: 7px 10px;
-      font-size: 13px; font-family: var(--sans); color: var(--ink);
-      cursor: pointer; transition: .15s;
-    }
-    .variant-select:hover { border-color: var(--blue); }
-    .shop-loading { text-align: center; padding: 3rem; color: var(--ink-soft); font-size: 14px; }
-  </style>
 </head>
 <body>
 
@@ -53,51 +14,50 @@
   <div id="cart-placeholder"></div>
 
   <!-- Page header -->
-  <div class="page-header" style="background:var(--cream);padding:3rem 2rem 2rem;border-bottom:1px solid var(--border);">
+  <div class="shop-page-header">
     <div class="section-inner">
       <div class="label" data-i18n="nav_shop">Shop</div>
-      <h1 class="section-title" style="margin:0.4rem 0 0;" data-i18n="shop_title">Order now</h1>
+      <h1 class="section-title" data-i18n="shop_title">Order now</h1>
     </div>
   </div>
 
-  <section style="background:var(--white);padding:3rem 2rem 5rem;">
+  <!-- Products & Bundles -->
+  <section class="shop-main-section">
     <div class="section-inner">
 
       <!-- Tabs -->
       <div class="shop-tabs">
         <button class="shop-tab active" onclick="switchTab('bundles',this)" data-i18n="shop_tab_bundles">
-          🎁 Bundles & Packs
+          Bundles &amp; Packs
         </button>
         <button class="shop-tab" onclick="switchTab('products',this)" data-i18n="shop_tab_products">
-          🛒 Products
+          Products
         </button>
       </div>
 
-      <!-- BUNDLES PANEL (now default) -->
+      <!-- BUNDLES PANEL (default) -->
       <div id="panel-bundles" class="shop-panel active">
-        <p style="font-size:14px;color:var(--ink-soft);margin-bottom:2rem;line-height:1.7;"
-           data-i18n="shop_bundles_desc">
+        <p class="bundle-desc" data-i18n="shop_bundles_desc">
           Save when you order more. Bundles are pre-selected combinations — great value for families or stocking up the freezer.
         </p>
         <div class="packs-grid" id="bundleGrid">
           <div class="shop-loading">Loading bundles…</div>
         </div>
-        <p style="text-align:center;font-size:13px;color:var(--ink-soft);margin-top:2rem;">
+        <p class="custom-bundle-cta">
           Want a custom bundle?
-          <a href="contact.html" style="color:var(--blue);font-weight:600;" data-i18n="shop_contact_us">Contact us</a>
+          <a href="contact.html" data-i18n="shop_contact_us">Contact us</a>
         </p>
       </div>
 
       <!-- PRODUCTS PANEL -->
       <div id="panel-products" class="shop-panel">
-        <!-- Filters -->
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:1.5rem;">
+        <div class="filter-bar">
           <button class="cat-btn active" data-cat="all" onclick="filterProducts('all')" data-i18n="shop_all">All</button>
           <button class="cat-btn" data-cat="breakfast" onclick="filterProducts('breakfast')" data-i18n="cat_breakfast">Breakfast</button>
           <button class="cat-btn" data-cat="soups" onclick="filterProducts('soups')" data-i18n="cat_soups">Soups</button>
           <button class="cat-btn" data-cat="snacks" onclick="filterProducts('snacks')" data-i18n="cat_snacks">Snacks</button>
           <button class="cat-btn" data-cat="mains" onclick="filterProducts('mains')" data-i18n="cat_main">Mains</button>
-          <span class="filter-info" id="filterInfo" style="margin-left:auto;font-size:12px;color:var(--ink-soft);"></span>
+          <span class="filter-info" id="filterInfo"></span>
         </div>
         <div class="product-grid" id="productGrid">
           <div class="shop-loading">Loading products…</div>
@@ -108,78 +68,97 @@
   </section>
 
   <!-- HOW IT WORKS -->
-  <section style="background:var(--cream);padding:4rem 2rem;">
+  <section class="shop-how-section">
     <div class="section-inner">
-      <div class="label reveal" style="text-align:center;">Simple process</div>
-      <h2 class="section-title reveal delay-1" style="text-align:center;max-width:480px;margin:0 auto 2.5rem;">How It Works</h2>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;max-width:800px;margin:0 auto;">
-        <div class="reveal delay-1" style="background:#fff;border-radius:16px;padding:1.5rem;text-align:center;border:1px solid var(--border);">
-          <div style="font-size:2rem;margin-bottom:0.75rem;">🎁</div>
-          <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--blue);margin-bottom:0.5rem;">1</div>
-          <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:0.25rem;">Choose your box</div>
+      <div class="shop-how-title-wrap">
+        <div class="label reveal">Simple process</div>
+        <h2 class="section-title reveal delay-1">How It Works</h2>
+      </div>
+      <div class="shop-how-grid">
+
+        <div class="shop-how-card reveal delay-1">
+          <div class="shop-how-icon">🎁</div>
+          <div class="shop-how-num">1</div>
+          <div class="shop-how-title">Choose your box</div>
+          <p class="shop-how-desc">Pick a bundle or individual products — starter, family, or big pack.</p>
         </div>
-        <div class="reveal delay-2" style="background:#fff;border-radius:16px;padding:1.5rem;text-align:center;border:1px solid var(--border);">
-          <div style="font-size:2rem;margin-bottom:0.75rem;">🚚</div>
-          <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--blue);margin-bottom:0.5rem;">2</div>
-          <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:0.25rem;">We deliver it frozen</div>
+
+        <div class="shop-how-card reveal delay-2">
+          <div class="shop-how-icon">🚚</div>
+          <div class="shop-how-num">2</div>
+          <div class="shop-how-title">We deliver it frozen</div>
+          <p class="shop-how-desc">Thursday &amp; Saturday, 16:00–21:00, to Amsterdam and Den Bosch.</p>
         </div>
-        <div class="reveal delay-3" style="background:#fff;border-radius:16px;padding:1.5rem;text-align:center;border:1px solid var(--border);">
-          <div style="font-size:2rem;margin-bottom:0.75rem;">❄️</div>
-          <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--blue);margin-bottom:0.5rem;">3</div>
-          <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:0.25rem;">Store it in your freezer</div>
+
+        <div class="shop-how-card reveal delay-3">
+          <div class="shop-how-icon">❄️</div>
+          <div class="shop-how-num">3</div>
+          <div class="shop-how-title">Store it in your freezer</div>
+          <p class="shop-how-desc">Stays fresh for up to 3 months — always ready when you need it.</p>
         </div>
-        <div class="reveal delay-4" style="background:#fff;border-radius:16px;padding:1.5rem;text-align:center;border:1px solid var(--border);">
-          <div style="font-size:2rem;margin-bottom:0.75rem;">🍳</div>
-          <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--blue);margin-bottom:0.5rem;">4</div>
-          <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:0.25rem;">Cook in 10–15 minutes</div>
+
+        <div class="shop-how-card reveal delay-4">
+          <div class="shop-how-icon">🍳</div>
+          <div class="shop-how-num">4</div>
+          <div class="shop-how-title">Cook in 10–15 minutes</div>
+          <p class="shop-how-desc">One pan, no mess, no fuss. Recipe card included with every order.</p>
         </div>
+
       </div>
     </div>
   </section>
 
-  <!-- DELIVERY INFO BLOCK -->
-  <section style="background:var(--blue);padding:4rem 2rem;">
+  <!-- DELIVERY & PICKUP -->
+  <section class="shop-delivery-section">
     <div class="section-inner">
-      <div class="label reveal" style="color:rgba(255,255,255,0.6);text-align:center;">Getting your order</div>
-      <h2 class="section-title reveal delay-1" style="text-align:center;color:#fff;max-width:480px;margin:0 auto 2.5rem;">DELIVERY & PICKUP</h2>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;max-width:860px;margin:0 auto 2rem;">
+      <div class="shop-delivery-head">
+        <div class="label reveal">Getting your order</div>
+        <h2 class="section-title reveal delay-1">Delivery &amp; Pickup</h2>
+      </div>
+      <div class="shop-delivery-grid">
 
-        <div class="reveal delay-1" style="background:rgba(255,255,255,0.1);border-radius:16px;padding:1.75rem;">
-          <div style="font-size:1.25rem;font-weight:700;color:#fff;margin-bottom:1rem;font-family:var(--display);">📅 Delivery Days</div>
-          <div style="color:rgba(255,255,255,0.9);font-size:14px;line-height:1.8;">Thursday &amp; Saturday<br><strong>16:00–21:00</strong></div>
+        <div class="shop-delivery-card reveal delay-1">
+          <div class="shop-delivery-card-title">📅 Delivery Days</div>
+          <div class="shop-delivery-card-body">
+            Thursday &amp; Saturday<br>
+            <strong>16:00–21:00</strong>
+          </div>
         </div>
 
-        <div class="reveal delay-2" style="background:rgba(255,255,255,0.1);border-radius:16px;padding:1.75rem;">
-          <div style="font-size:1.25rem;font-weight:700;color:#fff;margin-bottom:1rem;font-family:var(--display);">🚚 Delivery Areas & Fee</div>
-          <div style="color:rgba(255,255,255,0.9);font-size:13px;line-height:2;">
+        <div class="shop-delivery-card reveal delay-2">
+          <div class="shop-delivery-card-title">🚚 Delivery Areas &amp; Fee</div>
+          <div class="shop-delivery-card-body">
             <strong>Amsterdam</strong><br>
             Within A10 — €10<br>
             Up to 10 km outside — €15<br>
-            <span style="opacity:0.75;font-size:12px;">Incl. Amstelveen, Diemen, Duivendrecht,<br>Ouderkerk a/d Amstel, Badhoevedorp</span><br><br>
+            <span class="shop-delivery-card-note">Amstelveen, Diemen, Duivendrecht,<br>Ouderkerk a/d Amstel, Badhoevedorp</span>
+            <br><br>
             <strong>Den Bosch</strong><br>
             City — €10 &nbsp;·&nbsp; Up to 10 km — €15
           </div>
         </div>
 
-        <div class="reveal delay-3" style="background:rgba(255,255,255,0.1);border-radius:16px;padding:1.75rem;">
-          <div style="font-size:1.25rem;font-weight:700;color:#fff;margin-bottom:1rem;font-family:var(--display);">🏠 Pickup</div>
-          <div style="color:rgba(255,255,255,0.9);font-size:13px;line-height:2;">
-            Amsterdam (Sloterdijk area) — by request<br>
+        <div class="shop-delivery-card reveal delay-3">
+          <div class="shop-delivery-card-title">🏠 Pickup</div>
+          <div class="shop-delivery-card-body">
+            Amsterdam (Sloterdijk) — by request<br>
             Den Bosch — Graafseweg 194B<br>
             Mon–Fri
           </div>
-          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.9);font-size:13px;line-height:1.8;">
+          <div class="shop-delivery-card-divider">
             🎉 <strong>Free delivery</strong> on orders over €100<br>
-            <span style="font-size:12px;opacity:0.75;">(Amsterdam &amp; nearby areas)</span>
+            <span class="shop-delivery-card-note">(Amsterdam &amp; nearby areas)</span>
           </div>
         </div>
 
       </div>
-      <div style="text-align:center;" class="reveal delay-4">
+      <div class="shop-delivery-cta reveal delay-4">
         <a href="delivery.html" class="btn btn-outline-white">Full delivery info →</a>
       </div>
     </div>
   </section>
+
+  <div id="footer-placeholder"></div>
 
   <script src="js/api.js"></script>
   <script src="js/i18n.js"></script>
@@ -187,14 +166,5 @@
   <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script src="js/shop.js"></script>
-  <script>
-    function switchTab(name, btn) {
-      document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.shop-panel').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(`panel-${name}`).classList.add('active');
-    }
-    window.switchTab = switchTab;
-  </script>
 </body>
 </html>
