@@ -43,31 +43,17 @@
     line-height: 1.0;
 }
 
-/* Bold all-caps hero variant */
-.hero-title--big {
-    font-size: clamp(2.6rem, 5vw, 5rem);
-    text-transform: uppercase;
-    color: var(--ink);
-    letter-spacing: -0.02em;
-    line-height: 0.95;
-    margin-bottom: 1.5rem;
-}
+/* Bold all-caps hero variant — removed, using original .hero-title */
 
-.hero-sub--caps {
-    font-size: clamp(10px, 1vw, 13px);
-    color: var(--ink-soft);
-    font-weight: 700;
-    letter-spacing: 0.06em;
+/* ── CHOOSE YOUR BOX / FOOD section title ─────────── */
+.choose-title {
+    font-family: var(--display);
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    color: var(--orange);
     text-transform: uppercase;
-    line-height: 1.8;
-    max-width: 420px;
-    margin-bottom: 2.25rem;
-}
-
-.hero-btn-lg {
-    font-size: 15px;
-    padding: 15px 32px;
-    border-radius: 100px;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    margin: 0.25rem 0 0;
 }
 
     .hero-title .accent {
