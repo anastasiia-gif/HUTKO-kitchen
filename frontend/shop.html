@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="assets/logos/logo_nav.png">
   <title>Shop — HUTKO Kitchen</title>
   <meta name="description" content="Order authentic Ukrainian frozen food. Borscht, syrnyky, zrazy, chicken balls and more.">
   <link rel="stylesheet" href="css/style.css">
@@ -124,7 +123,6 @@
 
       <!-- BUNDLES PANEL (default) -->
       <div id="panel-bundles" class="shop-panel active">
-        <a id="bundles" style="display:block;position:relative;top:-80px;visibility:hidden;" aria-hidden="true"></a>
         <p class="bundle-desc" data-i18n="shop_bundles_desc">
           Save when you order more. Bundles are pre-selected combinations — great value for families or stocking up the freezer.
         </p>
@@ -138,7 +136,6 @@
 
       <!-- PRODUCTS PANEL -->
       <div id="panel-products" class="shop-panel">
-        <a id="products" style="display:block;position:relative;top:-80px;visibility:hidden;" aria-hidden="true"></a>
         <div class="filter-bar">
           <button class="cat-btn active" data-cat="all" onclick="filterProducts('all')" data-i18n="shop_all">All</button>
           <button class="cat-btn" data-cat="breakfast" onclick="filterProducts('breakfast')" data-i18n="cat_breakfast">Breakfast</button>
@@ -160,7 +157,7 @@
     <div class="section-inner">
       <div class="shop-how-title-wrap">
         <div class="label reveal">Simple process</div>
-        <h2 class="section-title reveal delay-1">How It Works</h2>
+        <h2 class="choose-title reveal delay-1">How It Works</h2>
       </div>
       <div class="shop-how-grid">
         <div class="shop-how-card reveal delay-1">
@@ -196,7 +193,7 @@
     <div class="section-inner">
       <div class="shop-delivery-head">
         <div class="label reveal">Getting your order</div>
-        <h2 class="section-title reveal delay-1">Delivery &amp; Pickup</h2>
+        <h2 class="choose-title reveal delay-1">Delivery &amp; Pickup</h2>
       </div>
       <div class="shop-delivery-grid">
         <div class="shop-delivery-card reveal delay-1">
@@ -256,22 +253,6 @@
       }
       window.switchTab = switchTab;
     }
-
-    // Hash-based deep linking: shop.html#bundles or shop.html#products
-    (function() {
-      function activateHash() {
-        const hash = location.hash.replace('#', '');
-        if (hash === 'products' || hash === 'bundles') {
-          const tabs = document.querySelectorAll('.shop-tab');
-          const idx = hash === 'bundles' ? 0 : 1;
-          if (tabs[idx]) switchTab(hash, tabs[idx]);
-          const anchor = document.getElementById(hash);
-          if (anchor) setTimeout(() => anchor.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
-        }
-      }
-      document.addEventListener('DOMContentLoaded', activateHash);
-      window.addEventListener('hashchange', activateHash);
-    })();
   </script>
 </body>
 </html>

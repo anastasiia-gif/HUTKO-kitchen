@@ -1635,3 +1635,15 @@ p {
     .dev-credit:hover img {
         opacity: 0.7;
     }
+
+/* ── CHOOSE-TITLE — orange italic display header (site-wide) ── */
+.choose-title {
+    font-family: var(--display);
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    color: var(--orange);
+    text-transform: uppercase;
+    font-style: italic;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    margin: 0.25rem 0 0;
+}
