@@ -7,6 +7,92 @@
   <meta name="description" content="Order authentic Ukrainian frozen food. Borscht, syrnyky, zrazy, chicken balls and more.">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/shop.css">
+  <style>
+    /* ── HOW IT WORKS & DELIVERY — self-contained so deployment of shop.css is optional ── */
+    .shop-how-section { background: var(--cream); padding: 4rem 2rem; }
+    .shop-how-title-wrap { text-align: center; margin-bottom: 2.5rem; }
+    .shop-how-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+    }
+    .shop-how-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 1.75rem 1.25rem;
+      text-align: center;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .shop-how-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .shop-how-num {
+      font-family: var(--display);
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--blue);
+      margin-bottom: 0.4rem;
+      line-height: 1;
+    }
+    .shop-how-title { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 0.4rem; }
+    .shop-how-desc { font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
+
+    .shop-delivery-section { background: var(--blue); padding: 4rem 2rem; }
+    .shop-delivery-head { text-align: center; margin-bottom: 2.5rem; }
+    .shop-delivery-head .label { color: rgba(255,255,255,0.6); }
+    .shop-delivery-head .section-title { color: #fff; }
+    .shop-delivery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .shop-delivery-card { background: rgba(255,255,255,0.1); border-radius: 16px; padding: 1.75rem; }
+    .shop-delivery-card-title {
+      font-family: var(--display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.85rem;
+    }
+    .shop-delivery-card-body { color: rgba(255,255,255,0.9); font-size: 13px; line-height: 2; }
+    .shop-delivery-card-note { font-size: 12px; opacity: 0.72; }
+    .shop-delivery-card-divider {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.9);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .shop-delivery-cta { text-align: center; }
+
+    /* Filter bar inline style to ensure it works */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+    .filter-bar .filter-info { margin-left: auto; font-size: 12px; color: var(--ink-soft); }
+
+    /* Bundle description */
+    .bundle-desc { font-size: 14px; color: var(--ink-soft); margin-bottom: 2rem; line-height: 1.7; }
+    .custom-bundle-cta { text-align: center; font-size: 13px; color: var(--ink-soft); margin-top: 2rem; }
+    .custom-bundle-cta a { color: var(--blue); font-weight: 600; }
+
+    @media (max-width: 900px) {
+      .shop-how-grid { grid-template-columns: repeat(2, 1fr); }
+      .shop-delivery-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .shop-how-grid { grid-template-columns: 1fr; }
+      .shop-delivery-grid { grid-template-columns: 1fr; }
+      .shop-how-section, .shop-delivery-section { padding: 3rem 1.25rem; }
+    }
+  </style>
 </head>
 <body>
 
@@ -14,18 +100,18 @@
   <div id="cart-placeholder"></div>
 
   <!-- Page header -->
-  <div class="shop-page-header">
+  <div style="background:var(--cream);padding:3rem 2rem 2rem;border-bottom:1px solid var(--border);">
     <div class="section-inner">
       <div class="label" data-i18n="nav_shop">Shop</div>
-      <h1 class="section-title" data-i18n="shop_title">Order now</h1>
+      <h1 class="section-title" style="margin:0.4rem 0 0;" data-i18n="shop_title">Order now</h1>
     </div>
   </div>
 
   <!-- Products & Bundles -->
-  <section class="shop-main-section">
+  <section style="background:var(--white);padding:3rem 2rem 5rem;">
     <div class="section-inner">
 
-      <!-- Tabs -->
+      <!-- Tabs — no icons, bundles first -->
       <div class="shop-tabs">
         <button class="shop-tab active" onclick="switchTab('bundles',this)" data-i18n="shop_tab_bundles">
           Bundles &amp; Packs
@@ -44,8 +130,7 @@
           <div class="shop-loading">Loading bundles…</div>
         </div>
         <p class="custom-bundle-cta">
-          Want a custom bundle?
-          <a href="contact.html" data-i18n="shop_contact_us">Contact us</a>
+          Want a custom bundle? <a href="contact.html" data-i18n="shop_contact_us">Contact us</a>
         </p>
       </div>
 
@@ -75,35 +160,30 @@
         <h2 class="section-title reveal delay-1">How It Works</h2>
       </div>
       <div class="shop-how-grid">
-
         <div class="shop-how-card reveal delay-1">
           <div class="shop-how-icon">🎁</div>
           <div class="shop-how-num">1</div>
           <div class="shop-how-title">Choose your box</div>
           <p class="shop-how-desc">Pick a bundle or individual products — starter, family, or big pack.</p>
         </div>
-
         <div class="shop-how-card reveal delay-2">
           <div class="shop-how-icon">🚚</div>
           <div class="shop-how-num">2</div>
           <div class="shop-how-title">We deliver it frozen</div>
           <p class="shop-how-desc">Thursday &amp; Saturday, 16:00–21:00, to Amsterdam and Den Bosch.</p>
         </div>
-
         <div class="shop-how-card reveal delay-3">
           <div class="shop-how-icon">❄️</div>
           <div class="shop-how-num">3</div>
           <div class="shop-how-title">Store it in your freezer</div>
           <p class="shop-how-desc">Stays fresh for up to 3 months — always ready when you need it.</p>
         </div>
-
         <div class="shop-how-card reveal delay-4">
           <div class="shop-how-icon">🍳</div>
           <div class="shop-how-num">4</div>
           <div class="shop-how-title">Cook in 10–15 minutes</div>
           <p class="shop-how-desc">One pan, no mess, no fuss. Recipe card included with every order.</p>
         </div>
-
       </div>
     </div>
   </section>
@@ -116,7 +196,6 @@
         <h2 class="section-title reveal delay-1">Delivery &amp; Pickup</h2>
       </div>
       <div class="shop-delivery-grid">
-
         <div class="shop-delivery-card reveal delay-1">
           <div class="shop-delivery-card-title">📅 Delivery Days</div>
           <div class="shop-delivery-card-body">
@@ -124,7 +203,6 @@
             <strong>16:00–21:00</strong>
           </div>
         </div>
-
         <div class="shop-delivery-card reveal delay-2">
           <div class="shop-delivery-card-title">🚚 Delivery Areas &amp; Fee</div>
           <div class="shop-delivery-card-body">
@@ -137,7 +215,6 @@
             City — €10 &nbsp;·&nbsp; Up to 10 km — €15
           </div>
         </div>
-
         <div class="shop-delivery-card reveal delay-3">
           <div class="shop-delivery-card-title">🏠 Pickup</div>
           <div class="shop-delivery-card-body">
@@ -150,7 +227,6 @@
             <span class="shop-delivery-card-note">(Amsterdam &amp; nearby areas)</span>
           </div>
         </div>
-
       </div>
       <div class="shop-delivery-cta reveal delay-4">
         <a href="delivery.html" class="btn btn-outline-white">Full delivery info →</a>
@@ -166,5 +242,17 @@
   <script src="js/components.js"></script>
   <script src="js/main.js"></script>
   <script src="js/shop.js"></script>
+  <script>
+    // Tab switching — defined here as fallback in case shop.js version isn't deployed yet
+    if (typeof switchTab === 'undefined') {
+      function switchTab(name, btn) {
+        document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.shop-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + name).classList.add('active');
+      }
+      window.switchTab = switchTab;
+    }
+  </script>
 </body>
 </html>
