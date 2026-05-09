@@ -270,7 +270,7 @@
         <div class="gallery-progress" id="galleryProgress">
           <div class="gallery-progress-bar" id="galleryBar"></div>
         </div>
-        <div class="dietary-badges" id="dietaryBadges"></div>
+
       </div>
 
       <!-- RIGHT: Details -->
@@ -280,19 +280,13 @@
         <h1 class="product-title" id="prodName"></h1>
         <p class="product-tagline" id="prodDesc"></p>
 
-        <!-- About this product -->
-        <div class="product-block">
-          <h3 data-i18n="prod_about_title">About this product</h3>
-          <p id="prodAbout"></p>
-        </div>
-
         <!-- Detail chips: Ready in + Storage (no Serves) -->
         <div class="product-details-row" id="detailsRow"></div>
 
-        <!-- Ingredients — filled in Excel columns ingredients_en / ingredients_ua / ingredients_nl -->
-        <div class="ingredients-block" id="ingredientsSection" style="display:none;">
+        <!-- Ingredients -->
+        <div class="product-block" id="ingredientsSection" style="display:none;">
           <h3>🌿 <span data-i18n="prod_ingredients_title">Ingredients</span></h3>
-          <div class="ingredients-text" id="ingredientsText"></div>
+          <p id="ingredientsText"></p>
         </div>
 
         <!-- Purchase -->
@@ -370,9 +364,13 @@
 
     // ── STORAGE per product (edit here or move to Excel storage_en/ua/nl columns) ─
     const PRODUCT_STORAGE = {
-      syrnyky: { en: 'Up to 3 months', ua: 'до 3 місяців', nl: 'Tot 3 maanden' },
+      syrnyky:  { en: 'Up to 3 months', ua: 'до 3 місяців', nl: 'Tot 3 maanden' },
       chicken:  { en: 'Up to 3 months', ua: 'до 3 місяців', nl: 'Tot 3 maanden' },
-      default:  { en: 'Up to 6 months', ua: 'до 6 місяців', nl: 'Tot 6 maanden' },
+      borscht:  { en: 'Up to 3 months', ua: 'до 3 місяців', nl: 'Tot 3 maanden' },
+      solyanka: { en: 'Up to 3 months', ua: 'до 3 місяців', nl: 'Tot 3 maanden' },
+      shakshuka:{ en: 'Up to 3 months', ua: 'до 3 місяців', nl: 'Tot 3 maanden' },
+      zrazy:    { en: 'Up to 3 months', ua: 'до 3 місяців', nl: 'Tot 3 maanden' },
+      default:  { en: 'Up to 3 months', ua: 'до 3 місяців', nl: 'Tot 3 maanden' },
     };
 
     // ── READY-IN per product ────────────────────────────────────────────
