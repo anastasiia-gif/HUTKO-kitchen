@@ -561,16 +561,9 @@
       document.getElementById('prodName').textContent = name;
       document.getElementById('prodDesc').textContent = desc;
 
-      // ── About (API first, then JS fallback)
-      const aboutText = getLocalised(p, 'about', fb.about);
-      document.getElementById('prodAbout').textContent = aboutText || desc;
+      // ── About removed from UI — no-op
 
-      // ── Dietary badges
-      const db = document.getElementById('dietaryBadges');
-      db.innerHTML = (p.dietary || []).map(tag => {
-        const d = DIETARY_INFO[tag.toLowerCase()];
-        return d ? `<div class="dietary-badge"><span class="dietary-badge-icon">${d.icon}</span>${d.label}</div>` : '';
-      }).join('');
+      // ── Dietary badges removed from UI — no-op
 
       // ── Detail chips: Ready in + Storage (NO Serves)
       const storageInfo = PRODUCT_STORAGE[p.id] || PRODUCT_STORAGE.default;
