@@ -101,6 +101,10 @@ def _load_excel():
                 else:
                     photo = raw_photo
 
+                # Gallery: extra photos as comma-separated paths
+                raw_gallery = str(d.get('gallery', '') or '')
+                gallery = [g.strip() for g in raw_gallery.split(',') if g.strip()]
+
                 products.append({
                     'id':        pid,
                     'name_en':   str(d.get('name_en', '') or ''),
@@ -110,10 +114,26 @@ def _load_excel():
                     'desc_en':   str(d.get('description_en', '') or ''),
                     'desc_ua':   str(d.get('description_ua', '') or ''),
                     'desc_nl':   str(d.get('description_nl', '') or ''),
+                    'about_en':  str(d.get('about_en', '') or ''),
+                    'about_ua':  str(d.get('about_ua', '') or ''),
+                    'about_nl':  str(d.get('about_nl', '') or ''),
+                    'prepare_en':     str(d.get('prepare_en', '') or ''),
+                    'prepare_ua':     str(d.get('prepare_ua', '') or ''),
+                    'prepare_nl':     str(d.get('prepare_nl', '') or ''),
+                    'ingredients_en': str(d.get('ingredients_en', '') or ''),
+                    'ingredients_ua': str(d.get('ingredients_ua', '') or ''),
+                    'ingredients_nl': str(d.get('ingredients_nl', '') or ''),
+                    'hutko_tip_en':   str(d.get('hutko_tip_en', '') or ''),
+                    'hutko_tip_ua':   str(d.get('hutko_tip_ua', '') or ''),
+                    'hutko_tip_nl':   str(d.get('hutko_tip_nl', '') or ''),
+                    'storage_en':     str(d.get('storage_en', '') or ''),
+                    'storage_ua':     str(d.get('storage_ua', '') or ''),
+                    'storage_nl':     str(d.get('storage_nl', '') or ''),
                     'base_price': float(d['base_price']) if d.get('base_price') else 0,
                     'unit':      str(d.get('unit', '') or ''),
                     'badge':     str(d.get('badge', '') or ''),
                     'photo':     photo,
+                    'gallery':   gallery,
                     'dietary':   [t.strip() for t in str(d.get('dietary','') or '').split(',') if t.strip()],
                 })
 
