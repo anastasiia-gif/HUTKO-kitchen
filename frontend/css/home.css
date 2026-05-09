@@ -51,7 +51,7 @@
     font-size: clamp(2rem, 4vw, 3.2rem);
     color: var(--orange);
     text-transform: uppercase;
-    font-style: italic;
+
     letter-spacing: -0.01em;
     line-height: 1;
     margin: 0.25rem 0 0;
@@ -71,6 +71,7 @@
     max-width: 420px;
     line-height: 1.75;
     margin-bottom: 2.25rem;
+    text-transform: uppercase;
 }
 
 .hero-actions {
@@ -210,6 +211,7 @@
     font-size: 13px;
     color: rgba(255,255,255,.7);
     letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
     .marquee-item .dot {
