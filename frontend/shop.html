@@ -138,6 +138,11 @@
       <!-- PRODUCTS PANEL -->
       <div id="panel-products" class="shop-panel">
         <div class="filter-bar">
+          <button class="cat-btn active" data-cat="all" onclick="filterProducts('all')" data-i18n="shop_all">All</button>
+          <button class="cat-btn" data-cat="breakfast" onclick="filterProducts('breakfast')" data-i18n="cat_breakfast">Breakfast</button>
+          <button class="cat-btn" data-cat="soups" onclick="filterProducts('soups')" data-i18n="cat_soups">Soups</button>
+          <button class="cat-btn" data-cat="snacks" onclick="filterProducts('snacks')" data-i18n="cat_snacks">Snacks</button>
+          <button class="cat-btn" data-cat="mains" onclick="filterProducts('mains')" data-i18n="cat_main">Mains</button>
           <span class="filter-info" id="filterInfo"></span>
         </div>
         <div class="product-grid" id="productGrid">
@@ -184,51 +189,7 @@
     </div>
   </section>
 
-  <!-- DELIVERY & PICKUP -->
-  <section class="shop-delivery-section">
-    <div class="section-inner">
-      <div class="shop-delivery-head">
-        <div class="label reveal">Getting your order</div>
-        <h2 class="choose-title reveal delay-1">Delivery &amp; Pickup</h2>
-      </div>
-      <div class="shop-delivery-grid">
-        <div class="shop-delivery-card reveal delay-1">
-          <div class="shop-delivery-card-title">📅 Delivery Days</div>
-          <div class="shop-delivery-card-body">
-            Thursday &amp; Saturday<br>
-            <strong>16:00–21:00</strong>
-          </div>
-        </div>
-        <div class="shop-delivery-card reveal delay-2">
-          <div class="shop-delivery-card-title">🚚 Delivery Areas &amp; Fee</div>
-          <div class="shop-delivery-card-body">
-            <strong>Amsterdam</strong><br>
-            Within A10 — €10<br>
-            Up to 10 km outside — €15<br>
-            <span class="shop-delivery-card-note">Amstelveen, Diemen, Duivendrecht,<br>Ouderkerk a/d Amstel, Badhoevedorp</span>
-            <br><br>
-            <strong>Den Bosch</strong><br>
-            City — €10 &nbsp;·&nbsp; Up to 10 km — €15
-          </div>
-        </div>
-        <div class="shop-delivery-card reveal delay-3">
-          <div class="shop-delivery-card-title">🏠 Pickup</div>
-          <div class="shop-delivery-card-body">
-            Amsterdam (Sloterdijk) — by request<br>
-            Den Bosch — Graafseweg 194B<br>
-            Mon–Fri
-          </div>
-          <div class="shop-delivery-card-divider">
-            🎉 <strong>Free delivery</strong> on orders over €100<br>
-            <span class="shop-delivery-card-note">(Amsterdam &amp; nearby areas)</span>
-          </div>
-        </div>
-      </div>
-      <div class="shop-delivery-cta reveal delay-4">
-        <a href="delivery.html" class="btn btn-outline-white">Full delivery info →</a>
-      </div>
-    </div>
-  </section>
+
 
   <div id="footer-placeholder"></div>
 

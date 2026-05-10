@@ -151,7 +151,7 @@ const TRANSLATIONS = {
 
         /* Index page missing keys */
         home_hero_line1: 'READY IN', home_hero_line2: '10 MINUTES.', home_hero_line3: 'Made with love.',
-        home_badge_1: 'Homemade batches', home_badge_2: 'Thu & Sat delivery', home_badge_3: 'AMS & Den Bosch',
+        home_badge_1: 'Homemade batches', home_badge_2: 'Thu & Sat delivery', home_badge_3: 'AMS · Den Bosch · Den Haag',
         home_from: 'from', home_price_unit: 'per portion',
         home_hero_title_big: 'READY IN 10 MINUTES<br>YOUR BACKUP PLAN',
         home_cta_order: 'Order a box', home_cta_menu: 'View menu',
@@ -449,7 +449,7 @@ const TRANSLATIONS = {
 
         /* Index page missing keys */
         home_hero_line1: 'Готово за', home_hero_line2: '10 хвилин.', home_hero_line3: 'Зроблено з любов\'ю.',
-        home_badge_1: 'Домашні партії', home_badge_2: 'Чт і Сб доставка', home_badge_3: 'AMS & Den Bosch',
+        home_badge_1: 'Домашні партії', home_badge_2: 'Чт і Сб доставка', home_badge_3: 'AMS · Den Bosch · Den Haag',
         home_from: 'від', home_price_unit: 'за порцію',
         home_hero_title_big: 'ГОТОВО ЗА 10 ХВИЛИН<br>ВАШ ПЛАН Б',
         home_cta_order: 'Замовити набір', home_cta_menu: 'Переглянути меню',
@@ -676,7 +676,7 @@ const TRANSLATIONS = {
 
         /* Index page missing keys */
         home_hero_line1: 'KLAAR IN', home_hero_line2: '10 MINUTEN.', home_hero_line3: 'Gemaakt met liefde.',
-        home_badge_1: 'Huisgemaakte batches', home_badge_2: 'Do & za bezorging', home_badge_3: 'AMS & Den Bosch',
+        home_badge_1: 'Huisgemaakte batches', home_badge_2: 'Do & za bezorging', home_badge_3: 'AMS · Den Bosch · Den Haag',
         home_from: 'vanaf', home_price_unit: 'per portie',
         home_hero_title_big: 'KLAAR IN 10 MINUTEN<br>JOUW BACKUP PLAN',
         home_cta_order: 'Bestel een box', home_cta_menu: 'Bekijk menu',

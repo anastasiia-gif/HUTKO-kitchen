@@ -83,6 +83,11 @@ function bundleCard(b) {
         ? `<span class="pack-price-old">€${b.original_price}</span>` : '';
     const portions = b.items.reduce((s, i) => s + i.qty, 0);
 
+    const choiceLabel = b[`choice_${lang()}`] || b.choice_en || '';
+    const choiceHtml = choiceLabel
+      ? `<div class="pack-choice-row"><span class="pack-choice-or">YOUR CHOICE</span><span class="pack-choice-text">${choiceLabel}</span></div>`
+      : '';
+
     return `<div class="pack-card ${featured ? 'featured' : ''} reveal">
     <div class="pack-img-wrap">
       <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="this.onerror=null;this.src='assets/Bundles/s_pack_orange.png'">
@@ -91,6 +96,7 @@ function bundleCard(b) {
       <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>
       <div class="pack-name">${bName(b)}</div>
       <div class="pack-items">${items}</div>
+      ${choiceHtml}
       <div class="pack-price-row">${oldPriceHtml}<span class="pack-price-new">€${b.discount_price}</span></div>
       ${portions ? `<div class="pack-per">~€${(b.discount_price / portions).toFixed(1)} per portion</div>` : ''}
     </div>
@@ -219,17 +225,17 @@ const FALLBACK_BUNDLES = [
     {
         id: 'pack-s1', name_en: 'Starter Pack — Borscht', name_ua: 'Стартовий набір — Борщ', name_nl: 'Starterpakket — Borsjt',
         size_label: 'Pack S', items: [{ product_id: 'syrnyky', qty: 8 }, { product_id: 'borscht', qty: 1 }, { product_id: 'zrazy', qty: 6 }, { product_id: 'chicken', qty: 8 }],
-        original_price: 41, discount_price: 37, photo: 'assets/Bundles/s_pack_orange.png', badge: ''
+        original_price: 41, discount_price: 37, choice_en: 'Zrazy 6 pcs  OR  Chicken balls 8 pcs', choice_ua: 'Зрази 6 шт  АБО  Курячі кульки 8 шт', choice_nl: 'Zrazy 6 st  OF  Kippenballen 8 st', photo: 'assets/Bundles/s_pack_orange.png', badge: ''
     },
     {
         id: 'pack-s2', name_en: 'Starter Pack — Solyanka', name_ua: 'Стартовий набір — Солянка', name_nl: 'Starterpakket — Solyanka',
         size_label: 'Pack S', items: [{ product_id: 'syrnyky', qty: 8 }, { product_id: 'solyanka', qty: 1 }, { product_id: 'zrazy', qty: 6 }, { product_id: 'chicken', qty: 8 }],
-        original_price: 44, discount_price: 39, photo: 'assets/Bundles/s_pack_blue.jpeg', badge: ''
+        original_price: 44, discount_price: 39, choice_en: 'Zrazy 6 pcs  OR  Chicken balls 8 pcs', choice_ua: 'Зрази 6 шт  АБО  Курячі кульки 8 шт', choice_nl: 'Zrazy 6 st  OF  Kippenballen 8 st', photo: 'assets/Bundles/s_pack_blue.jpeg', badge: ''
     },
     {
         id: 'pack-m1', name_en: 'Family Pack — Classic', name_ua: 'Сімейний набір — Класик', name_nl: 'Familiepakket — Klassiek',
         size_label: 'Pack M', items: [{ product_id: 'syrnyky', qty: 16 }, { product_id: 'borscht', qty: 2 }, { product_id: 'zrazy', qty: 12 }, { product_id: 'chicken', qty: 16 }],
-        original_price: 77, discount_price: 69, photo: 'assets/Bundles/m_pack_orange.png', badge: 'Most popular'
+        original_price: 77, discount_price: 69, choice_en: 'Zrazy 12 pcs  OR  Chicken balls 16 pcs', choice_ua: 'Зрази 12 шт  АБО  Курячі кульки 16 шт', choice_nl: 'Zrazy 12 st  OF  Kippenballen 16 st', photo: 'assets/Bundles/m_pack_orange.png', badge: 'Most popular'
     },
     {
         id: 'pack-l1', name_en: 'Big Pack', name_ua: 'Великий набір', name_nl: 'Groot pakket',
