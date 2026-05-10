@@ -91,7 +91,6 @@ function bundleCard(b) {
       if (parts.length >= 2) {
         choiceHtml = `
           <div class="pack-choice-row">
-            <div class="pack-choice-label">YOUR CHOICE</div>
             <div class="pack-choice-pills" id="choice-${b.id}">
               ${parts.map((p,i) => `
                 <div class="pack-choice-pill ${i===0?'selected':''}"
