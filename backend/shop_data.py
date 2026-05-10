@@ -213,6 +213,9 @@ def _load_excel():
                     'discount_price': float(d['discount_price']) if d.get('discount_price') else 0,
                     'photo':          photo,
                     'badge':          str(d.get('badge', '') or ''),
+                    'choice_en':      str(d.get('choice_en', '') or ''),
+                    'choice_ua':      str(d.get('choice_ua', '') or ''),
+                    'choice_nl':      str(d.get('choice_nl', '') or ''),
                 })
 
         print(f"[SHOP] Bundles loaded: {len(bundles)}")

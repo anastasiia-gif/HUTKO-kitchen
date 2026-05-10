@@ -1648,11 +1648,5 @@ p {
     margin: 0.25rem 0 0;
 }
 
-/* Product card clickable link wrapper */
-.prod-card-link {
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-}
-.prod-card-link:hover { text-decoration: none; color: inherit; }
+/* Global heading italic fix */
+.choose-title { font-style: normal !important; }
