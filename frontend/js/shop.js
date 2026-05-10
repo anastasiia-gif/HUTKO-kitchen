@@ -83,10 +83,25 @@ function bundleCard(b) {
         ? `<span class="pack-price-old">€${b.original_price}</span>` : '';
     const portions = b.items.reduce((s, i) => s + i.qty, 0);
 
-    const choiceLabel = b[`choice_${lang()}`] || b.choice_en || '';
-    const choiceHtml = choiceLabel
-      ? `<div class="pack-choice-row"><span class="pack-choice-or">YOUR CHOICE</span><span class="pack-choice-text">${choiceLabel}</span></div>`
-      : '';
+    // Parse choice options from choice_en: "Zrazy 6 pcs  OR  Chicken balls 8 pcs"
+    const choiceRaw = b[`choice_${lang()}`] || b.choice_en || '';
+    let choiceHtml = '';
+    if (choiceRaw) {
+      const parts = choiceRaw.split(/\s+OR\s+|\s+АБО\s+|\s+OF\s+/i).map(s => s.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        choiceHtml = `
+          <div class="pack-choice-row">
+            <div class="pack-choice-label">YOUR CHOICE</div>
+            <div class="pack-choice-pills" id="choice-${b.id}">
+              ${parts.map((p,i) => `
+                <div class="pack-choice-pill ${i===0?'selected':''}"
+                     onclick="selectBundleChoice('${b.id}', this, '${p.replace(/'/g,"\'")}')">
+                  ${p}
+                </div>`).join('')}
+            </div>
+          </div>`;
+      }
+    }
 
     return `<div class="pack-card ${featured ? 'featured' : ''} reveal">
     <div class="pack-img-wrap">
@@ -169,8 +184,18 @@ window.shopAddToCart = shopAddToCart;
 function bundleAddToCart(id) {
     const b = ALL_BUNDLES.find(x => x.id === id);
     if (!b) return;
-    addToCart(id, bName(b), '🎁', b.discount_price, b.size_label);
+    // Get selected choice pill if any
+    const selected = document.querySelector(`#choice-${id} .pack-choice-pill.selected`);
+    const choiceText = selected ? selected.textContent.trim() : '';
+    const label = choiceText ? `${b.size_label} · ${choiceText}` : b.size_label;
+    addToCart(id, bName(b), '🎁', b.discount_price, label);
 }
+
+function selectBundleChoice(bundleId, el, value) {
+    document.querySelectorAll(`#choice-${bundleId} .pack-choice-pill`).forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+}
+window.selectBundleChoice = selectBundleChoice;
 window.bundleAddToCart = bundleAddToCart;
 
 // ── BOOT ─────────────────────────────────────────────

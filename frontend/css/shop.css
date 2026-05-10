@@ -281,23 +281,34 @@
 .choose-title { font-style: normal !important; }
 .section-title { font-style: normal !important; }
 
-/* Bundle choice row */
+/* Bundle choice selector */
 .pack-choice-row {
-  display: flex; align-items: center; gap: 8px;
-  background: rgba(232,75,34,.1); border: 1.5px solid var(--orange);
-  border-radius: 10px; padding: 8px 12px; margin: 8px 0 10px;
+  background: rgba(232,75,34,.07); border: 1.5px solid rgba(232,75,34,.25);
+  border-radius: 12px; padding: 10px 12px; margin: 8px 0 10px;
 }
 .pack-card.featured .pack-choice-row {
-  background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.4);
+  background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.3);
 }
-.pack-choice-or {
-  font-size: 9px; font-weight: 700; letter-spacing: 1px;
-  color: var(--orange); text-transform: uppercase; white-space: nowrap;
-  background: var(--orange); color: #fff;
-  padding: 2px 7px; border-radius: 4px;
+.pack-choice-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 1.2px;
+  color: var(--orange); text-transform: uppercase; margin-bottom: 7px;
 }
-.pack-card.featured .pack-choice-or { background: rgba(255,255,255,.3); color: #fff; }
-.pack-choice-text {
-  font-size: 12px; font-weight: 600; color: var(--ink); line-height: 1.3;
+.pack-card.featured .pack-choice-label { color: rgba(255,255,255,.7); }
+.pack-choice-pills { display: flex; gap: 7px; flex-wrap: wrap; }
+.pack-choice-pill {
+  flex: 1; text-align: center; padding: 8px 10px;
+  background: #fff; border: 2px solid var(--border);
+  border-radius: 100px; font-size: 11px; font-weight: 600;
+  color: var(--ink); cursor: pointer; transition: .15s; white-space: nowrap;
+  min-width: 0;
 }
-.pack-card.featured .pack-choice-text { color: #fff; }
+.pack-choice-pill:hover { border-color: var(--orange); color: var(--orange); }
+.pack-choice-pill.selected {
+  background: var(--orange); border-color: var(--orange); color: #fff;
+}
+.pack-card.featured .pack-choice-pill {
+  background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.3); color: #fff;
+}
+.pack-card.featured .pack-choice-pill.selected {
+  background: #fff; color: var(--blue); border-color: #fff;
+}
