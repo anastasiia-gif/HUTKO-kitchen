@@ -65,9 +65,9 @@ function productCard(p) {
     </div>
     </a>
     <div class="prod-footer">
-      <button class="btn-view-product" onclick="location.href='product.html?id=${p.id}'">Details</button>
+      <button class="btn-view-product" onclick="location.href='product.html?id=${p.id}'">${t('btn_details')||'Details'}</button>
       <button class="btn btn-dark" style="flex:2;justify-content:center;font-size:12px;"
-        onclick="shopAddToCart('${p.id}')">Add to cart</button>
+        onclick="shopAddToCart('${p.id}')">${t('btn_add_cart')||'Add to cart'}</button>
     </div>
   </div>`;
 }
@@ -117,7 +117,7 @@ function bundleCard(b) {
     </div>
     <div class="pack-footer">
       <button class="btn ${featured ? 'btn-primary' : 'btn-blue'}" style="width:100%;justify-content:center;"
-        onclick="bundleAddToCart('${b.id}')">Order this pack</button>
+        onclick="bundleAddToCart('${b.id}')">${t('btn_order_pack')||'Order this pack'}</button>
     </div>
   </div>`;
 }
@@ -206,6 +206,13 @@ function loadShopData() {
     return _shopDataReady;
 }
 document.addEventListener('DOMContentLoaded', loadShopData);
+
+// Re-render on language change so buttons translate
+const _origSetLangShop = window.setLang;
+window.setLang = function(l) {
+  if (_origSetLangShop) _origSetLangShop(l);
+  if (ALL_PRODUCTS.length) { renderProducts(ALL_PRODUCTS); renderBundles(ALL_BUNDLES); }
+};
 
 // ── FALLBACK DATA (shown if API unreachable) ──────────
 const FALLBACK_PRODUCTS = [

@@ -297,7 +297,7 @@
             <span class="product-price-unit" id="prodUnit"></span>
           </div>
           <div class="variant-selector" id="variantSelector"></div>
-          <button class="btn-add-to-cart" id="addToCartBtn" onclick="addProductToCart()">
+          <button class="btn-add-to-cart" id="addToCartBtn" onclick="addProductToCart()" data-i18n-btn="btn_add_cart">
             Add to cart →
           </button>
         </div>
@@ -384,9 +384,13 @@
     // Ukrainian/NL translations: fill in Excel columns about_ua, prepare_ua, etc.
     const FALLBACK_CONTENT = {
       syrnyky: {
-        about: { en: "Syrnyky are the most beloved Ukrainian breakfast. Made from fresh curd cheese (tvorog), egg, a little flour and vanilla — they're soft inside with a golden crust. Cooked in small batches and frozen at peak freshness. No preservatives, nothing artificial." },
-        prepare: { en: ["Take syrnyky straight from the freezer — no thawing needed.", "Fry in regular oil on medium heat, 4–5 min per side until golden.", "Serve with sour cream, jam, honey, or berries."] },
-        hutkoTip: { en: "HUTKO tip: Try syrnyky with bacon — the mix of salty and sweet is surprisingly brilliant." },
+        about: { en: "Syrnyky are the most beloved Ukrainian breakfast. Made from fresh curd cheese (tvorog), egg, a little flour and vanilla — they're soft inside with a golden crust. Cooked in small batches and frozen at peak freshness. No preservatives, nothing artificial.", ua: "Сирники — найулюбленіший український сніданок. Приготовані зі свіжого сиру, яйця, борошна та ванілі — м'які всередині з золотистою скоринкою. Без консервантів і штучних добавок.", nl: "Syrnyky zijn het meest geliefde Oekraïense ontbijt. Gemaakt van verse kwark, ei, bloem en vanille — zacht van binnen met een goudbruin korstje. Geen conserveermiddelen." },
+        prepare: { en: ["Take syrnyky straight from the freezer — no thawing needed.", "Fry in regular oil on medium heat, 4–5 min per side until golden.", "Serve with sour cream, jam, honey, or berries."], ua: ["Дістаньте сирники прямо з морозилки — розморожувати не потрібно.", "Смажити на звичайній олії на середньому вогні, 4–5 хвилин з кожного боку до золотистої скоринки.", "Подавати зі сметаною, джемом, медом, а також з ягодами."], nl: ["Haal de syrnyky direct uit de vriezer — niet ontdooien.", "Bak in gewone olie op middelhoog vuur, 4–5 min per kant tot goudbruin.", "Serveer met zure room, jam, honing of bessen."] },
+        ingredients: { en: "Cottage cheese (milk) (76%), wheat flour (gluten), vanilla sugar (sugar, ethyl vanillin).
+Allergens: Contains milk, wheat (gluten).", ua: "Кисломолочний сир (молоко) (76%), пшеничне борошно (глютен), ванільний цукор (цукор, етилванілін).
+Алергени: молоко, пшениця (глютен).", nl: "Kwark (melk) (76%), tarwebloem (gluten), vanillesuiker (suiker, ethylvanilline).
+Allergenen: melk, tarwe (gluten)." },
+        hutkoTip: { en: "HUTKO tip: Try syrnyky with bacon — the mix of salty and sweet is surprisingly brilliant.", ua: "Рекомендація від HUTKO: Спробуйте сирники з беконом — мікс солоного та солодкого смаку дуже класно поєднується.", nl: "HUTKO tip: Probeer syrnyky met spek — de combinatie van zout en zoet is verrassend lekker." },
         personalisation: {
           en: ['Less sugar', 'Gluten-free', "Mini children's formats", 'Animal shapes & other fun forms'],
           ua: ['З меншим вмістом цукру', 'Gluten free', 'Дитячі міні-формати', 'Сирники у формах тваринок та інших варіантах'],
@@ -394,8 +398,12 @@
         },
       },
       chicken: {
-        about: { en: "Kiev-style chicken balls inspired by the classic Chicken Kyiv — herb butter sealed inside a crispy breadcrumb coating. Each ball is handmade, filled with fresh herbs, butter and mild cheese. Frozen right after making, ready in minutes." },
-        prepare: { en: ["Take chicken balls straight from the freezer.", "Heat pan with oil on medium-high, or preheat air fryer to 180°C.", "Pan: fry 8–10 min, turning occasionally. Air fryer: 12 min.", "Serve immediately while crispy and hot."] },
+        about: { en: "Kiev-style chicken balls inspired by the classic Chicken Kyiv — herb butter sealed inside a crispy breadcrumb coating. Each ball is handmade, filled with fresh herbs, butter and mild cheese. Frozen right after making, ready in minutes.", ua: "Курячі кульки у стилі Chicken Kyiv — хрустка паніровка з тане вершковим маслом та зеленню всередині. Кожна кулька виготовляється вручну та одразу заморожується.", nl: "Kip Kyiv-stijl ballen — krokant paneerlaagje met kruidenboter van binnen. Handgemaakt en direct ingevroren." },
+        prepare: { en: ["Take chicken balls straight from the freezer.", "Heat pan with oil on medium-high, or preheat air fryer to 180°C.", "Pan: fry 8–10 min, turning occasionally. Air fryer: 12 min.", "Serve immediately while crispy and hot."], ua: ["Дістаньте кульки прямо з морозилки.", "Розігрійте олію на сковорідці на середньо-сильному вогні або аерофритюрницю до 180°C.", "На сковорідці: смажте 8–10 хв, перевертаючи. Аерофритюрниця: 12 хв.", "Подавайте одразу, поки хрусткі та гарячі."], nl: ["Haal de kippenballen direct uit de vriezer.", "Verhit olie in een pan op middelhoog vuur, of verwarm de airfryer voor op 180°C.", "Pan: bak 8–10 min terwijl je regelmatig omdraait. Airfryer: 12 min.", "Serveer direct terwijl ze knapperig en heet zijn."] },
+        ingredients: { en: "Chicken fillet (76%), butter (13%), breadcrumbs (5%), cheese (3.5%), eggs (2.5%), herbs (1%).
+Allergens: milk, eggs, gluten (wheat).", ua: "Куряче філе (76%), вершкове масло (13%), панірувальні сухарі (5%), сир (3,5%), яйця (2,5%), зелень (1%).
+Алергени: молоко, яйця, глютен (пшениця).", nl: "Kipfilet (76%), boter (13%), paneermeel (5%), kaas (3,5%), eieren (2,5%), kruiden (1%).
+Allergenen: melk, eieren, gluten (tarwe)." },
         hutkoTip: {},
         personalisation: null,
       },
@@ -417,6 +425,7 @@
       zrazy: {
         about: { en: "Traditional Ukrainian pan-fried potato patties filled with sautéed mushrooms and melted cheese. Crispy on the outside, soft and savoury inside. Made from fresh grated potato, shaped by hand, and frozen individually." },
         prepare: { en: ["Take zrazy straight from the freezer.", "Heat a pan with oil on medium heat.", "Fry 5–7 min per side until golden and heated through.", "Serve with sour cream or a green salad."] },
+        ingredients: { en: "Potatoes (55%), mushrooms (28%), wheat flour (10%), cheese (7%), eggs (5%).\\nAllergens: milk, eggs, gluten (wheat).", ua: "Картопля (55%), гриби (28%), пшеничне борошно (10%), сир (7%), яйця (5%).\\nАлергени: молоко, яйця, глютен (пшениця).", nl: "Aardappelen (55%), champignons (28%), tarwebloem (10%), kaas (7%), eieren (5%).\\nAllergenen: melk, eieren, gluten (tarwe)." },
         hutkoTip: {}, personalisation: null,
       },
     };
@@ -561,9 +570,16 @@
       document.getElementById('prodName').textContent = name;
       document.getElementById('prodDesc').textContent = desc;
 
-      // ── About removed from UI — no-op
+      // ── About (API first, then JS fallback)
+      const aboutText = getLocalised(p, 'about', fb.about);
+      document.getElementById('prodAbout').textContent = aboutText || desc;
 
-      // ── Dietary badges removed from UI — no-op
+      // ── Dietary badges
+      const db = document.getElementById('dietaryBadges');
+      db.innerHTML = (p.dietary || []).map(tag => {
+        const d = DIETARY_INFO[tag.toLowerCase()];
+        return d ? `<div class="dietary-badge"><span class="dietary-badge-icon">${d.icon}</span>${d.label}</div>` : '';
+      }).join('');
 
       // ── Detail chips: Ready in + Storage (NO Serves)
       const storageInfo = PRODUCT_STORAGE[p.id] || PRODUCT_STORAGE.default;
@@ -581,12 +597,14 @@
           <div class="detail-chip-value">${c.value}</div>
         </div>`).join('');
 
-      // ── Ingredients
-      const ingr = p[`ingredients_${l}`] || p.ingredients_en || '';
+      // ── Ingredients (API first, then JS fallback)
       const ingrSection = document.getElementById('ingredientsSection');
-      if (ingr && ingr.trim()) {
+      const ingrApi = p[`ingredients_${l}`] || p.ingredients_en || '';
+      const ingrFb = fb.ingredients ? (fb.ingredients[l] || fb.ingredients.en || '') : '';
+      const ingr = (ingrApi && ingrApi.trim()) ? ingrApi.trim() : ingrFb;
+      if (ingr) {
         ingrSection.style.display = 'block';
-        document.getElementById('ingredientsText').textContent = ingr.trim();
+        document.getElementById('ingredientsText').textContent = ingr;
       } else {
         ingrSection.style.display = 'none';
       }
@@ -658,9 +676,9 @@
       const l    = lang();
       const name = currentProduct[`name_${l}`] || currentProduct.name_en;
       addToCart(currentProduct.id, name, '🍽️', selectedVariant.price, selectedVariant.label);
-      btn.textContent = '✅ Added to cart!';
+      btn.textContent = '✅ ' + (t('btn_added') || 'Added!');
       btn.classList.add('added');
-      setTimeout(() => { btn.textContent = 'Add to cart →'; btn.classList.remove('added'); }, 2000);
+      setTimeout(() => { btn.textContent = (t('btn_add_cart') || 'Add to cart') + ' →'; btn.classList.remove('added'); }, 2000);
     }
     window.addProductToCart = addProductToCart;
 
