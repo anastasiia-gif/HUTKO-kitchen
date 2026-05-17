@@ -236,9 +236,7 @@
 
             <!-- Search bar -->
             <div style="max-width:520px;margin:0 auto 1.25rem;position:relative;">
-                <input id="deliverySearch" type="text" autocomplete="off"
-                       placeholder="e.g. Herengracht 1, Amsterdam"
-                       style="width:100%;padding:14px 50px 14px 18px;border-radius:100px;border:1.5px solid var(--border);font-size:15px;font-family:var(--sans);outline:none;background:#fff;">
+                <div id="deliverySearchContainer" style="width:100%;"><input id="deliverySearch" type="text" placeholder="e.g. Herengracht 1, Amsterdam" style="width:100%;padding:14px 18px;border-radius:100px;border:1.5px solid var(--border);font-size:15px;font-family:var(--sans);outline:none;background:#fff;"></div>
                 <div id="deliveryStatus" style="display:none;margin-top:10px;padding:12px 16px;border-radius:12px;font-size:14px;"></div>
             </div>
 
@@ -266,172 +264,88 @@
         </div>
     </section>
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initDeliveryMap" async defer></script>
+    <script sr
     <script>
-    const D_HUBS = [
-      {name:'Amsterdam', lat:52.3676, lng:4.9041, color:'#E84B22', r:10000, fee:10},
-      {name:'Den Bosch',  lat:51.6978, lng:5.3037, color:'#1B3FCE', r:10000, fee:10},
-      {name:'Den Haag',   lat:52.0705, lng:4.3007, color:'#0F6E56', r:15000, fee:15},
-    ];
-    const D_PROVINCES = ['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Limburg'];
+    async function initDeliveryMap(){
+      try {
+        const {Map, Circle, Marker, Polygon} = await google.maps.importLibrary('maps');
+        const {PlaceAutocompleteElement} = await google.maps.importLibrary('places');
 
-    function d2r(d){return d*Math.PI/180}
-    function dKm(a,b,c,d){const R=6371,dL=d2r(c-a),dG=d2r(d-b);const x=Math.sin(dL/2)**2+Math.cos(d2r(a))*Math.cos(d2r(c))*Math.sin(dG/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
-
-    function getZone(lat,lng,prov){
-      for(const h of D_HUBS){
-        const d=dKm(lat,lng,h.lat,h.lng);
-        if(d<=h.r/1000) return {ok:true,fee:h.fee,label:`Within ${Math.round(d)} km of ${h.name}`};
-      }
-      const pn=(prov||'').toLowerCase();
-      if(D_PROVINCES.some(p=>pn.includes(p.toLowerCase()))) return {ok:true,fee:15,label:prov};
-      return {ok:false,fee:null,label:prov||'this area'};
-    }
-
-    let dMap, dMarker, dAutocomplete;
-
-    function initDeliveryMap() {
-      dMap = new google.maps.Map(document.getElementById('deliveryMap'), {
-        zoom: 7,
-        center: {lat:52.1, lng:5.1},
-        mapTypeControl:false, streetViewControl:false, fullscreenControl:false,
-        styles: [{featureType:'poi',stylers:[{visibility:'off'}]},
-                 {featureType:'transit',stylers:[{visibility:'off'}]}]
-      });
-
-      // Hub circles
-      D_HUBS.forEach(h=>{
-        new google.maps.Circle({
-          map:dMap, center:{lat:h.lat,lng:h.lng}, radius:h.r,
-          strokeColor:h.color, strokeOpacity:.7, strokeWeight:2,
-          fillColor:h.color, fillOpacity:.22
-        });
-        new google.maps.Marker({
-          map:dMap, position:{lat:h.lat,lng:h.lng},
-          label:{text:`${h.name} €${h.fee}`, color:'#fff', fontSize:'11px', fontWeight:'600'},
-          icon:{path:google.maps.SymbolPath.CIRCLE, scale:6, fillColor:h.color, fillOpacity:1, strokeColor:'#fff', strokeWeight:2}
-        });
-      });
-
-      // Province polygons
-      const POLYS = [
-        {color:'#e76f51', coords:[[52.92,4.72],[52.90,5.09],[52.77,5.18],[52.62,5.22],[52.44,5.07],[52.38,5.17],[52.35,5.02],[52.28,4.97],[52.22,4.85],[52.18,4.55],[52.35,4.49],[52.55,4.52],[52.68,4.62],[52.83,4.68]]},
-        {color:'#f4a261', coords:[[52.22,4.85],[52.14,4.88],[52.12,5.02],[52.04,5.10],[51.92,5.12],[51.85,4.93],[51.88,4.55],[51.82,4.38],[51.76,4.18],[51.75,4.00],[51.85,3.99],[51.96,4.12],[52.04,4.32],[52.12,4.48],[52.18,4.55]]},
-        {color:'#2a9d8f', coords:[[51.80,4.00],[51.82,4.38],[51.88,4.55],[51.85,4.93],[51.92,5.12],[51.95,5.38],[51.90,5.60],[51.88,5.88],[51.85,6.00],[51.55,6.08],[51.42,6.05],[51.38,5.88],[51.30,5.45],[51.26,5.05],[51.28,4.55],[51.38,4.20],[51.50,3.86],[51.65,3.86]]},
-        {color:'#8338ec', coords:[[51.85,6.00],[51.95,5.65],[52.04,5.10],[52.12,5.18],[51.98,5.40],[51.88,5.90],[51.60,6.20],[51.42,6.12],[51.10,6.15],[50.75,5.92],[50.75,5.68],[50.85,5.57],[51.20,5.72],[51.42,5.72],[51.55,5.80],[51.68,5.95]]}
-      ];
-      POLYS.forEach(p=>{
-        new google.maps.Polygon({
-          map:dMap,
-          paths:p.coords.map(([lat,lng])=>{return{lat,lng}}),
-          strokeColor:p.color, strokeOpacity:.5, strokeWeight:1,
-          fillColor:p.color, fillOpacity:.14
-        });
-      });
-
-      // Autocomplete on search input
-      dAutocomplete = new google.maps.places.Autocomplete(
-        document.getElementById('deliverySearch'),
-        {componentRestrictions:{country:'nl'}, types:['address'], fields:['geometry','address_components','formatted_address']}
-      );
-      dAutocomplete.addListener('place_changed', function(){
-        const place = dAutocomplete.getPlace();
-        if(!place.geometry) return;
-        const lat=place.geometry.location.lat(), lng=place.geometry.location.lng();
-        let prov='';
-        for(const c of place.address_components){
-          if(c.types.includes('administrative_area_level_1')) prov=c.long_name;
+        const HUBS=[
+          {name:'Amsterdam',lat:52.3676,lng:4.9041,color:'#E84B22',r:10000,fee:10},
+          {name:'Den Bosch',lat:51.6978,lng:5.3037,color:'#1B3FCE',r:10000,fee:10},
+          {name:'Den Haag', lat:52.0705,lng:4.3007,color:'#0F6E56',r:15000,fee:15},
+        ];
+        const COVERED=['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Limburg','Utrecht','Flevoland','Overijssel','Gelderland'];
+        function d2r(d){return d*Math.PI/180}
+        function dKm(a,b,c,d){const R=6371,dL=d2r(c-a),dG=d2r(d-b);const x=Math.sin(dL/2)**2+Math.cos(d2r(a))*Math.cos(d2r(c))*Math.sin(dG/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+        function getZone(lat,lng,prov){
+          for(const h of HUBS){if(dKm(lat,lng,h.lat,h.lng)<=h.r/1000)return{ok:true,fee:h.fee,label:`within ${Math.round(dKm(lat,lng,h.lat,h.lng))} km of ${h.name}`};}
+          const pn=(prov||'').toLowerCase();
+          if(COVERED.some(p=>pn.includes(p.toLowerCase())))return{ok:true,fee:15,label:prov};
+          return{ok:false,fee:null,label:prov||'this area'};
         }
-        dMap.setCenter({lat,lng}); dMap.setZoom(13);
-        if(dMarker) dMarker.setMap(null);
-        dMarker=new google.maps.Marker({map:dMap, position:{lat,lng}, animation:google.maps.Animation.DROP});
-        const zone=getZone(lat,lng,prov);
-        const st=document.getElementById('deliveryStatus');
-        st.style.display='block';
-        if(zone.ok){
-          st.style.background='#EAF3DE'; st.style.color='#3B6D11'; st.style.border='1px solid #97C459';
-          st.innerHTML=`<strong>✓ We deliver here!</strong> ${zone.label} · Fee: <strong>€${zone.fee}</strong> · <a href="shop.html" style="color:#3B6D11;font-weight:600;">Order now →</a>`;
-        }else{
-          st.style.background='#FCEBEB'; st.style.color='#A32D2D'; st.style.border='1px solid #F09595';
-          st.innerHTML=`<strong>✗ Outside delivery zones.</strong> We don't currently deliver to ${zone.label}. <a href="contact.html" style="color:#A32D2D;font-weight:600;">Contact us</a> to arrange.`;
+
+        const dMap=new Map(document.getElementById('deliveryMap'),{
+          zoom:7,center:{lat:52.1,lng:5.1},mapTypeControl:false,streetViewControl:false,fullscreenControl:false,
+          styles:[{featureType:'poi',stylers:[{visibility:'off'}]},{featureType:'transit',stylers:[{visibility:'off'}]}]
+        });
+
+        HUBS.forEach(h=>{
+          new Circle({map:dMap,center:{lat:h.lat,lng:h.lng},radius:h.r,strokeColor:h.color,strokeOpacity:.7,strokeWeight:2,fillColor:h.color,fillOpacity:.2});
+          new Marker({map:dMap,position:{lat:h.lat,lng:h.lng},
+            label:{text:`${h.name} €${h.fee}`,color:'#fff',fontSize:'11px',fontWeight:'600'},
+            icon:{path:google.maps.SymbolPath.CIRCLE,scale:6,fillColor:h.color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2}
+          });
+        });
+
+        const POLYS=[
+          {color:'#e76f51',coords:[[52.92,4.72],[52.90,5.09],[52.77,5.18],[52.62,5.22],[52.44,5.07],[52.38,5.17],[52.35,5.02],[52.28,4.97],[52.22,4.85],[52.18,4.55],[52.35,4.49],[52.55,4.52],[52.68,4.62],[52.83,4.68]]},
+          {color:'#f4a261',coords:[[52.22,4.85],[52.14,4.88],[52.12,5.02],[52.04,5.10],[51.92,5.12],[51.85,4.93],[51.88,4.55],[51.82,4.38],[51.76,4.18],[51.75,4.00],[51.85,3.99],[51.96,4.12],[52.04,4.32],[52.12,4.48],[52.18,4.55]]},
+          {color:'#2a9d8f',coords:[[51.80,4.00],[51.82,4.38],[51.88,4.55],[51.85,4.93],[51.92,5.12],[51.95,5.38],[51.90,5.60],[51.88,5.88],[51.85,6.00],[51.55,6.08],[51.42,6.05],[51.38,5.88],[51.30,5.45],[51.26,5.05],[51.28,4.55],[51.38,4.20],[51.50,3.86],[51.65,3.86]]},
+          {color:'#8338ec',coords:[[51.85,6.00],[51.95,5.65],[52.04,5.10],[52.12,5.18],[51.98,5.40],[51.88,5.90],[51.60,6.20],[51.42,6.12],[51.10,6.15],[50.75,5.92],[50.75,5.68],[50.85,5.57],[51.20,5.72],[51.42,5.72],[51.55,5.80],[51.68,5.95]]}
+        ];
+        POLYS.forEach(p=>{
+          new Polygon({map:dMap,paths:p.coords.map(([lat,lng])=>({lat,lng})),strokeColor:p.color,strokeOpacity:.5,strokeWeight:1.5,fillColor:p.color,fillOpacity:.15});
+        });
+
+        // Autocomplete on search
+        const searchContainer=document.getElementById('deliverySearchContainer');
+        if(searchContainer){
+          const autocompleteEl=new PlaceAutocompleteElement({componentRestrictions:{country:'nl'},types:['address']});
+          autocompleteEl.style.cssText='width:100%;display:block';
+          searchContainer.innerHTML='';
+          searchContainer.appendChild(autocompleteEl);
+
+          let dMarker=null;
+          autocompleteEl.addEventListener('gmp-placeselect',async({place})=>{
+            await place.fetchFields({fields:['location','addressComponents','formattedAddress']});
+            const lat=place.location.lat(),lng=place.location.lng();
+            let prov='';
+            for(const comp of (place.addressComponents||[])){
+              if((comp.types||[]).includes('administrative_area_level_1')) prov=comp.longText;
+            }
+            dMap.setCenter({lat,lng}); dMap.setZoom(13);
+            if(dMarker) dMarker.setMap(null);
+            dMarker=new Marker({map:dMap,position:{lat,lng},animation:google.maps.Animation.DROP});
+            const zone=getZone(lat,lng,prov);
+            const st=document.getElementById('deliveryStatus');
+            if(st){
+              st.style.display='block';
+              if(zone.ok){
+                st.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#EAF3DE;color:#3B6D11;border:1px solid #97C459;margin-top:10px';
+                st.innerHTML=`<strong>✓ We deliver here!</strong> ${zone.label} &nbsp;·&nbsp; Delivery fee: <strong>€${zone.fee}</strong> &nbsp; <a href="shop.html" style="color:#3B6D11;font-weight:600">Order now →</a>`;
+              } else {
+                st.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#FCEBEB;color:#A32D2D;border:1px solid #F09595;margin-top:10px';
+                st.innerHTML=`<strong>✗ Outside delivery zones.</strong> We don't currently deliver to ${zone.label}. <a href="contact.html" style="color:#A32D2D;font-weight:600">Contact us →</a>`;
+              }
+            }
+          });
         }
-      });
+      } catch(e){ console.warn('Maps load error:',e); }
     }
     </script>
-    <div id="footer-placeholder"></div>
-    <script src="js/api.js"></script>
-    <script src="js/i18n.js"></script>
-    <script src="js/search.js"></script>
-    <script src="js/components.js"></script>
-    <script src="js/main.js"></script>
     <script>
-        let _applyRole = 'driver';
-
-        function openApply(type) {
-            _applyRole = type;
-            document.getElementById('modalWrap').classList.add('open');
-            document.getElementById('modalTitle').textContent = type === 'driver' ? 'Apply as delivery driver' : 'Apply as partner';
-            document.getElementById('driverField').style.display = type === 'driver' ? 'flex' : 'none';
-            document.getElementById('partnerField').style.display = type === 'partner' ? 'flex' : 'none';
-            document.getElementById('applyError').style.display = 'none';
-        }
-
-        function closeApply() {
-            document.getElementById('modalWrap').classList.remove('open');
-        }
-
-        async function submitApply() {
-            const first = document.getElementById('applyFirst').value.trim();
-            const last = document.getElementById('applyLast').value.trim();
-            const email = document.getElementById('applyEmail').value.trim();
-            const phone = document.getElementById('applyPhone').value.trim();
-            const city = document.getElementById('applyCity').value.trim();
-            const biz = document.getElementById('applyBiz').value.trim();
-            const bio = document.getElementById('applyBio').value.trim();
-            const errEl = document.getElementById('applyError');
-
-            if (!first || !last || !email || !bio) {
-                errEl.textContent = 'Please fill in your name, email, and a short bio.';
-                errEl.style.display = 'block';
-                return;
-            }
-
-            const name = `${first} ${last}`;
-            const cityOrBiz = _applyRole === 'driver' ? city : biz;
-            const topicMap = { driver: 'Join as delivery driver', partner: 'Join as business partner' };
-
-            const btn = document.getElementById('applyBtn');
-            btn.disabled = true;
-            btn.textContent = 'Sending…';
-            errEl.style.display = 'none';
-
-            try {
-                const res = await Api.Contact.send(
-                    name, email, phone, '',
-                    topicMap[_applyRole],
-                    `Application: ${topicMap[_applyRole]} — ${name}`,
-                    `Role: ${_applyRole}\nCity/Org: ${cityOrBiz}\n\n${bio}`
-                );
-
-                if (res.ok) {
-                    closeApply();
-                    if (typeof showToast === 'function') showToast('✓ Application sent! We\'ll be in touch within 2–3 business days.');
-                } else {
-                    errEl.textContent = res.data?.error || 'Something went wrong. Please try again.';
-                    errEl.style.display = 'block';
-                }
-            } catch (e) {
-                errEl.textContent = 'Network error. Please try again.';
-                errEl.style.display = 'block';
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Send application →';
-            }
-        }
-
-        document.getElementById('modalWrap')?.addEventListener('click', e => {
-            if (e.target.id === 'modalWrap') closeApply();
-        });
-    </script>
-</body>
-</html>
+    (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);a.src=`https://maps.googleapis.com/maps/api/js?`+e;a.onerror=()=>n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a);d[l]=f}));async function f(c,...d){await h;return await d.reduce(async(f,g)=>{await f;const a=google.maps;a[q]||(a[q]=(await a[l](g)));return a[q]},Promise.resolve())};g[l]=f;return f})({key:"AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM",v:"weekly"});
+    initDeliveryMap();
+    </script>>
