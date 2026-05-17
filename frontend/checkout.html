@@ -218,7 +218,7 @@
                                     <div class="checkout-block-body">
                         <div class="field">
                             <label for="addressSearch" data-i18n="checkout_street">Delivery address</label>
-                            <div id="addrAutoContainer"><input type="text" id="addressSearch" placeholder="Start typing your address…" autocomplete="off"></div>
+                            <div id="addrAutoContainer" style="width:100%;min-height:40px;"></div>
                             <span class="hint">Select from the dropdown to validate and auto-fill your address.</span>
                         </div>
                         <div id="zoneStatus" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin:6px 0;line-height:1.5;"></div>
@@ -262,13 +262,12 @@
                     </div>
                     <div class="checkout-block-body">
                         <div style="background:var(--cream);border-radius:10px;padding:1.25rem;display:flex;gap:14px;align-items:flex-start;">
-                            <div style="font-size:22px;">💳</div>
+                            <div style="font-size:22px;">🔒</div>
                             <div>
-                                <div style="font-size:14px;font-weight:600;color:var(--blue);margin-bottom:4px;" data-i18n="checkout_payment_title2">Payment on delivery or via bank transfer</div>
-                                <div style="font-size:13px;color:var(--ink-soft);line-height:1.65;" data-i18n="checkout_payment_desc2">
-                                    After placing your order you'll receive a confirmation email with our bank details.
-                                    Payment by cash on delivery is also accepted.
-                                    Online payment coming soon.
+                                <div style="font-size:14px;font-weight:600;color:var(--blue);margin-bottom:4px;" data-i18n="checkout_payment_title">Secure online payment</div>
+                                <div style="font-size:13px;color:var(--ink-soft);line-height:1.65;" data-i18n="checkout_payment_desc">
+                                    After clicking "Pay &amp; Order" you will be redirected to a secure Stripe payment page.
+                                    We accept all major credit &amp; debit cards, Apple Pay and Google Pay.
                                 </div>
                             </div>
                         </div>
@@ -285,8 +284,8 @@
                 </div>
                 <div class="summary-totals" id="summaryTotals"></div>
                 <div class="summary-foot">
-                    <button class="checkout-submit" id="placeOrderBtn" onclick="placeOrder()" data-i18n="checkout_place">Place order →</button>
-                    <p class="summary-note" data-i18n="checkout_note">By placing your order you agree to our delivery terms. A confirmation email will be sent immediately.</p>
+                    <button class="checkout-submit" id="placeOrderBtn" onclick="placeOrder()" data-i18n="checkout_place">Pay &amp; Order →</button>
+                    <p class="summary-note" data-i18n="checkout_note">You will be redirected to Stripe to complete payment securely. Order confirmed after payment.</p>
                 </div>
             </div>
 
@@ -691,7 +690,7 @@
 
     <script>
     (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);a.src=`https://maps.googleapis.com/maps/api/js?`+e;a.onerror=()=>n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a);d[l]=f}));async function f(c,...d){await h;return await d.reduce(async(f,g)=>{await f;const a=google.maps;a[q]||(a[q]=(await a[l](g)));return a[q]},Promise.resolve())};g[l]=f;return f})({key:"AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM",v:"weekly"});
-    initAddressAutocomplete();
+    document.addEventListener('DOMContentLoaded', initAddressAutocomplete);
     </script>
     <script>
     // ── DELIVERY ZONE CONFIG ──────────────────────────────────────────────
