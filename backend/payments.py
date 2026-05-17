@@ -1,34 +1,27 @@
 """
-HUTKO — payments.py
-Mollie iDEAL / credit card payment integration for Netherlands.
-Requires MOLLIE_API_KEY env var (get from mollie.com — free account).
+HUTKO — payments.py  (Stripe Checkout)
 
 Flow:
-  1. POST /api/payment/create  — creates Mollie payment, returns checkout URL
-  2. Customer pays on Mollie hosted page
-  3. Mollie calls POST /api/payment/webhook  — updates order status
-  4. Customer redirected to GET /api/payment/return?ref=HK-XXXX
+  1. POST /api/payment/create  — creates Stripe session, returns URL
+  2. Customer pays on Stripe hosted page
+  3. Stripe calls POST /api/stripe-webhook — marks paid, creates Trello card + sends email
+  4. Customer redirected to confirm-delivery.html?ref=HK-XXXX&paid=1
+
+Render environment variables to set:
+  STRIPE_SECRET_KEY      sk_live_51TVbx...
+  STRIPE_PUBLISHABLE_KEY pk_live_51TVbx...
+  STRIPE_WEBHOOK_SECRET  whsec_... (after adding webhook in Stripe Dashboard)
 """
 
-import os
-import json
-import requests
-from flask import Blueprint, request, jsonify, redirect
+import os, json
+import stripe
+from flask import Blueprint, request, jsonify
 from database import get_db, _use_postgres
 
-payments_bp = Blueprint('payments', __name__)
-
-MOLLIE_API_KEY  = os.environ.get('MOLLIE_API_KEY', '')
-MOLLIE_API_BASE = 'https://api.mollie.com/v2'
-SITE_URL        = os.environ.get('FRONTEND_URL', 'https://hutko-kitchen.com')
-BACKEND_URL     = os.environ.get('RENDER_EXTERNAL_URL', 'https://hutko-kitchen.onrender.com')
-
-
-def _mollie_headers():
-    return {
-        'Authorization': f'Bearer {MOLLIE_API_KEY}',
-        'Content-Type':  'application/json',
-    }
+payments_bp    = Blueprint('payments', __name__)
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+STRIPE_WH_KEY  = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+SITE_URL       = os.environ.get('FRONTEND_URL', 'https://hutko-kitchen.com')
 
 
 def _p():
@@ -37,122 +30,134 @@ def _p():
 
 def _exec(conn, sql, params=()):
     if _use_postgres():
-        cur = conn.cursor()
-        cur.execute(sql, params)
-        return cur
+        cur = conn.cursor(); cur.execute(sql, params); return cur
     return conn.execute(sql, params)
+
+
+def _process_paid_order(order_ref):
+    """Send confirmation email + notification + create Trello card after payment."""
+    conn = get_db()
+    row  = _exec(conn, f"""
+        SELECT order_ref, customer_name, customer_email, customer_phone,
+               addr_street, addr_postcode, addr_city, addr_province,
+               delivery_notes, delivery_method, delivery_date,
+               items_json, subtotal, delivery_cost, total
+        FROM orders WHERE order_ref={_p()}
+    """, (order_ref,)).fetchone()
+    conn.close()
+    if not row:
+        return print(f'[STRIPE] order not found: {order_ref}')
+
+    items = json.loads(row['items_json'])
+    addr  = f"{row['addr_street']}, {row['addr_postcode']} {row['addr_city']}"
+
+    try:
+        from emails import send_order_confirmation, send_order_notification
+        send_order_confirmation(row['order_ref'], row['customer_name'], row['customer_email'],
+                                items, row['subtotal'], row['delivery_cost'], row['total'],
+                                addr, row['delivery_method'], row['delivery_date'])
+        send_order_notification(row['order_ref'], row['customer_name'], row['customer_email'],
+                                row['customer_phone'], items, row['total'],
+                                addr, row['delivery_method'], row['delivery_notes'] or '', row['delivery_date'])
+    except Exception as e:
+        print(f'[STRIPE EMAIL ERROR] {e}')
+
+    try:
+        from trello import create_order_card
+        card_id = create_order_card(row['order_ref'], row['customer_name'], row['customer_email'],
+                                    row['customer_phone'], items, row['subtotal'],
+                                    row['delivery_cost'], row['total'],
+                                    addr, row['delivery_method'], row['delivery_notes'] or '')
+        if card_id:
+            conn2 = get_db()
+            _exec(conn2, f"UPDATE orders SET trello_card_id={_p()} WHERE order_ref={_p()}", (card_id, order_ref))
+            conn2.commit(); conn2.close()
+    except Exception as e:
+        print(f'[STRIPE TRELLO ERROR] {e}')
 
 
 @payments_bp.route('/api/payment/create', methods=['POST'])
 def create_payment():
-    """
-    Called from checkout after order is placed.
-    Body: { order_ref, total, description, customer_email }
-    Returns: { payment_url } — redirect the customer here
-    """
-    if not MOLLIE_API_KEY:
-        return jsonify({'error': 'Online payment not configured yet.'}), 503
+    if not stripe.api_key:
+        return jsonify({'error': 'Payment not configured.'}), 503
 
-    data        = request.get_json()
-    order_ref   = data.get('order_ref', '')
-    total       = data.get('total', 0)
-    email       = data.get('customer_email', '')
-    description = data.get('description', f'HUTKO order #{order_ref}')
+    data          = request.get_json()
+    order_ref     = data.get('order_ref', '')
+    items         = data.get('items', [])
+    delivery_fee  = float(data.get('delivery_fee', 0))
+    customer_email = data.get('customer_email', '')
 
-    if not order_ref or not total:
-        return jsonify({'error': 'Missing order_ref or total.'}), 400
+    if not order_ref:
+        return jsonify({'error': 'Missing order_ref.'}), 400
 
+    line_items = [{'price_data': {'currency': 'eur',
+                                   'product_data': {'name': i['name']},
+                                   'unit_amount': int(float(i['price']) * 100)},
+                   'quantity': int(i.get('qty', 1))} for i in items]
+
+    if delivery_fee > 0:
+        line_items.append({'price_data': {'currency': 'eur',
+                                           'product_data': {'name': 'Delivery / Bezorging'},
+                                           'unit_amount': int(delivery_fee * 100)},
+                           'quantity': 1})
     try:
-        res = requests.post(
-            f'{MOLLIE_API_BASE}/payments',
-            headers=_mollie_headers(),
-            json={
-                'amount':      {'currency': 'EUR', 'value': f'{float(total):.2f}'},
-                'description': description,
-                'redirectUrl': f'{SITE_URL}/confirm-delivery.html?ref={order_ref}&paid=1',
-                'webhookUrl':  f'{BACKEND_URL}/api/payment/webhook',
-                'metadata':    {'order_ref': order_ref, 'email': email},
-                'method':      ['ideal', 'creditcard', 'bancontact'],
-                'locale':      'nl_NL',
-            },
-            timeout=10
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            customer_email=customer_email or None,
+            success_url=f'{SITE_URL}/confirm-delivery.html?ref={order_ref}&paid=1',
+            cancel_url=f'{SITE_URL}/checkout.html?cancelled=1',
+            metadata={'order_ref': order_ref},
+            locale='auto',
         )
-        res.raise_for_status()
-        payment = res.json()
-        payment_id  = payment['id']
-        payment_url = payment['_links']['checkout']['href']
-
-        # Save payment_id to order
         conn = get_db()
-        p    = _p()
-        _exec(conn, f"UPDATE orders SET payment_id={p} WHERE order_ref={p}", (payment_id, order_ref))
-        conn.commit()
-        conn.close()
-
-        return jsonify({'payment_url': payment_url, 'payment_id': payment_id}), 200
-
-    except requests.HTTPError as e:
-        print(f'[MOLLIE ERROR] {e.response.text}')
-        return jsonify({'error': 'Payment service error. Please try again.'}), 502
+        _exec(conn, f"UPDATE orders SET payment_id={_p()} WHERE order_ref={_p()}", (session.id, order_ref))
+        conn.commit(); conn.close()
+        return jsonify({'payment_url': session.url}), 200
+    except stripe.error.StripeError as e:
+        print(f'[STRIPE ERROR] {e}')
+        return jsonify({'error': str(e)}), 502
     except Exception as e:
         print(f'[PAYMENT ERROR] {e}')
         return jsonify({'error': str(e)}), 500
 
 
-@payments_bp.route('/api/payment/webhook', methods=['POST'])
-def payment_webhook():
-    """
-    Mollie calls this when payment status changes.
-    Body (form-encoded): id=<payment_id>
-    """
-    if not MOLLIE_API_KEY:
-        return '', 200
-
-    payment_id = request.form.get('id') or (request.get_json(silent=True) or {}).get('id')
-    if not payment_id:
-        return '', 200
-
+@payments_bp.route('/api/stripe-webhook', methods=['POST'])
+def stripe_webhook():
+    payload = request.get_data()
+    sig     = request.headers.get('Stripe-Signature', '')
     try:
-        res = requests.get(
-            f'{MOLLIE_API_BASE}/payments/{payment_id}',
-            headers=_mollie_headers(),
-            timeout=10
-        )
-        res.raise_for_status()
-        payment    = res.json()
-        status     = payment.get('status')       # paid / failed / canceled / expired
-        order_ref  = payment.get('metadata', {}).get('order_ref', '')
-
-        print(f'[MOLLIE WEBHOOK] payment {payment_id} status={status} order={order_ref}')
-
-        if not order_ref:
-            return '', 200
-
-        conn = get_db()
-        p    = _p()
-
-        if status == 'paid':
-            _exec(conn, f"UPDATE orders SET payment_status='paid' WHERE order_ref={p}", (order_ref,))
-            conn.commit()
-        elif status in ('failed', 'canceled', 'expired'):
-            _exec(conn, f"UPDATE orders SET payment_status={p} WHERE order_ref={p}", (status, order_ref))
-            conn.commit()
-
-        conn.close()
-        return '', 200
-
+        event = stripe.Webhook.construct_event(payload, sig, STRIPE_WH_KEY) if STRIPE_WH_KEY \
+                else stripe.Event.construct_from(json.loads(payload), stripe.api_key)
     except Exception as e:
-        print(f'[MOLLIE WEBHOOK ERROR] {e}')
-        return '', 200
+        return '', 400
+
+    if event['type'] == 'checkout.session.completed':
+        s         = event['data']['object']
+        order_ref = (s.get('metadata') or {}).get('order_ref', '')
+        if order_ref and s.get('payment_status') == 'paid':
+            conn = get_db()
+            _exec(conn, f"UPDATE orders SET payment_status='paid', status='confirmed' WHERE order_ref={_p()}", (order_ref,))
+            conn.commit(); conn.close()
+            _process_paid_order(order_ref)
+
+    elif event['type'] == 'checkout.session.expired':
+        s = event['data']['object']
+        order_ref = (s.get('metadata') or {}).get('order_ref', '')
+        if order_ref:
+            conn = get_db()
+            _exec(conn, f"UPDATE orders SET payment_status='expired' WHERE order_ref={_p()}", (order_ref,))
+            conn.commit(); conn.close()
+
+    return '', 200
 
 
 @payments_bp.route('/api/payment/status/<order_ref>', methods=['GET'])
 def payment_status(order_ref):
-    """Check payment status for an order."""
     conn = get_db()
-    p    = _p()
-    row  = _exec(conn, f"SELECT payment_status, total FROM orders WHERE order_ref={p}", (order_ref,)).fetchone()
+    row  = _exec(conn, f"SELECT payment_status, total FROM orders WHERE order_ref={_p()}", (order_ref,)).fetchone()
     conn.close()
     if not row:
-        return jsonify({'error': 'Order not found'}), 404
+        return jsonify({'error': 'Not found'}), 404
     return jsonify({'payment_status': row['payment_status'] or 'pending', 'total': row['total']}), 200

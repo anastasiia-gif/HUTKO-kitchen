@@ -305,7 +305,7 @@
                 </div>
                 <div class="summary-totals" id="summaryTotals"></div>
                 <div class="summary-foot">
-                    <button class="checkout-submit" id="placeOrderBtn" onclick="placeOrder()" data-i18n="checkout_place">Place order →</button>
+                    <button class="checkout-submit" id="placeOrderBtn" onclick="placeOrder()" data-i18n="checkout_place">Pay & Order →</button>
                     <p class="summary-note" data-i18n="checkout_note">By placing your order you agree to our delivery terms. A confirmation email will be sent immediately.</p>
                 </div>
             </div>
@@ -510,60 +510,43 @@
             };
 
             try {
+                // Step 1: Create order (saved as pending_payment)
                 const res = await window.Api.Orders.checkout(payload);
                 if (!res.ok) {
                     showToast(res.data.error || 'Order failed. Please try again.');
-                    btn.textContent = t('checkout_place') || 'Place order →';
+                    btn.textContent = t('checkout_place') || 'Pay & Order →';
                     btn.disabled = false;
                     return;
                 }
-                document.getElementById('orderRef').textContent = res.data.order_ref || '';
-                if (selectedDate) {
-                    const d = new Date(selectedDate + 'T00:00:00');
-                    const dateStr = d.toLocaleDateString('en-NL', { weekday: 'long', day: 'numeric', month: 'long' });
-                    const dateEl = document.getElementById('orderDeliveryDate');
-                    if (dateEl) dateEl.textContent = '📅 ' + (t('checkout_delivery') || 'Delivery') + ': ' + dateStr;
-                }
-                localStorage.removeItem('hutko_cart');
 
-                // Offer online payment if Mollie is available
-                const payBtn = document.getElementById('payOnlineBtn');
-                if (payBtn && res.data.order_ref) {
-                    const cart2 = {}; // cart already cleared, use totals from res
-                    const subtotal = Object.values(JSON.parse(localStorage.getItem('hutko_cart_last') || '{}')).reduce((s, i) => s + i.qty * i.price, 0) || 0;
-                    payBtn.style.display = 'block';
-                    payBtn.onclick = async () => {
-                        payBtn.textContent = 'Redirecting to payment…';
-                        payBtn.disabled = true;
-                        try {
-                            const payRes = await fetch(API_BASE + '/api/payment/create', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
-                                body: JSON.stringify({
-                                    order_ref: res.data.order_ref,
-                                    total: res.data.total,
-                                    customer_email: document.getElementById('coEmail').value,
-                                    description: `HUTKO order #${res.data.order_ref}`,
-                                }),
-                            });
-                            const payData = await payRes.json();
-                            if (payData.payment_url) {
-                                window.location.href = payData.payment_url;
-                            } else {
-                                payBtn.textContent = '💳 Pay online →';
-                                payBtn.disabled = false;
-                                showToast(payData.error || 'Payment service unavailable. Please pay on delivery.');
-                            }
-                        } catch (e) {
-                            payBtn.textContent = '💳 Pay online →';
-                            payBtn.disabled = false;
-                        }
-                    };
-                }
+                const orderRef = res.data.order_ref;
+                btn.textContent = 'Redirecting to payment…';
 
-                document.getElementById('checkoutBody').style.display = 'none';
-                document.getElementById('successScreen').style.display = 'block';
-                window.scrollTo(0, 0);
+                // Step 2: Create Stripe Checkout session
+                const cartItems = items.map(i => ({ name: i.name, qty: i.qty, price: i.price }));
+                const deliveryFee = res.data.delivery_cost || 0;
+
+                const payRes = await fetch(window.API_BASE + '/api/payment/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (getToken ? getToken() : '') },
+                    body: JSON.stringify({
+                        order_ref: orderRef,
+                        items: cartItems,
+                        delivery_fee: deliveryFee,
+                        customer_email: payload.email,
+                    }),
+                });
+                const payData = await payRes.json();
+
+                if (payData.payment_url) {
+                    // Step 3: Redirect to Stripe — cart cleared on return
+                    localStorage.setItem('hutko_pending_order', orderRef);
+                    window.location.href = payData.payment_url;
+                } else {
+                    showToast(payData.error || 'Payment redirect failed. Please try again.');
+                    btn.textContent = t('checkout_place') || 'Pay & Order →';
+                    btn.disabled = false;
+                }
             } catch (e) {
                 showToast('Network error. Please try again.');
                 btn.textContent = t('checkout_place') || 'Place order →';
@@ -572,7 +555,11 @@
         }
 
         // ── INIT ─────────────────────────────────────────────
-        document.addEventListener('DOMContentLoaded', () => {
+        // Clear cart if returning from successful payment
+            if (window.location.search.includes('cancelled=1')) {
+                showToast('Payment was cancelled. Your cart is still saved.');
+            }
+            document.addEventListener('DOMContentLoaded', () => {
             // Redirect to login only if no token
             if (typeof getToken !== 'function' || (!getToken() && !getUser())) {
                 window.location.href = 'login.html?redirect=checkout.html';

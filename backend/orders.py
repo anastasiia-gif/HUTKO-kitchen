@@ -60,7 +60,7 @@ def checkout():
               (order_ref, user_id, customer_name, customer_email, customer_phone,
                addr_street, addr_postcode, addr_city, addr_province, delivery_notes,
                delivery_method, delivery_date, items_json, subtotal, delivery_cost, total, status)
-            VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},'confirmed')
+            VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},'pending_payment')
         """, (
             order_ref, user_id,
             f"{data['first_name']} {data['last_name']}",
@@ -75,7 +75,7 @@ def checkout():
               (order_ref, user_id, customer_name, customer_email, customer_phone,
                addr_street, addr_postcode, addr_city, addr_province, delivery_notes,
                delivery_method, delivery_date, items_json, subtotal, delivery_cost, total, status)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'confirmed')
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending_payment')
         """, (
             order_ref, user_id,
             f"{data['first_name']} {data['last_name']}",
@@ -87,42 +87,9 @@ def checkout():
     conn.commit()
     conn.close()
 
-    # Send emails + create Trello card
-    customer_name  = f"{data['first_name']} {data['last_name']}"
-    customer_addr  = f"{data['street']}, {data['postcode']} {data['city']}, {data['province']}"
-    try:
-        send_order_confirmation(
-            order_ref, customer_name, data['email'],
-            items, subtotal, delivery_cost, total,
-            customer_addr, delivery_method, delivery_date
-        )
-        send_order_notification(
-            order_ref, customer_name, data['email'],
-            data['phone'], items, total,
-            customer_addr, delivery_method, data.get('notes', ''),
-            delivery_date
-        )
-    except Exception as e:
-        print(f"[ORDER EMAIL ERROR] {e}")
-
-    # Create Trello card
-    try:
-        card_id = create_order_card(
-            order_ref, customer_name, data['email'], data['phone'],
-            items, subtotal, delivery_cost, total,
-            customer_addr, delivery_method, data.get('notes', '')
-        )
-        # Save card_id to order in DB
-        if card_id:
-            conn2 = get_db()
-            conn2.execute(
-                "UPDATE orders SET trello_card_id=? WHERE order_ref=?",
-                (card_id, order_ref)
-            )
-            conn2.commit()
-            conn2.close()
-    except Exception as e:
-        print(f"[TRELLO ERROR] {e}")
+    # Emails + Trello card are created AFTER payment confirmation
+    # (triggered by Stripe webhook in payments.py → _process_paid_order)
+    print(f"[ORDER] Created {order_ref} — awaiting payment")
 
     return jsonify({
         'order_ref': order_ref, 'total': total,

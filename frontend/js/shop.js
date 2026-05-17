@@ -51,7 +51,6 @@ function productCard(p) {
 
     return `<div class="prod-card reveal" data-cat="${p.category}">
     ${p.badge ? `<span class="prod-badge">${p.badge}</span>` : ''}
-    <a href="product.html?id=${p.id}" class="prod-card-link">
     <div class="prod-img-wrap">
       <img src="${p.photo}" alt="${pName(p)}" loading="lazy" onerror="this.onerror=null;this.src='assets/products/syrnyky.png'">
     </div>
@@ -63,11 +62,10 @@ function productCard(p) {
       <div class="prod-price">from <strong id="price-${p.id}">€${price}</strong> <span id="unit-${p.id}">/ ${p.unit}</span></div>
       ${variants}
     </div>
-    </a>
     <div class="prod-footer">
-      <button class="btn-view-product" onclick="location.href='product.html?id=${p.id}'">${t('btn_details')||'Details'}</button>
+      <button class="btn-view-product" onclick="location.href='product.html?id=${p.id}'">Details</button>
       <button class="btn btn-dark" style="flex:2;justify-content:center;font-size:12px;"
-        onclick="shopAddToCart('${p.id}')">${t('btn_add_cart')||'Add to cart'}</button>
+        onclick="shopAddToCart('${p.id}')">Add to cart</button>
     </div>
   </div>`;
 }
@@ -83,25 +81,6 @@ function bundleCard(b) {
         ? `<span class="pack-price-old">€${b.original_price}</span>` : '';
     const portions = b.items.reduce((s, i) => s + i.qty, 0);
 
-    // Parse choice options from choice_en: "Zrazy 6 pcs  OR  Chicken balls 8 pcs"
-    const choiceRaw = b[`choice_${lang()}`] || b.choice_en || '';
-    let choiceHtml = '';
-    if (choiceRaw) {
-      const parts = choiceRaw.split(/\s+OR\s+|\s+АБО\s+|\s+OF\s+/i).map(s => s.trim()).filter(Boolean);
-      if (parts.length >= 2) {
-        choiceHtml = `
-          <div class="pack-choice-row">
-            <div class="pack-choice-pills" id="choice-${b.id}">
-              ${parts.map((p,i) => `
-                <div class="pack-choice-pill ${i===0?'selected':''}"
-                     onclick="selectBundleChoice('${b.id}', this, '${p.replace(/'/g,"\'")}')">
-                  ${p}
-                </div>`).join('')}
-            </div>
-          </div>`;
-      }
-    }
-
     return `<div class="pack-card ${featured ? 'featured' : ''} reveal">
     <div class="pack-img-wrap">
       <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="this.onerror=null;this.src='assets/Bundles/s_pack_orange.png'">
@@ -110,13 +89,12 @@ function bundleCard(b) {
       <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>
       <div class="pack-name">${bName(b)}</div>
       <div class="pack-items">${items}</div>
-      ${choiceHtml}
       <div class="pack-price-row">${oldPriceHtml}<span class="pack-price-new">€${b.discount_price}</span></div>
       ${portions ? `<div class="pack-per">~€${(b.discount_price / portions).toFixed(1)} per portion</div>` : ''}
     </div>
     <div class="pack-footer">
       <button class="btn ${featured ? 'btn-primary' : 'btn-blue'}" style="width:100%;justify-content:center;"
-        onclick="bundleAddToCart('${b.id}')">${t('btn_order_pack')||'Order this pack'}</button>
+        onclick="bundleAddToCart('${b.id}')">Order this pack</button>
     </div>
   </div>`;
 }
@@ -129,6 +107,7 @@ function renderProducts(list) {
         ? list.map(productCard).join('')
         : '<p class="no-results">No products found.</p>';
     initReveal();
+    if (window.applyTranslations) applyTranslations();
 }
 
 function renderBundles(list) {
@@ -136,6 +115,7 @@ function renderBundles(list) {
     if (!grid) return;
     grid.innerHTML = list.length ? list.map(bundleCard).join('') : '';
     initReveal();
+    if (window.applyTranslations) applyTranslations();
 }
 
 function updateCount(list) {
@@ -183,18 +163,8 @@ window.shopAddToCart = shopAddToCart;
 function bundleAddToCart(id) {
     const b = ALL_BUNDLES.find(x => x.id === id);
     if (!b) return;
-    // Get selected choice pill if any
-    const selected = document.querySelector(`#choice-${id} .pack-choice-pill.selected`);
-    const choiceText = selected ? selected.textContent.trim() : '';
-    const label = choiceText ? `${b.size_label} · ${choiceText}` : b.size_label;
-    addToCart(id, bName(b), '🎁', b.discount_price, label);
+    addToCart(id, bName(b), '🎁', b.discount_price, b.size_label);
 }
-
-function selectBundleChoice(bundleId, el, value) {
-    document.querySelectorAll(`#choice-${bundleId} .pack-choice-pill`).forEach(p => p.classList.remove('selected'));
-    el.classList.add('selected');
-}
-window.selectBundleChoice = selectBundleChoice;
 window.bundleAddToCart = bundleAddToCart;
 
 // ── BOOT ─────────────────────────────────────────────
@@ -205,13 +175,6 @@ function loadShopData() {
     return _shopDataReady;
 }
 document.addEventListener('DOMContentLoaded', loadShopData);
-
-// Re-render on language change so buttons translate
-const _origSetLangShop = window.setLang;
-window.setLang = function(l) {
-  if (_origSetLangShop) _origSetLangShop(l);
-  if (ALL_PRODUCTS.length) { renderProducts(ALL_PRODUCTS); renderBundles(ALL_BUNDLES); }
-};
 
 // ── FALLBACK DATA (shown if API unreachable) ──────────
 const FALLBACK_PRODUCTS = [
@@ -248,7 +211,7 @@ const FALLBACK_PRODUCTS = [
     {
         id: 'zrazy', name_en: 'Zrazy', name_ua: 'Зрази', name_nl: 'Zrazy', category: 'snacks',
         desc_en: 'Pan-fried potato patties with mushroom & cheese.', base_price: 15, unit: '6 pcs', badge: '',
-        photo: 'assets/products/zrazy.png', dietary: [],
+        photo: 'assets/products/zrazy.png', dietary: ['vegetarian'],
         variants: [{ label: '6 pcs', price: 15 }, { label: '12 pcs', price: 28 }]
     },
 ];
@@ -256,17 +219,17 @@ const FALLBACK_BUNDLES = [
     {
         id: 'pack-s1', name_en: 'Starter Pack — Borscht', name_ua: 'Стартовий набір — Борщ', name_nl: 'Starterpakket — Borsjt',
         size_label: 'Pack S', items: [{ product_id: 'syrnyky', qty: 8 }, { product_id: 'borscht', qty: 1 }, { product_id: 'zrazy', qty: 6 }, { product_id: 'chicken', qty: 8 }],
-        original_price: 41, discount_price: 37, choice_en: 'Zrazy 6 pcs  OR  Chicken balls 8 pcs', choice_ua: 'Зрази 6 шт  АБО  Курячі кульки 8 шт', choice_nl: 'Zrazy 6 st  OF  Kippenballen 8 st', photo: 'assets/Bundles/s_pack_orange.png', badge: ''
+        original_price: 41, discount_price: 37, photo: 'assets/Bundles/s_pack_orange.png', badge: ''
     },
     {
         id: 'pack-s2', name_en: 'Starter Pack — Solyanka', name_ua: 'Стартовий набір — Солянка', name_nl: 'Starterpakket — Solyanka',
         size_label: 'Pack S', items: [{ product_id: 'syrnyky', qty: 8 }, { product_id: 'solyanka', qty: 1 }, { product_id: 'zrazy', qty: 6 }, { product_id: 'chicken', qty: 8 }],
-        original_price: 44, discount_price: 39, choice_en: 'Zrazy 6 pcs  OR  Chicken balls 8 pcs', choice_ua: 'Зрази 6 шт  АБО  Курячі кульки 8 шт', choice_nl: 'Zrazy 6 st  OF  Kippenballen 8 st', photo: 'assets/Bundles/s_pack_blue.jpeg', badge: ''
+        original_price: 44, discount_price: 39, photo: 'assets/Bundles/s_pack_blue.jpeg', badge: ''
     },
     {
         id: 'pack-m1', name_en: 'Family Pack — Classic', name_ua: 'Сімейний набір — Класик', name_nl: 'Familiepakket — Klassiek',
         size_label: 'Pack M', items: [{ product_id: 'syrnyky', qty: 16 }, { product_id: 'borscht', qty: 2 }, { product_id: 'zrazy', qty: 12 }, { product_id: 'chicken', qty: 16 }],
-        original_price: 77, discount_price: 69, choice_en: 'Zrazy 12 pcs  OR  Chicken balls 16 pcs', choice_ua: 'Зрази 12 шт  АБО  Курячі кульки 16 шт', choice_nl: 'Zrazy 12 st  OF  Kippenballen 16 st', photo: 'assets/Bundles/m_pack_orange.png', badge: 'Most popular'
+        original_price: 77, discount_price: 69, photo: 'assets/Bundles/m_pack_orange.png', badge: 'Most popular'
     },
     {
         id: 'pack-l1', name_en: 'Big Pack', name_ua: 'Великий набір', name_nl: 'Groot pakket',
