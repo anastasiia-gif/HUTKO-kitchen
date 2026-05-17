@@ -282,13 +282,12 @@
                     </div>
                     <div class="checkout-block-body">
                         <div style="background:var(--cream);border-radius:10px;padding:1.25rem;display:flex;gap:14px;align-items:flex-start;">
-                            <div style="font-size:22px;">💳</div>
+                            <div style="font-size:22px;">🔒</div>
                             <div>
-                                <div style="font-size:14px;font-weight:600;color:var(--blue);margin-bottom:4px;" data-i18n="checkout_payment_title2">Payment on delivery or via bank transfer</div>
-                                <div style="font-size:13px;color:var(--ink-soft);line-height:1.65;" data-i18n="checkout_payment_desc2">
-                                    After placing your order you'll receive a confirmation email with our bank details.
-                                    Payment by cash on delivery is also accepted.
-                                    Online payment coming soon.
+                                <div style="font-size:14px;font-weight:600;color:var(--blue);margin-bottom:4px;" data-i18n="checkout_payment_title">Secure online payment</div>
+                                <div style="font-size:13px;color:var(--ink-soft);line-height:1.65;" data-i18n="checkout_payment_desc">
+                                    After clicking "Pay &amp; Order" you will be redirected to a secure Stripe payment page.
+                                    We accept all major credit &amp; debit cards, Apple Pay and Google Pay.
                                 </div>
                             </div>
                         </div>
@@ -306,7 +305,7 @@
                 <div class="summary-totals" id="summaryTotals"></div>
                 <div class="summary-foot">
                     <button class="checkout-submit" id="placeOrderBtn" onclick="placeOrder()" data-i18n="checkout_place">Pay & Order →</button>
-                    <p class="summary-note" data-i18n="checkout_note">By placing your order you agree to our delivery terms. A confirmation email will be sent immediately.</p>
+                    <p class="summary-note" data-i18n="checkout_note">You will be redirected to Stripe to complete payment securely. Order confirmed after payment.</p>
                 </div>
             </div>
 
