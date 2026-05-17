@@ -567,299 +567,110 @@
         });
     </script>
 
-    <!-- Google Maps + Places API (New) + Zone Validation -->
+    <!-- Google Maps Address Autocomplete + Zone Validation -->
     <script>
-    // ── ZONE LOGIC (runs immediately, no API needed) ──────────────────
+    // Zone config - single declaration
     const DELIVERY_HUBS = [
-      { name:'Amsterdam', lat:52.3676, lng:4.9041, feeInner:10, innerKm:10 },
-      { name:'Den Bosch', lat:51.6978, lng:5.3037, feeInner:10, innerKm:10 },
-      { name:'Den Haag',  lat:52.0705, lng:4.3007, feeInner:15, innerKm:15 },
+      { name:'Amsterdam', lat:52.3676, lng:4.9041, fee:10, km:10 },
+      { name:'Den Bosch', lat:51.6978, lng:5.3037, fee:10, km:10 },
+      { name:'Den Haag',  lat:52.0705, lng:4.3007, fee:15, km:15 },
     ];
     const COVERED = ['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Limburg','Utrecht','Flevoland','Overijssel','Gelderland'];
 
-    function d2r(d){ return d*Math.PI/180; }
-    function distKm(a,b,c,d){ const R=6371,dL=d2r(c-a),dG=d2r(d-b); const x=Math.sin(dL/2)**2+Math.cos(d2r(a))*Math.cos(d2r(c))*Math.sin(dG/2)**2; return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
+    function _d2r(d){ return d*Math.PI/180; }
+    function _dKm(a,b,c,d){ const R=6371,dL=_d2r(c-a),dG=_d2r(d-b); return R*2*Math.atan2(Math.sqrt(Math.sin(dL/2)**2+Math.cos(_d2r(a))*Math.cos(_d2r(c))*Math.sin(dG/2)**2),Math.sqrt(1-(Math.sin(dL/2)**2+Math.cos(_d2r(a))*Math.cos(_d2r(c))*Math.sin(dG/2)**2))); }
 
-    function getDeliveryZone(lat,lng,province){
-      for(const h of DELIVERY_HUBS){
-        if(distKm(lat,lng,h.lat,h.lng)<=h.innerKm) return {ok:true,fee:h.feeInner,label:`within ${h.innerKm} km of ${h.name}`};
-      }
-      const pn=(province||'').toLowerCase();
-      if(COVERED.some(p=>pn.includes(p.toLowerCase()))) return {ok:true,fee:15,label:province};
-      return {ok:false,fee:null,label:province||'this area'};
+    function getZone(lat,lng,prov){
+      for(const h of DELIVERY_HUBS){ if(_dKm(lat,lng,h.lat,h.lng)<=h.km) return {ok:true,fee:h.fee,label:`Within ${h.km} km of ${h.name}`}; }
+      if(COVERED.some(p=>(prov||'').toLowerCase().includes(p.toLowerCase()))) return {ok:true,fee:15,label:prov};
+      return {ok:false,fee:null,label:prov||'this area'};
     }
 
-    function showZoneStatus(zone){
+    function showZoneResult(zone){
       const el=document.getElementById('zoneStatus'); if(!el) return;
-      el.style.display='block';
+      el.style.display='block'; el.dataset.zoneOk=zone.ok?'1':'0';
       if(zone.ok){
-        el.style.cssText='display:block;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:4px;background:#EAF3DE;color:#3B6D11;border:1px solid #97C459';
+        el.style.cssText='display:block;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:6px;background:#EAF3DE;color:#3B6D11;border:1px solid #97C459';
         el.innerHTML=`✓ <strong>We deliver here!</strong> ${zone.label} &nbsp;·&nbsp; Fee: <strong>€${zone.fee}</strong>`;
-        const priceEl=document.querySelector('#opt-delivery-local .delivery-option-price');
-        if(priceEl) priceEl.textContent=`€${zone.fee}.00`;
-        const btn=document.getElementById('placeOrderBtn');
-        if(btn){ btn.disabled=false; btn.style.opacity='1'; }
+        const p=document.querySelector('#opt-delivery-local .delivery-option-price'); if(p) p.textContent=`€${zone.fee}.00`;
+        const btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=false;btn.style.opacity='1';}
       } else {
-        el.style.cssText='display:block;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:4px;background:#FCEBEB;color:#A32D2D;border:1px solid #F09595';
-        el.innerHTML=`✗ <strong>We don't deliver to ${zone.label} yet.</strong> <a href="contact.html" style="color:#A32D2D;font-weight:600">Contact us</a> to arrange.`;
-        const btn=document.getElementById('placeOrderBtn');
-        if(btn){ btn.disabled=true; btn.style.opacity='0.45'; }
+        el.style.cssText='display:block;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:6px;background:#FCEBEB;color:#A32D2D;border:1px solid #F09595';
+        el.innerHTML=`✗ <strong>We don't deliver to ${zone.label} yet.</strong> <a href="contact.html" style="color:#A32D2D;font-weight:600">Contact us →</a>`;
+        const btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=true;btn.style.opacity='0.45';}
       }
-      el.dataset.zoneOk=zone.ok?'1':'0';
     }
 
-    // ── INIT MAP + AUTOCOMPLETE (new Places API) ──────────────────────
-    async function initAddressAutocomplete(){
+    // Called by Google Maps after loading
+    function initAddressAutocomplete(){
       try {
-        const {Map,Circle,Marker} = await google.maps.importLibrary('maps');
-        const {PlaceAutocompleteElement} = await google.maps.importLibrary('places');
+        const container=document.getElementById('addrAutoContainer'); if(!container) return;
 
-        // Replace the text input with PlaceAutocompleteElement
-        const container = document.getElementById('addrAutoContainer');
-        if(!container) return;
-
-        const autocompleteEl = new PlaceAutocompleteElement({
-          componentRestrictions:{country:'nl'},
-          types:['address']
+        // PlaceAutocompleteElement — works with Places API (New)
+        const ac=new google.maps.places.PlaceAutocompleteElement({
+          componentRestrictions:{country:'nl'}, types:['address']
         });
-        // Style to match the form inputs
-        autocompleteEl.style.cssText='width:100%;display:block;';
+        ac.style.cssText='width:100%;display:block';
         container.innerHTML='';
-        container.appendChild(autocompleteEl);
+        container.appendChild(ac);
 
         // Mini map
         const mapDiv=document.getElementById('addrMap');
         const mapWrap=document.getElementById('addrMapWrap');
         let miniMap=null, miniMarker=null;
-
         if(mapDiv){
-          miniMap=new Map(mapDiv,{zoom:8,center:{lat:52.2,lng:5.0},mapTypeControl:false,streetViewControl:false,fullscreenControl:false,
-            styles:[{featureType:'poi',stylers:[{visibility:'off'}]}]});
+          miniMap=new google.maps.Map(mapDiv,{zoom:8,center:{lat:52.2,lng:5.0},mapTypeControl:false,streetViewControl:false,fullscreenControl:false});
           DELIVERY_HUBS.forEach(h=>{
-            new Circle({map:miniMap,center:{lat:h.lat,lng:h.lng},radius:h.innerKm*1000,strokeColor:'#E84B22',strokeOpacity:.6,strokeWeight:2,fillColor:'#E84B22',fillOpacity:.1});
+            new google.maps.Circle({map:miniMap,center:{lat:h.lat,lng:h.lng},radius:h.km*1000,strokeColor:'#E84B22',strokeOpacity:.6,strokeWeight:2,fillColor:'#E84B22',fillOpacity:.12});
           });
           if(mapWrap) mapWrap.style.display='block';
         }
 
-        // Handle address selection
-        autocompleteEl.addEventListener('gmp-placeselect', async({place})=>{
+        // Handle selection
+        ac.addEventListener('gmp-placeselect',async({place})=>{
           await place.fetchFields({fields:['location','addressComponents','formattedAddress']});
           const lat=place.location.lat(), lng=place.location.lng();
-          let street='',number='',postcode='',city='',province='';
+          let street='',num='',post='',city='',prov='';
           for(const comp of (place.addressComponents||[])){
             const t=comp.types||[];
             if(t.includes('route'))           street=comp.longText;
-            if(t.includes('street_number'))   number=comp.longText;
-            if(t.includes('postal_code'))     postcode=comp.longText;
+            if(t.includes('street_number'))   num=comp.longText;
+            if(t.includes('postal_code'))     post=comp.longText;
             if(t.includes('locality')||t.includes('postal_town')) city=comp.longText;
-            if(t.includes('administrative_area_level_1')) province=comp.longText;
+            if(t.includes('administrative_area_level_1')) prov=comp.longText;
           }
-          document.getElementById('coStreet').value=`${number} ${street}`.trim()||place.formattedAddress;
-          document.getElementById('coPost').value=postcode;
+          document.getElementById('coStreet').value=`${num} ${street}`.trim()||place.formattedAddress;
+          document.getElementById('coPost').value=post;
           document.getElementById('coCity').value=city;
-          document.getElementById('coProvince').value=province;
-
+          document.getElementById('coProvince').value=prov;
           if(miniMap){
             miniMap.setCenter({lat,lng}); miniMap.setZoom(13);
             if(miniMarker) miniMarker.setMap(null);
-            miniMarker=new Marker({map:miniMap,position:{lat,lng},animation:google.maps.Animation.DROP});
+            miniMarker=new google.maps.Marker({map:miniMap,position:{lat,lng},animation:google.maps.Animation.DROP});
           }
-          showZoneStatus(getDeliveryZone(lat,lng,province));
+          showZoneResult(getZone(lat,lng,prov));
         });
-      } catch(e){ console.warn('Google Maps failed to load:', e); }
-    }
 
-    // Block order if outside zone
-    document.addEventListener('DOMContentLoaded',function(){
-      const orig=window.placeOrder;
-      if(orig) window.placeOrder=function(){
-        const isPickup=window.selectedDelivery==='pickup';
-        if(!isPickup && !document.getElementById('coStreet').value){
-          if(typeof showToast==='function') showToast('Please select your address from the dropdown.');
-          return;
-        }
-        const zEl=document.getElementById('zoneStatus');
-        if(!isPickup && zEl && zEl.dataset.zoneOk==='0'){
-          if(typeof showToast==='function') showToast('Delivery to this address is not available. Please contact us.');
-          return;
-        }
-        orig();
-      };
-    });
-    </script>
-
-    <script>
-    (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);a.src=`https://maps.googleapis.com/maps/api/js?`+e;a.onerror=()=>n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a);d[l]=f}));async function f(c,...d){await h;return await d.reduce(async(f,g)=>{await f;const a=google.maps;a[q]||(a[q]=(await a[l](g)));return a[q]},Promise.resolve())};g[l]=f;return f})({key:"AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM",v:"weekly"});
-    document.addEventListener('DOMContentLoaded', initAddressAutocomplete);
-    </script>
-    <script>
-    // ── DELIVERY ZONE CONFIG ──────────────────────────────────────────────
-    const DELIVERY_HUBS = [
-      { name:'Amsterdam',  lat:52.3676, lng:4.9041, feeInner:10, feeOuter:15, innerKm:10 },
-      { name:'Den Bosch',  lat:51.6978, lng:5.3037, feeInner:10, feeOuter:15, innerKm:10 },
-      { name:'Den Haag',   lat:52.0705, lng:4.3007, feeInner:15, feeOuter:15, innerKm:15 },
-    ];
-    const COVERED_PROVINCES = ['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Limburg','Utrecht','Flevoland','Overijssel','Gelderland'];
-
-    let _addrMap = null, _addrMarker = null, _zoneCircles = [];
-    let addressValidated = false;
-
-    function deg2rad(d){ return d * Math.PI / 180; }
-    function distKm(a,b,c,d){
-      const R=6371, dL=deg2rad(c-a), dG=deg2rad(d-b);
-      const x=Math.sin(dL/2)**2+Math.cos(deg2rad(a))*Math.cos(deg2rad(c))*Math.sin(dG/2)**2;
-      return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
-    }
-
-    function getDeliveryZone(lat, lng, province) {
-      for (const hub of DELIVERY_HUBS) {
-        const d = distKm(lat, lng, hub.lat, hub.lng);
-        if (d <= hub.innerKm) return { ok:true, fee:hub.feeInner, label:`Within ${hub.innerKm} km of ${hub.name}` };
-      }
-      const pNorm = (province||'').toLowerCase();
-      if (COVERED_PROVINCES.some(p => pNorm.includes(p.toLowerCase()))) {
-        return { ok:true, fee:15, label:`${province} — covered zone` };
-      }
-      return { ok:false, fee:null, label:`${province||'This area'} is outside our delivery zones` };
-    }
-
-    function showZoneStatus(zone, address) {
-      const el = document.getElementById('zoneStatus');
-      if (!el) return;
-      if (zone.ok) {
-        el.style.display = 'block';
-        el.style.background = '#EAF3DE';
-        el.style.color = '#3B6D11';
-        el.style.border = '1px solid #97C459';
-        el.innerHTML = `✓ <strong>We deliver here!</strong> ${zone.label} · Delivery fee: <strong>€${zone.fee}</strong>`;
-        // Update delivery fee display
-        updateDeliveryFeeDisplay(zone.fee);
-      } else {
-        el.style.display = 'block';
-        el.style.background = '#FCEBEB';
-        el.style.color = '#A32D2D';
-        el.style.border = '1px solid #F09595';
-        el.innerHTML = `✗ <strong>Outside delivery zone.</strong> ${zone.label}. Please <a href="contact.html" style="color:#A32D2D">contact us</a> to arrange delivery.`;
-      }
-      el.dataset.zoneOk = zone.ok ? '1' : '0';
-    }
-
-    function updateDeliveryFeeDisplay(fee) {
-      const opt = document.getElementById('opt-delivery-local');
-      if (opt) {
-        const priceEl = opt.querySelector('.delivery-option-price');
-        if (priceEl) priceEl.textContent = `€${fee}.00`;
-      }
-    }
-
-    function initAddressAutocomplete() {
-      const input = document.getElementById('addressSearch');
-      if (!input) return;
-
-      const autocomplete = new google.maps.places.Autocomplete(input, {
-        componentRestrictions: { country: 'nl' },
-        types: ['address'],
-        fields: ['geometry', 'address_components', 'formatted_address']
-      });
-
-      // Init mini map
-      const mapDiv = document.createElement('div');
-      mapDiv.style.cssText = 'width:100%;height:200px';
-      const wrap = document.getElementById('addrMapWrap');
-      if (wrap) { wrap.appendChild(mapDiv); wrap.style.display = 'block'; }
-
-      _addrMap = new google.maps.Map(mapDiv, {
-        zoom: 12,
-        center: { lat: 52.37, lng: 4.9 },
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        zoomControl: true,
-        styles: [{featureType:'poi',stylers:[{visibility:'off'}]}]
-      });
-
-      // Draw zone circles on mini map
-      DELIVERY_HUBS.forEach(h => {
-        new google.maps.Circle({
-          map: _addrMap,
-          center: { lat: h.lat, lng: h.lng },
-          radius: h.innerKm * 1000,
-          strokeColor: '#E84B22', strokeOpacity: 0.6, strokeWeight: 2,
-          fillColor: '#E84B22', fillOpacity: 0.08
-        });
-      });
-
-      autocomplete.addListener('place_changed', function() {
-        const place = autocomplete.getPlace();
-        if (!place.geometry) return;
-
-        const lat = place.geometry.location.lat();
-        const lng = place.geometry.location.lng();
-
-        // Extract address components
-        let street = '', number = '', postcode = '', city = '', province = '';
-        for (const comp of place.address_components) {
-          if (comp.types.includes('route'))           street   = comp.long_name;
-          if (comp.types.includes('street_number'))   number   = comp.long_name;
-          if (comp.types.includes('postal_code'))     postcode = comp.long_name;
-          if (comp.types.includes('locality') || comp.types.includes('postal_town')) city = comp.long_name;
-          if (comp.types.includes('administrative_area_level_1')) province = comp.long_name;
-        }
-
-        document.getElementById('coStreet').value   = `${number} ${street}`.trim() || place.formatted_address;
-        document.getElementById('coPost').value      = postcode;
-        document.getElementById('coCity').value      = city;
-        document.getElementById('coProvince').value  = province;
-        addressValidated = true;
-
-        // Move map + marker
-        _addrMap.setCenter({ lat, lng });
-        _addrMap.setZoom(14);
-        if (_addrMarker) _addrMarker.setMap(null);
-        _addrMarker = new google.maps.Marker({ map: _addrMap, position: { lat, lng }, animation: google.maps.Animation.DROP });
-
-        // Zone check
-        const zone = getDeliveryZone(lat, lng, province);
-        showZoneStatus(zone, place.formatted_address);
-
-        // Block/unblock place order button
-        const btn = document.getElementById('placeOrderBtn');
-        if (btn) {
-          if (!zone.ok) {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.title = 'Address is outside our delivery zone';
-          } else {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.title = '';
-          }
-        }
-      });
-    }
-
-    // Override address validation in placeOrder to require autocomplete selection
-    const _origPlaceOrder = window.placeOrder;
-    document.addEventListener('DOMContentLoaded', function() {
-      const origPlaceOrder = window.placeOrder;
-      if (origPlaceOrder) {
-        window.placeOrder = function() {
-          const isPickup = window.selectedDelivery === 'pickup';
-          if (!isPickup && !document.getElementById('coStreet').value) {
-            const addr = document.getElementById('addressSearch');
-            if (addr) addr.classList.add('error');
-            if (typeof showToast === 'function') showToast('Please select your address from the dropdown.');
+        // Override placeOrder to require address selection
+        const orig=window.placeOrder;
+        if(orig) window.placeOrder=function(){
+          const isPickup=window.selectedDelivery==='pickup';
+          if(!isPickup&&!document.getElementById('coStreet').value){
+            if(typeof showToast==='function') showToast('Please select your address from the dropdown.');
             return;
           }
-          const zoneEl = document.getElementById('zoneStatus');
-          if (!isPickup && zoneEl && zoneEl.dataset.zoneOk === '0') {
-            if (typeof showToast === 'function') showToast('Delivery to this address is not available yet. Please contact us.');
+          const zEl=document.getElementById('zoneStatus');
+          if(!isPickup&&zEl&&zEl.dataset.zoneOk==='0'){
+            if(typeof showToast==='function') showToast("We don't deliver to this address yet. Please contact us.");
             return;
           }
-          origPlaceOrder();
+          orig();
         };
-      }
-    });
+      } catch(e){ console.warn('Maps init error:',e); }
+    }
+    </script>
+    <script async
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM&libraries=places&v=weekly&loading=async&callback=initAddressAutocomplete">
     </script>
 </body>
 </html>
