@@ -215,42 +215,22 @@
                         <div class="checkout-block-num">3</div>
                         <h3 data-i18n="checkout_address">Delivery address</h3>
                     </div>
-                    <div class="checkout-block-body">
+                                    <div class="checkout-block-body">
                         <div class="field">
-                            <label for="coStreet" data-i18n="checkout_street">Street address & house number</label>
-                            <input type="text" id="coStreet" placeholder="Damrak 1" autocomplete="street-address">
+                            <label for="addressSearch" data-i18n="checkout_street">Delivery address</label>
+                            <input type="text" id="addressSearch" placeholder="Start typing your address…" autocomplete="off">
+                            <span class="hint">Select from the dropdown to validate and auto-fill your address.</span>
                         </div>
-                        <div class="field">
-                            <label for="coPost" data-i18n="checkout_postcode">Postcode</label>
-                            <input type="text" id="coPost" placeholder="1012 LG" autocomplete="postal-code" style="max-width:180px;">
-                        </div>
-                        <div class="field">
-                            <label for="coCity" data-i18n="checkout_city">City</label>
-                            <input type="text" id="coCity" placeholder="Amsterdam" autocomplete="address-level2">
-                        </div>
-                        <div class="field">
-                            <label for="coProvince" data-i18n="checkout_province">Province</label>
-                            <div class="select-wrap">
-                                <select id="coProvince">
-                                    <option value="" disabled selected data-i18n="checkout_province_ph">Select your province…</option>
-                                    <option>Noord-Holland</option>
-                                    <option>Zuid-Holland</option>
-                                    <option>Utrecht</option>
-                                    <option>Flevoland</option>
-                                    <option>Noord-Brabant</option>
-                                    <option>Gelderland</option>
-                                    <option>Overijssel</option>
-                                    <option>Friesland</option>
-                                    <option>Drenthe</option>
-                                    <option>Groningen</option>
-                                    <option>Zeeland</option>
-                                    <option>Limburg</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="field">
+                        <div id="zoneStatus" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin:6px 0;line-height:1.5;"></div>
+                        <div id="addrMapWrap" style="display:none;margin-top:10px;border-radius:12px;overflow:hidden;height:200px;border:1px solid var(--border);"></div>
+                        <!-- Hidden fields used by placeOrder() -->
+                        <input type="hidden" id="coStreet">
+                        <input type="hidden" id="coPost">
+                        <input type="hidden" id="coCity">
+                        <input type="hidden" id="coProvince">
+                        <div class="field" style="margin-top:14px;">
                             <label for="coNotes"><span data-i18n="checkout_notes">Delivery notes</span> <span class="optional" data-i18n="checkout_optional">optional</span></label>
-                            <input type="text" id="coNotes" data-i18n="checkout_notes_ph" placeholder="e.g. ring bell 2nd floor, leave at door">
+                            <input type="text" id="coNotes" placeholder="e.g. ring bell 2nd floor">
                             <span class="hint" data-i18n="checkout_hint_notes">Apartment number, gate code, or anything useful for the driver.</span>
                         </div>
                     </div>
@@ -282,12 +262,13 @@
                     </div>
                     <div class="checkout-block-body">
                         <div style="background:var(--cream);border-radius:10px;padding:1.25rem;display:flex;gap:14px;align-items:flex-start;">
-                            <div style="font-size:22px;">🔒</div>
+                            <div style="font-size:22px;">💳</div>
                             <div>
-                                <div style="font-size:14px;font-weight:600;color:var(--blue);margin-bottom:4px;" data-i18n="checkout_payment_title">Secure online payment</div>
-                                <div style="font-size:13px;color:var(--ink-soft);line-height:1.65;" data-i18n="checkout_payment_desc">
-                                    After clicking "Pay &amp; Order" you will be redirected to a secure Stripe payment page.
-                                    We accept all major credit &amp; debit cards, Apple Pay and Google Pay.
+                                <div style="font-size:14px;font-weight:600;color:var(--blue);margin-bottom:4px;" data-i18n="checkout_payment_title2">Payment on delivery or via bank transfer</div>
+                                <div style="font-size:13px;color:var(--ink-soft);line-height:1.65;" data-i18n="checkout_payment_desc2">
+                                    After placing your order you'll receive a confirmation email with our bank details.
+                                    Payment by cash on delivery is also accepted.
+                                    Online payment coming soon.
                                 </div>
                             </div>
                         </div>
@@ -304,8 +285,8 @@
                 </div>
                 <div class="summary-totals" id="summaryTotals"></div>
                 <div class="summary-foot">
-                    <button class="checkout-submit" id="placeOrderBtn" onclick="placeOrder()" data-i18n="checkout_place">Pay & Order →</button>
-                    <p class="summary-note" data-i18n="checkout_note">You will be redirected to Stripe to complete payment securely. Order confirmed after payment.</p>
+                    <button class="checkout-submit" id="placeOrderBtn" onclick="placeOrder()" data-i18n="checkout_place">Place order →</button>
+                    <p class="summary-note" data-i18n="checkout_note">By placing your order you agree to our delivery terms. A confirmation email will be sent immediately.</p>
                 </div>
             </div>
 
@@ -554,11 +535,7 @@
         }
 
         // ── INIT ─────────────────────────────────────────────
-        // Clear cart if returning from successful payment
-            if (window.location.search.includes('cancelled=1')) {
-                showToast('Payment was cancelled. Your cart is still saved.');
-            }
-            document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () => {
             // Redirect to login only if no token
             if (typeof getToken !== 'function' || (!getToken() && !getUser())) {
                 window.location.href = 'login.html?redirect=checkout.html';
@@ -589,6 +566,178 @@
             loadSlots();
             renderSummary();
         });
+    </script>
+
+    <!-- Google Maps + Places + Zone Validation -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initAddressAutocomplete" async defer></script>
+    <script>
+    // ── DELIVERY ZONE CONFIG ──────────────────────────────────────────────
+    const DELIVERY_HUBS = [
+      { name:'Amsterdam',  lat:52.3676, lng:4.9041, feeInner:10, feeOuter:15, innerKm:10 },
+      { name:'Den Bosch',  lat:51.6978, lng:5.3037, feeInner:10, feeOuter:15, innerKm:10 },
+      { name:'Den Haag',   lat:52.0705, lng:4.3007, feeInner:15, feeOuter:15, innerKm:15 },
+    ];
+    const COVERED_PROVINCES = ['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Limburg'];
+
+    let _addrMap = null, _addrMarker = null, _zoneCircles = [];
+    let addressValidated = false;
+
+    function deg2rad(d){ return d * Math.PI / 180; }
+    function distKm(a,b,c,d){
+      const R=6371, dL=deg2rad(c-a), dG=deg2rad(d-b);
+      const x=Math.sin(dL/2)**2+Math.cos(deg2rad(a))*Math.cos(deg2rad(c))*Math.sin(dG/2)**2;
+      return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+    }
+
+    function getDeliveryZone(lat, lng, province) {
+      for (const hub of DELIVERY_HUBS) {
+        const d = distKm(lat, lng, hub.lat, hub.lng);
+        if (d <= hub.innerKm) return { ok:true, fee:hub.feeInner, label:`Within ${hub.innerKm} km of ${hub.name}` };
+      }
+      const pNorm = (province||'').toLowerCase();
+      if (COVERED_PROVINCES.some(p => pNorm.includes(p.toLowerCase()))) {
+        return { ok:true, fee:15, label:`${province} — covered zone` };
+      }
+      return { ok:false, fee:null, label:`${province||'This area'} is outside our delivery zones` };
+    }
+
+    function showZoneStatus(zone, address) {
+      const el = document.getElementById('zoneStatus');
+      if (!el) return;
+      if (zone.ok) {
+        el.style.display = 'block';
+        el.style.background = '#EAF3DE';
+        el.style.color = '#3B6D11';
+        el.style.border = '1px solid #97C459';
+        el.innerHTML = `✓ <strong>We deliver here!</strong> ${zone.label} · Delivery fee: <strong>€${zone.fee}</strong>`;
+        // Update delivery fee display
+        updateDeliveryFeeDisplay(zone.fee);
+      } else {
+        el.style.display = 'block';
+        el.style.background = '#FCEBEB';
+        el.style.color = '#A32D2D';
+        el.style.border = '1px solid #F09595';
+        el.innerHTML = `✗ <strong>Outside delivery zone.</strong> ${zone.label}. Please <a href="contact.html" style="color:#A32D2D">contact us</a> to arrange delivery.`;
+      }
+      el.dataset.zoneOk = zone.ok ? '1' : '0';
+    }
+
+    function updateDeliveryFeeDisplay(fee) {
+      const opt = document.getElementById('opt-delivery-local');
+      if (opt) {
+        const priceEl = opt.querySelector('.delivery-option-price');
+        if (priceEl) priceEl.textContent = `€${fee}.00`;
+      }
+    }
+
+    function initAddressAutocomplete() {
+      const input = document.getElementById('addressSearch');
+      if (!input) return;
+
+      const autocomplete = new google.maps.places.Autocomplete(input, {
+        componentRestrictions: { country: 'nl' },
+        types: ['address'],
+        fields: ['geometry', 'address_components', 'formatted_address']
+      });
+
+      // Init mini map
+      const mapDiv = document.createElement('div');
+      mapDiv.style.cssText = 'width:100%;height:200px';
+      const wrap = document.getElementById('addrMapWrap');
+      if (wrap) { wrap.appendChild(mapDiv); wrap.style.display = 'block'; }
+
+      _addrMap = new google.maps.Map(mapDiv, {
+        zoom: 12,
+        center: { lat: 52.37, lng: 4.9 },
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        zoomControl: true,
+        styles: [{featureType:'poi',stylers:[{visibility:'off'}]}]
+      });
+
+      // Draw zone circles on mini map
+      DELIVERY_HUBS.forEach(h => {
+        new google.maps.Circle({
+          map: _addrMap,
+          center: { lat: h.lat, lng: h.lng },
+          radius: h.innerKm * 1000,
+          strokeColor: '#E84B22', strokeOpacity: 0.6, strokeWeight: 2,
+          fillColor: '#E84B22', fillOpacity: 0.08
+        });
+      });
+
+      autocomplete.addListener('place_changed', function() {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) return;
+
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+
+        // Extract address components
+        let street = '', number = '', postcode = '', city = '', province = '';
+        for (const comp of place.address_components) {
+          if (comp.types.includes('route'))           street   = comp.long_name;
+          if (comp.types.includes('street_number'))   number   = comp.long_name;
+          if (comp.types.includes('postal_code'))     postcode = comp.long_name;
+          if (comp.types.includes('locality') || comp.types.includes('postal_town')) city = comp.long_name;
+          if (comp.types.includes('administrative_area_level_1')) province = comp.long_name;
+        }
+
+        document.getElementById('coStreet').value   = `${number} ${street}`.trim() || place.formatted_address;
+        document.getElementById('coPost').value      = postcode;
+        document.getElementById('coCity').value      = city;
+        document.getElementById('coProvince').value  = province;
+        addressValidated = true;
+
+        // Move map + marker
+        _addrMap.setCenter({ lat, lng });
+        _addrMap.setZoom(14);
+        if (_addrMarker) _addrMarker.setMap(null);
+        _addrMarker = new google.maps.Marker({ map: _addrMap, position: { lat, lng }, animation: google.maps.Animation.DROP });
+
+        // Zone check
+        const zone = getDeliveryZone(lat, lng, province);
+        showZoneStatus(zone, place.formatted_address);
+
+        // Block/unblock place order button
+        const btn = document.getElementById('placeOrderBtn');
+        if (btn) {
+          if (!zone.ok) {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.title = 'Address is outside our delivery zone';
+          } else {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.title = '';
+          }
+        }
+      });
+    }
+
+    // Override address validation in placeOrder to require autocomplete selection
+    const _origPlaceOrder = window.placeOrder;
+    document.addEventListener('DOMContentLoaded', function() {
+      const origPlaceOrder = window.placeOrder;
+      if (origPlaceOrder) {
+        window.placeOrder = function() {
+          const isPickup = window.selectedDelivery === 'pickup';
+          if (!isPickup && !document.getElementById('coStreet').value) {
+            const addr = document.getElementById('addressSearch');
+            if (addr) addr.classList.add('error');
+            if (typeof showToast === 'function') showToast('Please select your address from the dropdown.');
+            return;
+          }
+          const zoneEl = document.getElementById('zoneStatus');
+          if (!isPickup && zoneEl && zoneEl.dataset.zoneOk === '0') {
+            if (typeof showToast === 'function') showToast('Delivery to this address is not available yet. Please contact us.');
+            return;
+          }
+          origPlaceOrder();
+        };
+      }
+    });
     </script>
 </body>
 </html>
