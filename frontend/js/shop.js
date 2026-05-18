@@ -71,6 +71,26 @@ function productCard(p) {
 }
 
 // ── BUNDLE CARD ───────────────────────────────────────
+function buildChoicePills(b) {
+    var raw = b['choice_' + lang()] || b.choice_en || '';
+    if (!raw) return '';
+    var parts = raw.split(/\s+OR\s+|\s+OR\s+/i).join('|SPLIT|')
+                   .split(/\s+АБО\s+/i).join('|SPLIT|')
+                   .split(/\s+OF\s+/i).join('|SPLIT|')
+                   .split('|SPLIT|')
+                   .map(function(s){ return s.trim(); })
+                   .filter(function(s){ return s.length > 0; });
+    if (parts.length < 2) return '';
+    var html = '<div class="pack-choice-row"><div class="pack-choice-pills" id="choice-' + b.id + '">';
+    for (var i = 0; i < parts.length; i++) {
+        var cls = 'pack-choice-pill' + (i === 0 ? ' selected' : '');
+        var pid = b.id; var ptxt = parts[i];
+        html += '<div class="' + cls + '" onclick="selectBundleChoice(\''+pid+'\',this,\''+ptxt+'\')">'+ptxt+'</div>';
+    }
+    html += '</div></div>';
+    return html;
+}
+
 function bundleCard(b) {
     const featured = b.badge === 'Most popular';
     const items = b.items.map(item => {
@@ -89,7 +109,7 @@ function bundleCard(b) {
       <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>
       <div class="pack-name">${bName(b)}</div>
       <div class="pack-items">${items}</div>
-      ${(()=>{const cr=b['choice_'+lang()]||b.choice_en||'';if(!cr)return '';const pts=cr.split(/\s+OR\s+|\s+АБО\s+|\s+OF\s+/i).map(s=>s.trim()).filter(Boolean);if(pts.length<2)return '';return '<div class=\"pack-choice-row\"><div class=\"pack-choice-pills\" id=\"choice-'+b.id+'\">'+pts.map((p,i)=>'<div class=\"pack-choice-pill '+(i===0?'selected':'')+'\" onclick=\"selectBundleChoice(\\''+b.id+'\\',this,\\''+p+'\\')\">' +p+'</div>').join('')+'</div></div>';})()}
+      \${buildChoicePills(b)}
       <div class="pack-price-row">${oldPriceHtml}<span class="pack-price-new">€${b.discount_price}</span></div>
       ${portions ? `<div class="pack-per">~€${(b.discount_price / portions).toFixed(1)} per portion</div>` : ''}
     </div>

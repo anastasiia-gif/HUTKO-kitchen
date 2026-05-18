@@ -330,7 +330,7 @@
 
         // Show/hide address & date blocks depending on method
         function toggleBlocks() {
-            const isPickup = selectedDelivery === 'pickup';
+            const isPickup = selectedDelivery && selectedDelivery.startsWith('pickup');
             document.getElementById('addressBlock').style.display = isPickup ? 'none' : '';
             document.getElementById('dateBlock').style.display = isPickup ? 'none' : '';
         }
@@ -456,7 +456,7 @@
 
         // ── PLACE ORDER ─────────────────────────────────────
         async function placeOrder() {
-            const isPickup = selectedDelivery === 'pickup';
+            const isPickup = selectedDelivery && selectedDelivery.startsWith('pickup');
 
             // Validate contact fields always
             const contactFields = ['coFirst', 'coLast', 'coEmail', 'coPhone'];
@@ -496,7 +496,7 @@
                 city: isPickup ? '\'s-Hertogenbosch' : document.getElementById('coCity').value.trim(),
                 province: isPickup ? 'Noord-Brabant' : document.getElementById('coProvince').value.trim(),
                 notes: document.getElementById('coNotes').value.trim(),
-                delivery_method: selectedDelivery,
+                delivery_method: selectedDelivery.startsWith('pickup') ? 'pickup' : selectedDelivery,
                 delivery_date: isPickup ? '' : selectedDate,
                 items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
             };
