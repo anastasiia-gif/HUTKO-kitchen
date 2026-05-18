@@ -109,7 +109,7 @@ function bundleCard(b) {
       <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>
       <div class="pack-name">${bName(b)}</div>
       <div class="pack-items">${items}</div>
-      \${buildChoicePills(b)}
+      ${buildChoicePills(b)}
       <div class="pack-price-row">${oldPriceHtml}<span class="pack-price-new">€${b.discount_price}</span></div>
       ${portions ? `<div class="pack-per">~€${(b.discount_price / portions).toFixed(1)} per portion</div>` : ''}
     </div>

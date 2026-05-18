@@ -249,28 +249,127 @@
     <script>
     function initDeliveryPage(){
       var mapEl=document.getElementById('deliveryMap');
-      var ZI=[{n:'Amsterdam',lat:52.3676,lng:4.9041,km:10},{n:'Den Bosch',lat:51.6978,lng:5.3037,km:10},{n:'Den Haag',lat:52.0705,lng:4.3007,km:15}];
+      var HUBS=[
+        {n:'Amsterdam', lat:52.3676, lng:4.9041, r:10000, fee:10},
+        {n:'Den Bosch',  lat:51.6978, lng:5.3037, r:10000, fee:10},
+        {n:'Den Haag',   lat:52.0705, lng:4.3007, r:15000, fee:15}
+      ];
       var ZR=['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
       var ZC=['Gelderland','Overijssel','Limburg','Groningen','Friesland','Drenthe','Zeeland'];
       function _r(d){return d*Math.PI/180;}
       function km(a,b,cc,d){var R=6371,dL=_r(cc-a),dG=_r(d-b),x=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(_r(a))*Math.cos(_r(cc))*Math.sin(dG/2)*Math.sin(dG/2);return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
-      function getZone(lat,lng,prov){var pn=(prov||'').toLowerCase();for(var i=0;i<ZI.length;i++)if(km(lat,lng,ZI[i].lat,ZI[i].lng)<=ZI[i].km)return{t:'i',fee:ZI[i].fee,hub:ZI[i].n};if(ZR.some(function(p){return pn.indexOf(p.toLowerCase())>-1}))return{t:'r',fee:15,hub:prov};if(ZC.some(function(p){return pn.indexOf(p.toLowerCase())>-1}))return{t:'c',fee:15,hub:prov};return{t:'o'};}
-      function showResult(z){var el=document.getElementById('deliveryZoneResult');el.style.display='block';if(z.t==='o'){el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#FCEBEB;color:#A32D2D;border:1.5px solid #F09595';el.innerHTML='&#10007; <strong>We don&#39;t deliver here yet.</strong> <a href="contact.html" style="color:#A32D2D">Contact us &#8594;</a>';}else if(z.t==='c'){el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#FFFBEA;color:#856404;border:1.5px solid #FFD761';el.innerHTML='&#9432; <strong>'+z.hub+'</strong> &#8212; &#8364;'+z.fee+'. We&#39;ll contact you to confirm date &amp; time. <a href="shop.html" style="color:#856404">Order &#8594;</a>';}else{el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#EAF3DE;color:#3B6D11;border:1.5px solid #97C459';el.innerHTML='&#10003; <strong>We deliver to '+z.hub+'</strong> &#8212; Fee: <strong>&#8364;'+z.fee+'</strong> &nbsp;<a href="shop.html" style="color:#3B6D11">Order now &#8594;</a>';}}
-
-      if(mapEl&&typeof google!=='undefined'){
-        var dMap=new google.maps.Map(mapEl,{zoom:7,center:{lat:52.1,lng:5.1},mapTypeControl:false,streetViewControl:false,fullscreenControl:false,styles:[{featureType:'poi',stylers:[{visibility:'off'}]}]});
-        ZI.forEach(function(h){new google.maps.Circle({map:dMap,center:{lat:h.lat,lng:h.lng},radius:h.km*1000,strokeColor:'#E84B22',strokeOpacity:.7,strokeWeight:2,fillColor:'#E84B22',fillOpacity:.2});new google.maps.Marker({map:dMap,position:{lat:h.lat,lng:h.lng},label:{text:h.n+' \u20ac'+h.fee,color:'#fff',fontSize:'11px',fontWeight:'600'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:6,fillColor:'#E84B22',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}});});
-        [{c:'#f0a070',p:[[52.92,4.72],[52.90,5.09],[52.77,5.18],[52.62,5.22],[52.44,5.07],[52.38,5.17],[52.35,5.02],[52.28,4.97],[52.22,4.85],[52.18,4.55],[52.35,4.49],[52.55,4.52],[52.68,4.62],[52.83,4.68]]},{c:'#f4a261',p:[[52.22,4.85],[52.14,4.88],[52.12,5.02],[52.04,5.10],[51.92,5.12],[51.85,4.93],[51.88,4.55],[51.82,4.38],[51.76,4.18],[51.75,4.00],[51.85,3.99],[51.96,4.12],[52.04,4.32],[52.12,4.48],[52.18,4.55]]},{c:'#2a9d8f',p:[[51.80,4.00],[51.82,4.38],[51.88,4.55],[51.85,4.93],[51.92,5.12],[51.95,5.38],[51.90,5.60],[51.88,5.88],[51.85,6.00],[51.55,6.08],[51.42,6.05],[51.38,5.88],[51.30,5.45],[51.26,5.05],[51.28,4.55],[51.38,4.20],[51.50,3.86],[51.65,3.86]]},{c:'#FFD761',p:[[51.85,6.00],[51.95,5.65],[52.04,5.10],[52.12,5.18],[51.98,5.40],[51.88,5.90],[51.60,6.20],[51.42,6.12],[51.10,6.15],[50.75,5.92],[50.75,5.68],[50.85,5.57],[51.20,5.72],[51.42,5.72],[51.55,5.80],[51.68,5.95]]}].forEach(function(x){new google.maps.Polygon({map:dMap,paths:x.p.map(function(pt){return{lat:pt[0],lng:pt[1]};}),strokeColor:x.c,strokeOpacity:.4,strokeWeight:1.5,fillColor:x.c,fillOpacity:.13});});
+      function getZone(lat,lng,prov){
+        var pn=(prov||'').toLowerCase();
+        for(var i=0;i<HUBS.length;i++){if(km(lat,lng,HUBS[i].lat,HUBS[i].lng)<=HUBS[i].r/1000)return{t:'i',fee:HUBS[i].fee,hub:HUBS[i].n};}
+        if(ZR.some(function(p){return pn.indexOf(p.toLowerCase())>-1}))return{t:'r',fee:15,hub:prov};
+        if(ZC.some(function(p){return pn.indexOf(p.toLowerCase())>-1}))return{t:'c',fee:15,hub:prov};
+        return{t:'o'};
+      }
+      function showResult(z){
+        var el=document.getElementById('deliveryZoneResult');
+        if(!el)return;
+        el.style.display='block';
+        if(z.t==='o'){
+          el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#FCEBEB;color:#A32D2D;border:1.5px solid #F09595';
+          el.innerHTML='&#10007; <strong>We don&#39;t deliver here yet.</strong> <a href="contact.html" style="color:#A32D2D">Contact us &#8594;</a>';
+        }else if(z.t==='c'){
+          el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#FFFBEA;color:#856404;border:1.5px solid #FFD761';
+          el.innerHTML='&#9432; <strong>'+z.hub+'</strong> &mdash; &euro;'+z.fee+'. We&#39;ll contact you to confirm date &amp; time. <a href="shop.html" style="color:#856404">Order &#8594;</a>';
+        }else{
+          el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#EAF3DE;color:#3B6D11;border:1.5px solid #97C459';
+          el.innerHTML='&#10003; <strong>We deliver to '+z.hub+'</strong> &mdash; Fee: <strong>&euro;'+z.fee+'</strong> &nbsp;<a href="shop.html" style="color:#3B6D11">Order now &#8594;</a>';
+        }
       }
 
+      // Draw map with circles and markers
+      if(mapEl && typeof google!=='undefined'){
+        var dMap=new google.maps.Map(mapEl,{
+          zoom:7, center:{lat:52.1,lng:5.1},
+          mapTypeControl:false, streetViewControl:false, fullscreenControl:false,
+          styles:[{featureType:'poi',stylers:[{visibility:'off'}]}]
+        });
+        HUBS.forEach(function(h){
+          new google.maps.Circle({map:dMap,center:{lat:h.lat,lng:h.lng},radius:h.r,
+            strokeColor:'#E84B22',strokeOpacity:.7,strokeWeight:2,
+            fillColor:'#E84B22',fillOpacity:.2});
+          new google.maps.Marker({map:dMap,position:{lat:h.lat,lng:h.lng},
+            label:{text:h.n+' €'+h.fee,color:'#fff',fontSize:'11px',fontWeight:'600'},
+            icon:{path:google.maps.SymbolPath.CIRCLE,scale:6,
+              fillColor:'#E84B22',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}
+          });
+        });
+        var POLYS=[
+          {c:'#f0a070',p:[[52.92,4.72],[52.90,5.09],[52.77,5.18],[52.62,5.22],[52.44,5.07],[52.38,5.17],[52.35,5.02],[52.28,4.97],[52.22,4.85],[52.18,4.55],[52.35,4.49],[52.55,4.52],[52.68,4.62],[52.83,4.68]]},
+          {c:'#f4a261',p:[[52.22,4.85],[52.14,4.88],[52.12,5.02],[52.04,5.10],[51.92,5.12],[51.85,4.93],[51.88,4.55],[51.82,4.38],[51.76,4.18],[51.75,4.00],[51.85,3.99],[51.96,4.12],[52.04,4.32],[52.12,4.48],[52.18,4.55]]},
+          {c:'#2a9d8f',p:[[51.80,4.00],[51.82,4.38],[51.88,4.55],[51.85,4.93],[51.92,5.12],[51.95,5.38],[51.90,5.60],[51.88,5.88],[51.85,6.00],[51.55,6.08],[51.42,6.05],[51.38,5.88],[51.30,5.45],[51.26,5.05],[51.28,4.55],[51.38,4.20],[51.50,3.86],[51.65,3.86]]},
+          {c:'#FFD761',p:[[51.85,6.00],[51.95,5.65],[52.04,5.10],[52.12,5.18],[51.98,5.40],[51.88,5.90],[51.60,6.20],[51.42,6.12],[51.10,6.15],[50.75,5.92],[50.75,5.68],[50.85,5.57],[51.20,5.72],[51.42,5.72],[51.55,5.80],[51.68,5.95]]}
+        ];
+        POLYS.forEach(function(x){
+          new google.maps.Polygon({map:dMap,
+            paths:x.p.map(function(pt){return{lat:pt[0],lng:pt[1]};}),
+            strokeColor:x.c,strokeOpacity:.4,strokeWeight:1.5,
+            fillColor:x.c,fillOpacity:.13});
+        });
+      }
+
+      // Address search with Nominatim
       var input=document.getElementById('deliverySearchInput');
+      if(!input)return;
+      var wrap=document.getElementById('deliverySearchContainer');
+      if(wrap)wrap.style.position='relative';
       var drop=document.getElementById('addrDrop');
-      var T=null,CACHE={};
+      var T=null, CACHE={};
+
       function hide(){drop.style.display='none';}
-      function render(data){if(!data.length){drop.innerHTML='<div style="padding:12px;font-size:13px;color:#888">No results.</div>';drop.style.display='block';return;}drop.innerHTML=data.map(function(r,i){var road=r.address.road||'',num=r.address.house_number||'',post=r.address.postcode||'',city=r.address.city||r.address.town||r.address.village||'';var main=num?(road+' '+num).trim():road||r.display_name.split(',')[0];return'<div style="padding:11px 15px;font-size:13px;cursor:pointer;border-bottom:1px solid #eee;" data-i="'+i+'"><strong style="color:var(--blue)">'+main+'</strong>'+(post?' <span style="opacity:.6">'+post+'</span>':'')+','+city+'</div>';}).join('');drop.style.display='block';drop.querySelectorAll('[data-i]').forEach(function(el){el.onmouseover=function(){this.style.background='var(--cream)';};el.onmouseout=function(){this.style.background='';};el.addEventListener('mousedown',function(e){e.preventDefault();var r=data[parseInt(el.dataset.i)];var road=r.address.road||''  ,num=r.address.house_number||'';input.value=num?(road+' '+num).trim():road||r.display_name.split(',')[0];hide();showResult(getZone(parseFloat(r.lat),parseFloat(r.lon),r.address.state||''));});});}
-      input.addEventListener('input',function(){clearTimeout(T);var q=input.value.trim();if(q.length<3){hide();return;}drop.innerHTML='<div style="padding:12px;font-size:13px;color:#888">Zoeken…</div>';drop.style.display='block';if(CACHE[q]){render(CACHE[q]);return;}T=setTimeout(function(){fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q+', Netherlands')+'&format=json&limit=6&countrycodes=nl&addressdetails=1',{headers:{'Accept-Language':'nl','User-Agent':'hutko-kitchen/1.0'}}).then(function(r){return r.json();}).then(function(d){CACHE[q]=d;if(input.value.trim()===q)render(d);}).catch(function(){hide();});},400);});
+      function render(data){
+        if(!data||!data.length){
+          drop.innerHTML='<div style="padding:12px;font-size:13px;color:#888">No results — try adding city name.</div>';
+          drop.style.display='block';return;
+        }
+        drop.innerHTML=data.map(function(r,i){
+          var road=r.address.road||'', num=r.address.house_number||'';
+          var post=r.address.postcode||'', city=r.address.city||r.address.town||r.address.village||'';
+          var main=num?(road+' '+num).trim():road||r.display_name.split(',')[0];
+          return '<div style="padding:11px 15px;font-size:13px;cursor:pointer;border-bottom:1px solid #eee;" data-i="'+i+'">'
+                +'<strong style="color:var(--blue)">'+main+'</strong>'
+                +(post?' <span style="opacity:.6">'+post+'</span>':'')
+                +(city?', '+city:'')+'</div>';
+        }).join('');
+        drop.style.display='block';
+        drop.querySelectorAll('[data-i]').forEach(function(el){
+          el.onmouseover=function(){this.style.background='var(--cream)';};
+          el.onmouseout=function(){this.style.background='';};
+          el.addEventListener('mousedown',function(e){
+            e.preventDefault();
+            var r=data[parseInt(el.dataset.i)];
+            var road=r.address.road||'', num=r.address.house_number||'';
+            input.value=num?(road+' '+num).trim():road||r.display_name.split(',')[0];
+            hide();
+            showResult(getZone(parseFloat(r.lat),parseFloat(r.lon),r.address.state||''));
+          });
+        });
+      }
+
+      input.addEventListener('input',function(){
+        clearTimeout(T);
+        var q=input.value.trim();
+        if(q.length<3){hide();return;}
+        drop.innerHTML='<div style="padding:12px;font-size:13px;color:#888">Zoeken…</div>';
+        drop.style.display='block';
+        if(CACHE[q]){render(CACHE[q]);return;}
+        T=setTimeout(function(){
+          fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q+', Netherlands')
+               +'&format=json&limit=6&countrycodes=nl&addressdetails=1',
+               {headers:{'Accept-Language':'nl','User-Agent':'hutko-kitchen/1.0'}})
+            .then(function(r){return r.json();})
+            .then(function(d){CACHE[q]=d;if(input.value.trim()===q)render(d);})
+            .catch(function(){hide();});
+        },400);
+      });
       input.addEventListener('blur',function(){setTimeout(hide,200);});
-      document.addEventListener('click',function(e){if(!input.parentNode.contains(e.target))hide();});
+      document.addEventListener('click',function(e){
+        if(wrap&&!wrap.contains(e.target)&&!drop.contains(e.target))hide();
+      });
     }
     </script>
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM&v=weekly&loading=async&callback=initDeliveryPage"></script>
