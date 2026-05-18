@@ -54,6 +54,7 @@
                     <div class="info-card"><div class="info-icon">📅</div><div><div class="ic-title">Delivery days</div><div class="ic-text">Thursday &amp; Saturday · 16:00–21:00</div></div></div>
                     <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title">Amsterdam</div><div class="ic-text">Within A10 — €10 · Up to 10 km outside — €15<br><span style="font-size:12px;opacity:0.8;">Amstelveen, Diemen, Duivendrecht, Ouderkerk a/d Amstel, Badhoevedorp &amp; nearby western areas</span></div></div></div>
                     <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title">Den Bosch</div><div class="ic-text">City — €10 · Up to 10 km — €15</div></div></div>
+                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title">Den Haag</div><div class="ic-text">City &amp; up to 15 km — €15<br><span style="font-size:12px;opacity:0.7;">Contact us to confirm your delivery day</span></div></div></div>
                     <div class="info-card"><div class="info-icon">🎉</div><div><div class="ic-title">Free delivery</div><div class="ic-text">On orders over €100 — valid within Amsterdam &amp; nearby areas</div></div></div>
                     <div class="info-card"><div class="info-icon">🏠</div><div><div class="ic-title">Pickup</div><div class="ic-text">Amsterdam (Sloterdijk area) — by request<br>Den Bosch — Graafseweg 194B · Mon–Fri</div></div></div>
                     <div class="info-card"><div class="info-icon">📦</div><div><div class="ic-title">How it arrives</div><div class="ic-text">Delivered frozen · Packed in insulated boxes</div></div></div>
@@ -188,10 +189,10 @@
                     <div>
                         <div style="font-family:var(--display);font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;" data-i18n="delivery_how_title" data-i18n="delivery_how_title">How it works</div>
                         <ol style="margin:0;padding-left:1.2rem;color:rgba(255,255,255,0.85);font-size:14px;line-height:2.2;">
-                            <li><a href="shop.html" style="color:#fff;font-weight:600;" data-i18n="delivery_step1_link">Browse the shop</a> <span data-i18n="delivery_step1_rest">and add items to your cart</span></li>
-                            <li data-i18n="delivery_step2">Go to checkout — pick your delivery date right there</li>
-                            <li data-i18n="delivery_step3">We confirm by email within 1 hour with payment details</li>
-                            <li data-i18n="delivery_step4">Your order arrives fresh-frozen on the chosen day 🚚</li>
+                            <li><a href="shop.html" style="color:#fff;font-weight:600;">Browse the shop</a> and add items to your cart</li>
+                            <li>Go to checkout — pick your delivery date right there</li>
+                            <li>We confirm by email within 1 hour with payment details</li>
+                            <li>Your order arrives fresh-frozen on the chosen day 🚚</li>
                         </ol>
                     </div>
                 </div>
@@ -224,130 +225,147 @@
         </div>
     </section>
 
-
-    <!-- ── DELIVERY ZONE MAP ─────────────────────────────────────── -->
+    
+    <!-- ── DELIVERY ZONE MAP ────────────────────────────────────── -->
     <section style="background:var(--white);padding:3rem 2rem;">
         <div class="section-inner">
-            <div class="label reveal" style="text-align:center;">Where we deliver</div>
-            <h2 class="choose-title reveal delay-1" style="text-align:center;margin-bottom:1.5rem;">Find your address</h2>
-            <p style="text-align:center;font-size:14px;color:var(--ink-soft);max-width:520px;margin:0 auto 1.5rem;">
-                Type your address below to check if we deliver to you and see the exact fee.
-            </p>
-
-            <!-- Search bar -->
-            <div style="max-width:520px;margin:0 auto 1.25rem;position:relative;">
-                <div id="deliverySearchContainer" style="width:100%;"><input id="deliverySearch" type="text" placeholder="e.g. Herengracht 1, Amsterdam" style="width:100%;padding:14px 18px;border-radius:100px;border:1.5px solid var(--border);font-size:15px;font-family:var(--sans);outline:none;background:#fff;"></div>
-                <div id="deliveryStatus" style="display:none;margin-top:10px;padding:12px 16px;border-radius:12px;font-size:14px;"></div>
+            <div class="label" style="text-align:center;">Find your zone</div>
+            <h2 class="choose-title" style="text-align:center;margin-bottom:1rem;" data-i18n="delivery_title_map">Check your address</h2>
+            <p style="text-align:center;font-size:14px;color:var(--ink-soft);max-width:500px;margin:0 auto 1.5rem;" data-i18n="delivery_map_sub">Type your address to see if we deliver to you and what the fee is.</p>
+            <div style="max-width:540px;margin:0 auto 1rem;">
+                <div id="deliverySearchContainer" style="width:100%;"></div>
+                <div id="deliveryZoneResult" style="display:none;margin-top:10px;padding:12px 16px;border-radius:12px;font-size:14px;"></div>
             </div>
-
-            <!-- Map -->
-            <div id="deliveryMap" style="width:100%;height:480px;border-radius:20px;border:1px solid var(--border);overflow:hidden;"></div>
-
-            <!-- Legend -->
-            <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-top:1.25rem;">
-                <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-soft);">
-                    <div style="width:14px;height:14px;border-radius:50%;background:#E84B22;opacity:.8"></div> Amsterdam (€10 within 10 km)
-                </div>
-                <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-soft);">
-                    <div style="width:14px;height:14px;border-radius:50%;background:#1B3FCE;opacity:.8"></div> Den Bosch (€10 within 10 km)
-                </div>
-                <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-soft);">
-                    <div style="width:14px;height:14px;border-radius:50%;background:#e76f51;opacity:.5"></div> Noord- &amp; Zuid-Holland €15
-                </div>
-                <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-soft);">
-                    <div style="width:14px;height:14px;border-radius:50%;background:#2a9d8f;opacity:.5"></div> Noord-Brabant €15
-                </div>
-                <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-soft);">
-                    <div style="width:14px;height:14px;border-radius:50%;background:#8338ec;opacity:.5"></div> Limburg €15
-                </div>
+            <div id="deliveryMap" style="width:100%;height:450px;border-radius:20px;border:1px solid var(--border);overflow:hidden;"></div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:1.25rem;">
+                <span style="font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#E84B22;display:inline-block;"></span>Amsterdam &amp; Den Bosch inner (€10)</span>
+                <span style="font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#f4a261;display:inline-block;opacity:.7"></span>Holland provinces (€15)</span>
+                <span style="font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#2a9d8f;display:inline-block;opacity:.7"></span>Noord-Brabant &amp; Limburg (€15)</span>
             </div>
         </div>
     </section>
 
-    <script sr
     <script>
     async function initDeliveryMap(){
       try {
-        const {Map, Circle, Marker, Polygon} = await google.maps.importLibrary('maps');
-        const {PlaceAutocompleteElement} = await google.maps.importLibrary('places');
-
+        const {Map,Circle,Marker,Polygon}=await google.maps.importLibrary('maps');
+        const {PlaceAutocompleteElement}=await google.maps.importLibrary('places');
         const HUBS=[
           {name:'Amsterdam',lat:52.3676,lng:4.9041,color:'#E84B22',r:10000,fee:10},
-          {name:'Den Bosch',lat:51.6978,lng:5.3037,color:'#1B3FCE',r:10000,fee:10},
-          {name:'Den Haag', lat:52.0705,lng:4.3007,color:'#0F6E56',r:15000,fee:15},
+          {name:'Den Bosch',lat:51.6978,lng:5.3037,color:'#E84B22',r:10000,fee:10},
+          {name:'Den Haag', lat:52.0705,lng:4.3007,color:'#f4a261',r:15000,fee:15},
         ];
         const COVERED=['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Limburg','Utrecht','Flevoland','Overijssel','Gelderland'];
-        function d2r(d){return d*Math.PI/180}
-        function dKm(a,b,c,d){const R=6371,dL=d2r(c-a),dG=d2r(d-b);const x=Math.sin(dL/2)**2+Math.cos(d2r(a))*Math.cos(d2r(c))*Math.sin(dG/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
-        function getZone(lat,lng,prov){
-          for(const h of HUBS){if(dKm(lat,lng,h.lat,h.lng)<=h.r/1000)return{ok:true,fee:h.fee,label:`within ${Math.round(dKm(lat,lng,h.lat,h.lng))} km of ${h.name}`};}
-          const pn=(prov||'').toLowerCase();
-          if(COVERED.some(p=>pn.includes(p.toLowerCase())))return{ok:true,fee:15,label:prov};
-          return{ok:false,fee:null,label:prov||'this area'};
-        }
+        function r(d){return d*Math.PI/180}
+        function km(a,b,c,d){const R=6371,dL=r(c-a),dG=r(d-b);const x=Math.sin(dL/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dG/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+        function zone(lat,lng,prov){for(const h of HUBS)if(km(lat,lng,h.lat,h.lng)<=h.r/1000)return{ok:true,fee:h.fee,hub:h.name};if(COVERED.some(p=>(prov||'').toLowerCase().includes(p.toLowerCase())))return{ok:true,fee:15,hub:'Netherlands'};return{ok:false};}
 
-        const dMap=new Map(document.getElementById('deliveryMap'),{
-          zoom:7,center:{lat:52.1,lng:5.1},mapTypeControl:false,streetViewControl:false,fullscreenControl:false,
-          styles:[{featureType:'poi',stylers:[{visibility:'off'}]},{featureType:'transit',stylers:[{visibility:'off'}]}]
-        });
-
+        const dMap=new Map(document.getElementById('deliveryMap'),{zoom:7,center:{lat:52.1,lng:5.1},mapTypeControl:false,streetViewControl:false,fullscreenControl:false});
         HUBS.forEach(h=>{
-          new Circle({map:dMap,center:{lat:h.lat,lng:h.lng},radius:h.r,strokeColor:h.color,strokeOpacity:.7,strokeWeight:2,fillColor:h.color,fillOpacity:.2});
-          new Marker({map:dMap,position:{lat:h.lat,lng:h.lng},
-            label:{text:`${h.name} €${h.fee}`,color:'#fff',fontSize:'11px',fontWeight:'600'},
-            icon:{path:google.maps.SymbolPath.CIRCLE,scale:6,fillColor:h.color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2}
-          });
+          new Circle({map:dMap,center:{lat:h.lat,lng:h.lng},radius:h.r,strokeColor:h.color,strokeOpacity:.7,strokeWeight:2,fillColor:h.color,fillOpacity:.22});
+          new Marker({map:dMap,position:{lat:h.lat,lng:h.lng},label:{text:h.name+' €'+h.fee,color:'#fff',fontSize:'11px',fontWeight:'600'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:6,fillColor:h.color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2}});
         });
+        [[{color:'#f0a070',coords:[[52.92,4.72],[52.90,5.09],[52.77,5.18],[52.62,5.22],[52.44,5.07],[52.38,5.17],[52.35,5.02],[52.28,4.97],[52.22,4.85],[52.18,4.55],[52.35,4.49],[52.55,4.52],[52.68,4.62],[52.83,4.68]]},{color:'#f4a261',coords:[[52.22,4.85],[52.14,4.88],[52.12,5.02],[52.04,5.10],[51.92,5.12],[51.85,4.93],[51.88,4.55],[51.82,4.38],[51.76,4.18],[51.75,4.00],[51.85,3.99],[51.96,4.12],[52.04,4.32],[52.12,4.48],[52.18,4.55]]},{color:'#2a9d8f',coords:[[51.80,4.00],[51.82,4.38],[51.88,4.55],[51.85,4.93],[51.92,5.12],[51.95,5.38],[51.90,5.60],[51.88,5.88],[51.85,6.00],[51.55,6.08],[51.42,6.05],[51.38,5.88],[51.30,5.45],[51.26,5.05],[51.28,4.55],[51.38,4.20],[51.50,3.86],[51.65,3.86]]},{color:'#8338ec',coords:[[51.85,6.00],[51.95,5.65],[52.04,5.10],[52.12,5.18],[51.98,5.40],[51.88,5.90],[51.60,6.20],[51.42,6.12],[51.10,6.15],[50.75,5.92],[50.75,5.68],[50.85,5.57],[51.20,5.72],[51.42,5.72],[51.55,5.80],[51.68,5.95]]}]].flat().forEach(p=>new Polygon({map:dMap,paths:p.coords.map(([lat,lng])=>({lat,lng})),strokeColor:p.color,strokeOpacity:.4,strokeWeight:1,fillColor:p.color,fillOpacity:.12}));
 
-        const POLYS=[
-          {color:'#e76f51',coords:[[52.92,4.72],[52.90,5.09],[52.77,5.18],[52.62,5.22],[52.44,5.07],[52.38,5.17],[52.35,5.02],[52.28,4.97],[52.22,4.85],[52.18,4.55],[52.35,4.49],[52.55,4.52],[52.68,4.62],[52.83,4.68]]},
-          {color:'#f4a261',coords:[[52.22,4.85],[52.14,4.88],[52.12,5.02],[52.04,5.10],[51.92,5.12],[51.85,4.93],[51.88,4.55],[51.82,4.38],[51.76,4.18],[51.75,4.00],[51.85,3.99],[51.96,4.12],[52.04,4.32],[52.12,4.48],[52.18,4.55]]},
-          {color:'#2a9d8f',coords:[[51.80,4.00],[51.82,4.38],[51.88,4.55],[51.85,4.93],[51.92,5.12],[51.95,5.38],[51.90,5.60],[51.88,5.88],[51.85,6.00],[51.55,6.08],[51.42,6.05],[51.38,5.88],[51.30,5.45],[51.26,5.05],[51.28,4.55],[51.38,4.20],[51.50,3.86],[51.65,3.86]]},
-          {color:'#8338ec',coords:[[51.85,6.00],[51.95,5.65],[52.04,5.10],[52.12,5.18],[51.98,5.40],[51.88,5.90],[51.60,6.20],[51.42,6.12],[51.10,6.15],[50.75,5.92],[50.75,5.68],[50.85,5.57],[51.20,5.72],[51.42,5.72],[51.55,5.80],[51.68,5.95]]}
-        ];
-        POLYS.forEach(p=>{
-          new Polygon({map:dMap,paths:p.coords.map(([lat,lng])=>({lat,lng})),strokeColor:p.color,strokeOpacity:.5,strokeWeight:1.5,fillColor:p.color,fillOpacity:.15});
-        });
-
-        // Autocomplete on search
-        const searchContainer=document.getElementById('deliverySearchContainer');
-        if(searchContainer){
-          const autocompleteEl=new PlaceAutocompleteElement({componentRestrictions:{country:'nl'},types:['address']});
-          autocompleteEl.style.cssText='width:100%;display:block';
-          searchContainer.innerHTML='';
-          searchContainer.appendChild(autocompleteEl);
-
-          let dMarker=null;
-          autocompleteEl.addEventListener('gmp-placeselect',async({place})=>{
+        const sc=document.getElementById('deliverySearchContainer');
+        if(sc){
+          const ac=new PlaceAutocompleteElement({componentRestrictions:{country:'nl'},types:['address']});
+          ac.style.cssText='width:100%;display:block';
+          sc.appendChild(ac);
+          let pin=null;
+          ac.addEventListener('gmp-placeselect',async({place})=>{
             await place.fetchFields({fields:['location','addressComponents','formattedAddress']});
             const lat=place.location.lat(),lng=place.location.lng();
             let prov='';
-            for(const comp of (place.addressComponents||[])){
-              if((comp.types||[]).includes('administrative_area_level_1')) prov=comp.longText;
-            }
-            dMap.setCenter({lat,lng}); dMap.setZoom(13);
-            if(dMarker) dMarker.setMap(null);
-            dMarker=new Marker({map:dMap,position:{lat,lng},animation:google.maps.Animation.DROP});
-            const zone=getZone(lat,lng,prov);
-            const st=document.getElementById('deliveryStatus');
-            if(st){
-              st.style.display='block';
-              if(zone.ok){
-                st.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#EAF3DE;color:#3B6D11;border:1px solid #97C459;margin-top:10px';
-                st.innerHTML=`<strong>✓ We deliver here!</strong> ${zone.label} &nbsp;·&nbsp; Delivery fee: <strong>€${zone.fee}</strong> &nbsp; <a href="shop.html" style="color:#3B6D11;font-weight:600">Order now →</a>`;
-              } else {
-                st.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#FCEBEB;color:#A32D2D;border:1px solid #F09595;margin-top:10px';
-                st.innerHTML=`<strong>✗ Outside delivery zones.</strong> We don't currently deliver to ${zone.label}. <a href="contact.html" style="color:#A32D2D;font-weight:600">Contact us →</a>`;
-              }
-            }
+            for(const comp of(place.addressComponents||[]))if((comp.types||[]).includes('administrative_area_level_1'))prov=comp.longText||'';
+            dMap.setCenter({lat,lng});dMap.setZoom(13);
+            if(pin)pin.setMap(null);
+            pin=new Marker({map:dMap,position:{lat,lng},animation:google.maps.Animation.DROP});
+            const z=zone(lat,lng,prov),el=document.getElementById('deliveryZoneResult');
+            el.style.display='block';
+            if(z.ok){el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#EAF3DE;color:#3B6D11;border:1.5px solid #97C459';el.innerHTML='<strong>✓ We deliver here!</strong> via '+z.hub+' &nbsp;·&nbsp; Fee: <strong>€'+z.fee+'</strong> &nbsp;<a href="shop.html" style="color:#3B6D11;font-weight:600">Order now →</a>';}
+            else{el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#FCEBEB;color:#A32D2D;border:1.5px solid #F09595';el.innerHTML='<strong>✗ We don't deliver here yet.</strong> <a href="contact.html" style="color:#A32D2D;font-weight:600">Contact us to arrange →</a>';}
           });
         }
-      } catch(e){ console.warn('Maps load error:',e); }
+      } catch(e){console.warn('Map error:',e);}
     }
     </script>
+    <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);a.src=`https://maps.googleapis.com/maps/api/js?`+e;a.onerror=()=>n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a);d[l]=f}));async function f(c,...d){await h;return await d.reduce(async(f,g)=>{await f;const a=google.maps;a[q]||(a[q]=(await a[l](g)));return a[q]},Promise.resolve())};g[l]=f;return f})({key:"AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM",v:"weekly"});
+    initDeliveryMap();</script>
+    <div id="footer-placeholder"></div>
+    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/main.js"></script>
     <script>
-    (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);a.src=`https://maps.googleapis.com/maps/api/js?`+e;a.onerror=()=>n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a);d[l]=f}));async function f(c,...d){await h;return await d.reduce(async(f,g)=>{await f;const a=google.maps;a[q]||(a[q]=(await a[l](g)));return a[q]},Promise.resolve())};g[l]=f;return f})({key:"AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM",v:"weekly"});
-    initDeliveryMap();
+        let _applyRole = 'driver';
+
+        function openApply(type) {
+            _applyRole = type;
+            document.getElementById('modalWrap').classList.add('open');
+            document.getElementById('modalTitle').textContent = type === 'driver' ? 'Apply as delivery driver' : 'Apply as partner';
+            document.getElementById('driverField').style.display = type === 'driver' ? 'flex' : 'none';
+            document.getElementById('partnerField').style.display = type === 'partner' ? 'flex' : 'none';
+            document.getElementById('applyError').style.display = 'none';
+        }
+
+        function closeApply() {
+            document.getElementById('modalWrap').classList.remove('open');
+        }
+
+        async function submitApply() {
+            const first = document.getElementById('applyFirst').value.trim();
+            const last = document.getElementById('applyLast').value.trim();
+            const email = document.getElementById('applyEmail').value.trim();
+            const phone = document.getElementById('applyPhone').value.trim();
+            const city = document.getElementById('applyCity').value.trim();
+            const biz = document.getElementById('applyBiz').value.trim();
+            const bio = document.getElementById('applyBio').value.trim();
+            const errEl = document.getElementById('applyError');
+
+            if (!first || !last || !email || !bio) {
+                errEl.textContent = 'Please fill in your name, email, and a short bio.';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            const name = `${first} ${last}`;
+            const cityOrBiz = _applyRole === 'driver' ? city : biz;
+            const topicMap = { driver: 'Join as delivery driver', partner: 'Join as business partner' };
+
+            const btn = document.getElementById('applyBtn');
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+            errEl.style.display = 'none';
+
+            try {
+                const res = await Api.Contact.send(
+                    name, email, phone, '',
+                    topicMap[_applyRole],
+                    `Application: ${topicMap[_applyRole]} — ${name}`,
+                    `Role: ${_applyRole}\nCity/Org: ${cityOrBiz}\n\n${bio}`
+                );
+
+                if (res.ok) {
+                    closeApply();
+                    if (typeof showToast === 'function') showToast('✓ Application sent! We\'ll be in touch within 2–3 business days.');
+                } else {
+                    errEl.textContent = res.data?.error || 'Something went wrong. Please try again.';
+                    errEl.style.display = 'block';
+                }
+            } catch (e) {
+                errEl.textContent = 'Network error. Please try again.';
+                errEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send application →';
+            }
+        }
+
+        document.getElementById('modalWrap')?.addEventListener('click', e => {
+            if (e.target.id === 'modalWrap') closeApply();
+        });
     </script>
 </body>
 </html>

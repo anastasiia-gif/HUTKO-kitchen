@@ -173,73 +173,60 @@
                     </div>
                 </div>
 
-                <!-- 2. DELIVERY METHOD -->
+                <!-- 2. DELIVERY: address + auto price detection -->
                 <div class="checkout-block">
                     <div class="checkout-block-head">
                         <div class="checkout-block-num">2</div>
-                        <h3 data-i18n="checkout_method">Delivery method</h3>
+                        <h3 data-i18n="checkout_address">Delivery</h3>
                     </div>
                     <div class="checkout-block-body">
-                        <div class="delivery-options">
-                            <label class="delivery-option selected" id="opt-delivery-local">
-                                <input type="radio" name="delivery" value="delivery_local" checked onchange="selectDelivery(this)">
-                                <div class="delivery-option-info">
-                                    <div class="delivery-option-name" data-i18n="checkout_delivery_local_name">Delivery — Amsterdam (A10) or 's-Hertogenbosch</div>
-                                    <div class="delivery-option-desc" data-i18n="checkout_delivery_local_desc">Thu & Sat · 16:00–20:00 · Insulated packaging</div>
-                                </div>
-                                <div class="delivery-option-price">€10.00</div>
-                            </label>
-                            <label class="delivery-option" id="opt-delivery-other">
-                                <input type="radio" name="delivery" value="delivery_other" onchange="selectDelivery(this)">
-                                <div class="delivery-option-info">
-                                    <div class="delivery-option-name" data-i18n="checkout_delivery_other_name">Delivery — rest of the Netherlands</div>
-                                    <div class="delivery-option-desc" data-i18n="checkout_delivery_other_desc">Thu & Sat · 16:00–20:00 · Insulated packaging</div>
-                                </div>
-                                <div class="delivery-option-price">€15.00</div>
-                            </label>
-                            <label class="delivery-option" id="opt-pickup">
-                                <input type="radio" name="delivery" value="pickup" onchange="selectDelivery(this)">
-                                <div class="delivery-option-info">
-                                    <div class="delivery-option-name" data-i18n="checkout_pickup_name">Pick-up — Graafseweg 194B, 's-Hertogenbosch</div>
-                                    <div class="delivery-option-desc" data-i18n="checkout_pickup_desc">Mon–Fri during working hours · Unlimited spots</div>
+
+                        <!-- Google Places address search -->
+                        <div class="field">
+                            <label data-i18n="checkout_street">Delivery address</label>
+                            <div id="addrAutoContainer" style="width:100%;min-height:48px;border-radius:12px;overflow:hidden;"></div>
+                            <span class="hint" data-i18n="checkout_addr_hint">Type your address and select from the dropdown — delivery price is set automatically.</span>
+                        </div>
+
+                        <!-- Zone status banner (shown after selection) -->
+                        <div id="zoneStatus" style="display:none;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;line-height:1.5;"></div>
+
+                        <!-- Mini map -->
+                        <div id="addrMapWrap" style="display:none;margin-top:10px;border-radius:14px;overflow:hidden;height:200px;border:1px solid var(--border);">
+                            <div id="addrMap" style="width:100%;height:200px;"></div>
+                        </div>
+
+                        <!-- Pickup option -->
+                        <div style="margin-top:14px;">
+                            <label class="delivery-option" id="opt-pickup" style="cursor:pointer;display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:14px;border:1.5px solid var(--border);margin-top:8px;">
+                                <input type="radio" name="delivery" value="pickup" id="radioPickup" onchange="selectPickupMode(this)">
+                                <div style="flex:1;">
+                                    <div class="delivery-option-name" data-i18n="checkout_pickup_name">Pick-up — Graafseweg 194B, Den Bosch</div>
+                                    <div class="delivery-option-desc" data-i18n="checkout_pickup_desc">Mon–Fri during working hours · Free</div>
                                 </div>
                                 <div class="delivery-option-price" data-i18n="checkout_free_label">Free</div>
                             </label>
                         </div>
-                    </div>
-                </div>
 
-                <!-- 3a. DELIVERY ADDRESS (shown for delivery only) -->
-                <div class="checkout-block" id="addressBlock">
-                    <div class="checkout-block-head">
-                        <div class="checkout-block-num">3</div>
-                        <h3 data-i18n="checkout_address">Delivery address</h3>
-                    </div>
-                                    <div class="checkout-block-body">
-                        <div class="field">
-                            <label for="addressSearch" data-i18n="checkout_street">Delivery address</label>
-                            <div id="addrAutoContainer" style="width:100%;min-height:40px;"></div>
-                            <span class="hint">Select from the dropdown to validate and auto-fill your address.</span>
-                        </div>
-                        <div id="zoneStatus" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin:6px 0;line-height:1.5;"></div>
-                        <div id="addrMapWrap" style="display:none;margin-top:10px;border-radius:12px;overflow:hidden;height:200px;border:1px solid var(--border);"></div>
-                        <!-- Hidden fields used by placeOrder() -->
-                        <input type="hidden" id="coStreet">
-                        <input type="hidden" id="coPost">
-                        <input type="hidden" id="coCity">
-                        <input type="hidden" id="coProvince">
+                        <!-- Delivery notes -->
                         <div class="field" style="margin-top:14px;">
                             <label for="coNotes"><span data-i18n="checkout_notes">Delivery notes</span> <span class="optional" data-i18n="checkout_optional">optional</span></label>
                             <input type="text" id="coNotes" placeholder="e.g. ring bell 2nd floor">
                             <span class="hint" data-i18n="checkout_hint_notes">Apartment number, gate code, or anything useful for the driver.</span>
                         </div>
+
+                        <!-- Hidden fields used by backend -->
+                        <input type="hidden" id="coStreet">
+                        <input type="hidden" id="coPost">
+                        <input type="hidden" id="coCity">
+                        <input type="hidden" id="coProvince">
                     </div>
                 </div>
 
                 <!-- 4. DELIVERY DATE (shown for delivery only) -->
                 <div class="checkout-block" id="dateBlock">
                     <div class="checkout-block-head">
-                        <div class="checkout-block-num">4</div>
+                        <div class="checkout-block-num">3</div>
                         <h3 data-i18n="checkout_date_title">Choose delivery date</h3>
                     </div>
                     <div class="checkout-block-body">
@@ -257,7 +244,7 @@
                 <!-- 5. PAYMENT (pickup) or 5. PAYMENT (delivery) -->
                 <div class="checkout-block">
                     <div class="checkout-block-head">
-                        <div class="checkout-block-num">5</div>
+                        <div class="checkout-block-num">4</div>
                         <h3 data-i18n="checkout_payment">Payment</h3>
                     </div>
                     <div class="checkout-block-body">
@@ -285,7 +272,7 @@
                 <div class="summary-totals" id="summaryTotals"></div>
                 <div class="summary-foot">
                     <button class="checkout-submit" id="placeOrderBtn" onclick="placeOrder()" data-i18n="checkout_place">Pay &amp; Order →</button>
-                    <p class="summary-note" data-i18n="checkout_note">You will be redirected to Stripe to complete payment securely. Order confirmed after payment.</p>
+                    <p class="summary-note" data-i18n="checkout_note">You will be redirected to Stripe to complete payment. Order confirmed after payment.</p>
                 </div>
             </div>
 
@@ -322,6 +309,7 @@
     <script src="js/main.js"></script>
     <script>
         const DELIVERY_PRICES = { delivery_local: 10, delivery_other: 15, pickup: 0 };
+        let detectedDeliveryCost = 10; // updated by zone detection
         let selectedDelivery = 'delivery_local';
         let selectedDate = null;
 
@@ -489,43 +477,60 @@
             };
 
             try {
-                // Step 1: Create order (saved as pending_payment)
                 const res = await window.Api.Orders.checkout(payload);
                 if (!res.ok) {
                     showToast(res.data.error || 'Order failed. Please try again.');
-                    btn.textContent = t('checkout_place') || 'Pay & Order →';
+                    btn.textContent = t('checkout_place') || 'Place order →';
                     btn.disabled = false;
                     return;
                 }
-
-                const orderRef = res.data.order_ref;
-                btn.textContent = 'Redirecting to payment…';
-
-                // Step 2: Create Stripe Checkout session
-                const cartItems = items.map(i => ({ name: i.name, qty: i.qty, price: i.price }));
-                const deliveryFee = res.data.delivery_cost || 0;
-
-                const payRes = await fetch(window.API_BASE + '/api/payment/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (getToken ? getToken() : '') },
-                    body: JSON.stringify({
-                        order_ref: orderRef,
-                        items: cartItems,
-                        delivery_fee: deliveryFee,
-                        customer_email: payload.email,
-                    }),
-                });
-                const payData = await payRes.json();
-
-                if (payData.payment_url) {
-                    // Step 3: Redirect to Stripe — cart cleared on return
-                    localStorage.setItem('hutko_pending_order', orderRef);
-                    window.location.href = payData.payment_url;
-                } else {
-                    showToast(payData.error || 'Payment redirect failed. Please try again.');
-                    btn.textContent = t('checkout_place') || 'Pay & Order →';
-                    btn.disabled = false;
+                document.getElementById('orderRef').textContent = res.data.order_ref || '';
+                if (selectedDate) {
+                    const d = new Date(selectedDate + 'T00:00:00');
+                    const dateStr = d.toLocaleDateString('en-NL', { weekday: 'long', day: 'numeric', month: 'long' });
+                    const dateEl = document.getElementById('orderDeliveryDate');
+                    if (dateEl) dateEl.textContent = '📅 ' + (t('checkout_delivery') || 'Delivery') + ': ' + dateStr;
                 }
+                localStorage.removeItem('hutko_cart');
+
+                // Offer online payment if Mollie is available
+                const payBtn = document.getElementById('payOnlineBtn');
+                if (payBtn && res.data.order_ref) {
+                    const cart2 = {}; // cart already cleared, use totals from res
+                    const subtotal = Object.values(JSON.parse(localStorage.getItem('hutko_cart_last') || '{}')).reduce((s, i) => s + i.qty * i.price, 0) || 0;
+                    payBtn.style.display = 'block';
+                    payBtn.onclick = async () => {
+                        payBtn.textContent = 'Redirecting to payment…';
+                        payBtn.disabled = true;
+                        try {
+                            const payRes = await fetch(API_BASE + '/api/payment/create', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+                                body: JSON.stringify({
+                                    order_ref: res.data.order_ref,
+                                    total: res.data.total,
+                                    customer_email: document.getElementById('coEmail').value,
+                                    description: `HUTKO order #${res.data.order_ref}`,
+                                }),
+                            });
+                            const payData = await payRes.json();
+                            if (payData.payment_url) {
+                                window.location.href = payData.payment_url;
+                            } else {
+                                payBtn.textContent = '💳 Pay online →';
+                                payBtn.disabled = false;
+                                showToast(payData.error || 'Payment service unavailable. Please pay on delivery.');
+                            }
+                        } catch (e) {
+                            payBtn.textContent = '💳 Pay online →';
+                            payBtn.disabled = false;
+                        }
+                    };
+                }
+
+                document.getElementById('checkoutBody').style.display = 'none';
+                document.getElementById('successScreen').style.display = 'block';
+                window.scrollTo(0, 0);
             } catch (e) {
                 showToast('Network error. Please try again.');
                 btn.textContent = t('checkout_place') || 'Place order →';
@@ -567,110 +572,114 @@
         });
     </script>
 
-    <!-- Google Maps Address Autocomplete + Zone Validation -->
+    <!-- Google Maps Zone Detection + Address Autocomplete -->
     <script>
-    // Zone config - single declaration
-    const DELIVERY_HUBS = [
+    const ZONE_HUBS = [
       { name:'Amsterdam', lat:52.3676, lng:4.9041, fee:10, km:10 },
       { name:'Den Bosch', lat:51.6978, lng:5.3037, fee:10, km:10 },
       { name:'Den Haag',  lat:52.0705, lng:4.3007, fee:15, km:15 },
     ];
-    const COVERED = ['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Limburg','Utrecht','Flevoland','Overijssel','Gelderland'];
+    const ZONE_COVERED = ['Noord-Holland','South Holland','Zuid-Holland','North Holland',
+      'Noord-Brabant','North Brabant','Limburg','Utrecht','Flevoland','Overijssel','Gelderland'];
 
-    function _d2r(d){ return d*Math.PI/180; }
-    function _dKm(a,b,c,d){ const R=6371,dL=_d2r(c-a),dG=_d2r(d-b); return R*2*Math.atan2(Math.sqrt(Math.sin(dL/2)**2+Math.cos(_d2r(a))*Math.cos(_d2r(c))*Math.sin(dG/2)**2),Math.sqrt(1-(Math.sin(dL/2)**2+Math.cos(_d2r(a))*Math.cos(_d2r(c))*Math.sin(dG/2)**2))); }
+    function _r(d){return d*Math.PI/180}
+    function _km(a,b,c,d){const R=6371,dL=_r(c-a),dG=_r(d-b);const x=Math.sin(dL/2)**2+Math.cos(_r(a))*Math.cos(_r(c))*Math.sin(dG/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
 
-    function getZone(lat,lng,prov){
-      for(const h of DELIVERY_HUBS){ if(_dKm(lat,lng,h.lat,h.lng)<=h.km) return {ok:true,fee:h.fee,label:`Within ${h.km} km of ${h.name}`}; }
-      if(COVERED.some(p=>(prov||'').toLowerCase().includes(p.toLowerCase()))) return {ok:true,fee:15,label:prov};
-      return {ok:false,fee:null,label:prov||'this area'};
+    function detectZone(lat,lng,prov){
+      for(const h of ZONE_HUBS){ if(_km(lat,lng,h.lat,h.lng)<=h.km) return {ok:true,fee:h.fee,hub:h.name}; }
+      if(ZONE_COVERED.some(p=>(prov||'').toLowerCase().includes(p.toLowerCase()))) return {ok:true,fee:15,hub:'Netherlands'};
+      return {ok:false,fee:null,hub:null};
     }
 
-    function showZoneResult(zone){
-      const el=document.getElementById('zoneStatus'); if(!el) return;
-      el.style.display='block'; el.dataset.zoneOk=zone.ok?'1':'0';
+    function applyZone(zone,address){
+      const el=document.getElementById('zoneStatus');
+      if(!el) return;
+      el.style.display='block';
+      el.dataset.zoneOk=zone.ok?'1':'0';
       if(zone.ok){
-        el.style.cssText='display:block;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:6px;background:#EAF3DE;color:#3B6D11;border:1px solid #97C459';
-        el.innerHTML=`✓ <strong>We deliver here!</strong> ${zone.label} &nbsp;·&nbsp; Fee: <strong>€${zone.fee}</strong>`;
-        const p=document.querySelector('#opt-delivery-local .delivery-option-price'); if(p) p.textContent=`€${zone.fee}.00`;
-        const btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=false;btn.style.opacity='1';}
+        el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#EAF3DE;color:#3B6D11;border:1.5px solid #97C459';
+        el.innerHTML='✓ <strong>We deliver here!</strong> via '+zone.hub+' &nbsp;·&nbsp; Delivery fee: <strong>€'+zone.fee+'</strong>';
+        // Update delivery method and summary
+        selectedDelivery = zone.fee === 10 ? 'delivery_local' : 'delivery_other';
+        detectedDeliveryCost = zone.fee;
+        renderSummary();
+        const btn=document.getElementById('placeOrderBtn');
+        if(btn){btn.disabled=false;btn.style.opacity='1';}
       } else {
-        el.style.cssText='display:block;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:6px;background:#FCEBEB;color:#A32D2D;border:1px solid #F09595';
-        el.innerHTML=`✗ <strong>We don't deliver to ${zone.label} yet.</strong> <a href="contact.html" style="color:#A32D2D;font-weight:600">Contact us →</a>`;
-        const btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=true;btn.style.opacity='0.45';}
+        el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#FCEBEB;color:#A32D2D;border:1.5px solid #F09595';
+        el.innerHTML="✗ <strong>We don&#39;t deliver to this address yet.</strong> <a href='contact.html' style='color:#A32D2D;font-weight:600'>Contact us →</a>";
+        const btn=document.getElementById('placeOrderBtn');
+        if(btn){btn.disabled=true;btn.style.opacity='0.45';}
       }
     }
 
-    // Called by Google Maps after loading
     function initAddressAutocomplete(){
       try {
-        const container=document.getElementById('addrAutoContainer'); if(!container) return;
-
-        // PlaceAutocompleteElement — works with Places API (New)
-        const ac=new google.maps.places.PlaceAutocompleteElement({
-          componentRestrictions:{country:'nl'}, types:['address']
-        });
+        const container=document.getElementById('addrAutoContainer');
+        if(!container) return;
+        const ac=new google.maps.places.PlaceAutocompleteElement({componentRestrictions:{country:'nl'},types:['address']});
         ac.style.cssText='width:100%;display:block';
-        container.innerHTML='';
-        container.appendChild(ac);
+        container.innerHTML=''; container.appendChild(ac);
 
         // Mini map
-        const mapDiv=document.getElementById('addrMap');
-        const mapWrap=document.getElementById('addrMapWrap');
-        let miniMap=null, miniMarker=null;
+        const mapDiv=document.getElementById('addrMap'), mapWrap=document.getElementById('addrMapWrap');
+        let miniMap=null,miniMarker=null;
         if(mapDiv){
-          miniMap=new google.maps.Map(mapDiv,{zoom:8,center:{lat:52.2,lng:5.0},mapTypeControl:false,streetViewControl:false,fullscreenControl:false});
-          DELIVERY_HUBS.forEach(h=>{
-            new google.maps.Circle({map:miniMap,center:{lat:h.lat,lng:h.lng},radius:h.km*1000,strokeColor:'#E84B22',strokeOpacity:.6,strokeWeight:2,fillColor:'#E84B22',fillOpacity:.12});
-          });
+          miniMap=new google.maps.Map(mapDiv,{zoom:9,center:{lat:52.2,lng:5.0},mapTypeControl:false,streetViewControl:false,fullscreenControl:false,zoomControl:false});
+          ZONE_HUBS.forEach(h=>{new google.maps.Circle({map:miniMap,center:{lat:h.lat,lng:h.lng},radius:h.km*1000,strokeColor:'#E84B22',strokeOpacity:.5,strokeWeight:1.5,fillColor:'#E84B22',fillOpacity:.1});});
           if(mapWrap) mapWrap.style.display='block';
         }
 
-        // Handle selection
         ac.addEventListener('gmp-placeselect',async({place})=>{
           await place.fetchFields({fields:['location','addressComponents','formattedAddress']});
           const lat=place.location.lat(), lng=place.location.lng();
-          let street='',num='',post='',city='',prov='';
+
+          // Always save formattedAddress as street (most reliable)
+          document.getElementById('coStreet').value=place.formattedAddress||'';
+
+          // Extract postcode, city, province from components
+          let post='',city='',prov='';
           for(const comp of (place.addressComponents||[])){
             const t=comp.types||[];
-            if(t.includes('route'))           street=comp.longText;
-            if(t.includes('street_number'))   num=comp.longText;
-            if(t.includes('postal_code'))     post=comp.longText;
-            if(t.includes('locality')||t.includes('postal_town')) city=comp.longText;
-            if(t.includes('administrative_area_level_1')) prov=comp.longText;
+            if(t.includes('postal_code')) post=comp.longText||'';
+            if(t.includes('locality')||t.includes('postal_town')) city=comp.longText||'';
+            if(t.includes('administrative_area_level_1')) prov=comp.longText||'';
           }
-          document.getElementById('coStreet').value=`${num} ${street}`.trim()||place.formattedAddress;
           document.getElementById('coPost').value=post;
           document.getElementById('coCity').value=city;
           document.getElementById('coProvince').value=prov;
+
+          // Uncheck pickup radio if user enters address
+          const pr=document.getElementById('radioPickup');
+          if(pr) pr.checked=false;
+          document.getElementById('opt-pickup').style.border='1.5px solid var(--border)';
+
           if(miniMap){
             miniMap.setCenter({lat,lng}); miniMap.setZoom(13);
             if(miniMarker) miniMarker.setMap(null);
             miniMarker=new google.maps.Marker({map:miniMap,position:{lat,lng},animation:google.maps.Animation.DROP});
           }
-          showZoneResult(getZone(lat,lng,prov));
+          applyZone(detectZone(lat,lng,prov),place.formattedAddress);
         });
 
-        // Override placeOrder to require address selection
-        const orig=window.placeOrder;
-        if(orig) window.placeOrder=function(){
-          const isPickup=window.selectedDelivery==='pickup';
-          if(!isPickup&&!document.getElementById('coStreet').value){
-            if(typeof showToast==='function') showToast('Please select your address from the dropdown.');
+        // Guard placeOrder to require address or pickup selection
+        const origPlaceOrder=window.placeOrder;
+        if(origPlaceOrder) window.placeOrder=function(){
+          const isPickup=selectedDelivery==='pickup';
+          if(!isPickup && !document.getElementById('coStreet').value){
+            if(typeof showToast==='function') showToast(t('checkout_addr_hint')||'Please select your address from the dropdown.');
             return;
           }
-          const zEl=document.getElementById('zoneStatus');
-          if(!isPickup&&zEl&&zEl.dataset.zoneOk==='0'){
-            if(typeof showToast==='function') showToast("We don't deliver to this address yet. Please contact us.");
+          const z=document.getElementById('zoneStatus');
+          if(!isPickup && z && z.dataset.zoneOk==='0'){
+            if(typeof showToast==='function') showToast("We don't deliver to this address yet.");
             return;
           }
-          orig();
+          origPlaceOrder();
         };
       } catch(e){ console.warn('Maps init error:',e); }
     }
     </script>
-    <script async
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM&libraries=places&v=weekly&loading=async&callback=initAddressAutocomplete">
-    </script>
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM&libraries=places&v=weekly&loading=async&callback=initAddressAutocomplete"></script>
 </body>
 </html>
