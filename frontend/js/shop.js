@@ -4,8 +4,8 @@ let ALL_BUNDLES = [];
 async function _loadShopData() {
     const grid = document.getElementById('productGrid');
     const bgrid = document.getElementById('bundleGrid');
-    if (grid) grid.innerHTML = '<div class="shop-loading">Loading…</div>';
-    if (bgrid) bgrid.innerHTML = '<div class="shop-loading">Loading…</div>';
+    if (grid) grid.innerHTML = `<div class="shop-loading">${typeof t === 'function' ? t('shop_loading') : 'Loading…'}</div>`;
+    if (bgrid) bgrid.innerHTML = `<div class="shop-loading">${typeof t === 'function' ? t('shop_loading') : 'Loading…'}</div>`;
 
     try {
         const res = await Api.Shop.all();
@@ -59,13 +59,13 @@ function productCard(p) {
       <div class="prod-name">${pName(p)}</div>
       <div class="prod-desc">${pDesc(p)}</div>
       ${dietary ? `<div class="dietary-tags">${dietary}</div>` : ''}
-      <div class="prod-price">from <strong id="price-${p.id}">€${price}</strong> <span id="unit-${p.id}">/ ${p.unit}</span></div>
+      <div class="prod-price">${t('shop_from')} <strong id="price-${p.id}">€${price}</strong> <span id="unit-${p.id}">/ ${p.unit}</span></div>
       ${variants}
     </div>
     <div class="prod-footer">
-      <button class="btn-view-product" onclick="location.href='product.html?id=${p.id}'">Details</button>
+      <button class="btn-view-product" onclick="location.href='product.html?id=${p.id}'">${t('btn_details')}</button>
       <button class="btn btn-dark" style="flex:2;justify-content:center;font-size:12px;"
-        onclick="shopAddToCart('${p.id}')">Add to cart</button>
+        onclick="shopAddToCart('${p.id}')">${t('btn_add_cart')}</button>
     </div>
   </div>`;
 }
@@ -115,7 +115,7 @@ function bundleCard(b) {
     </div>
     <div class="pack-footer">
       <button class="btn ${featured ? 'btn-primary' : 'btn-blue'}" style="width:100%;justify-content:center;"
-        onclick="bundleAddToCart('${b.id}')">Order this pack</button>
+        onclick="bundleAddToCart('${b.id}')">${t('btn_order_pack')}</button>
     </div>
   </div>`;
 }
@@ -126,7 +126,7 @@ function renderProducts(list) {
     if (!grid) return;
     grid.innerHTML = list.length
         ? list.map(productCard).join('')
-        : '<p class="no-results">No products found.</p>';
+        : `<p class="no-results">${t('shop_no_products')}</p>`;
     initReveal();
     if (window.applyTranslations) applyTranslations();
 }
