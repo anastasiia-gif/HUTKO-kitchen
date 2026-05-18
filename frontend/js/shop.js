@@ -89,6 +89,7 @@ function bundleCard(b) {
       <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>
       <div class="pack-name">${bName(b)}</div>
       <div class="pack-items">${items}</div>
+      ${(()=>{const cr=b['choice_'+lang()]||b.choice_en||'';if(!cr)return '';const pts=cr.split(/\s+OR\s+|\s+АБО\s+|\s+OF\s+/i).map(s=>s.trim()).filter(Boolean);if(pts.length<2)return '';return '<div class=\"pack-choice-row\"><div class=\"pack-choice-pills\" id=\"choice-'+b.id+'\">'+pts.map((p,i)=>'<div class=\"pack-choice-pill '+(i===0?'selected':'')+'\" onclick=\"selectBundleChoice(\\''+b.id+'\\',this,\\''+p+'\\')\">' +p+'</div>').join('')+'</div></div>';})()}
       <div class="pack-price-row">${oldPriceHtml}<span class="pack-price-new">€${b.discount_price}</span></div>
       ${portions ? `<div class="pack-per">~€${(b.discount_price / portions).toFixed(1)} per portion</div>` : ''}
     </div>
@@ -160,10 +161,19 @@ function shopAddToCart(id) {
 }
 window.shopAddToCart = shopAddToCart;
 
+function selectBundleChoice(bundleId, el, value) {
+    document.querySelectorAll(`#choice-${bundleId} .pack-choice-pill`).forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+}
+window.selectBundleChoice = selectBundleChoice;
+
 function bundleAddToCart(id) {
     const b = ALL_BUNDLES.find(x => x.id === id);
     if (!b) return;
-    addToCart(id, bName(b), '🎁', b.discount_price, b.size_label);
+    const selected = document.querySelector(`#choice-${id} .pack-choice-pill.selected`);
+    const choiceText = selected ? selected.textContent.trim() : '';
+    const label = choiceText ? `${b.size_label} · ${choiceText}` : b.size_label;
+    addToCart(id, bName(b), '🎁', b.discount_price, label);
 }
 window.bundleAddToCart = bundleAddToCart;
 
