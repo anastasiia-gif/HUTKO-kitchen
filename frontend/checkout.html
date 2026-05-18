@@ -331,11 +331,11 @@
         let selectedDelivery = 'delivery_local';
         let selectedDate = null;
 
-        // Show/hide address & date blocks depending on method
         function toggleBlocks() {
             const isPickup = selectedDelivery && selectedDelivery.startsWith('pickup');
-            document.getElementById('addressBlock').style.display = isPickup ? 'none' : '';
-            document.getElementById('dateBlock').style.display = isPickup ? 'none' : '';
+            const isContact = detectedZoneType === 'contact';
+            const db = document.getElementById('dateBlock');
+            if (db) db.style.display = (isPickup || isContact) ? 'none' : 'block';
         }
 
         // ── DELIVERY DATE SLOTS ─────────────────────────────
