@@ -184,7 +184,10 @@
                         <!-- Address autocomplete -->
                         <div class="field">
                             <label data-i18n="checkout_street">Your delivery address</label>
-                            <div id="addrAutoContainer" style="width:100%;min-height:50px;border-radius:12px;overflow:hidden;"></div>
+                            <div id="addrAutoContainer">
+                                <input class="addr-input" id="addressSearchInput" type="text" autocomplete="off"
+                                       placeholder="e.g. Damrak 1, Amsterdam">
+                            </div>
                             <span class="hint" data-i18n="checkout_addr_hint">Type your address — delivery fee is set automatically.</span>
                         </div>
 
@@ -368,11 +371,12 @@
             // Fetch booked counts from backend
             let bookedMap = {};
             try {
-                const res = await fetch(`${window.Api ? '' : 'https://hutko-kitchen.onrender.com'}/api/slots/availability?dates=${upcoming.map(isoDate).join(',')}`);
+                const ctrl = new AbortController();
+                const tid = setTimeout(() => ctrl.abort(), 4000);
+                const res = await fetch(`${window.Api ? '' : 'https://hutko-kitchen.onrender.com'}/api/slots/availability?dates=${upcoming.map(isoDate).join(',')}`, {signal: ctrl.signal});
+                clearTimeout(tid);
                 if (res.ok) bookedMap = await res.json();
-            } catch (e) {
-                // If endpoint not ready yet, show all as available
-            }
+            } catch (e) { /* timeout or error — show all as available */ }
 
             grid.innerHTML = upcoming.map(date => {
                 const iso = isoDate(date);
@@ -597,105 +601,154 @@
         });
     </script>
 
-    <!-- Google Maps Zone Detection -->
+    <style>
+    .addr-wrap { position:relative; width:100%; }
+    .addr-input {
+      width:100%; padding:13px 16px; font-size:15px; font-family:inherit;
+      border:1.5px solid var(--border); border-radius:12px; outline:none;
+      background:#fff; box-sizing:border-box; transition:.15s;
+    }
+    .addr-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(27,63,206,.1); }
+    .addr-dropdown {
+      position:absolute; top:calc(100% + 4px); left:0; right:0;
+      background:#fff; border:1.5px solid var(--border); border-radius:12px;
+      box-shadow:0 8px 24px rgba(0,0,0,.12); z-index:999;
+      display:none; max-height:260px; overflow-y:auto;
+    }
+    .addr-item { padding:12px 16px; font-size:13px; cursor:pointer; border-bottom:1px solid var(--border); line-height:1.4; }
+    .addr-item:last-child { border-bottom:none; }
+    .addr-item:hover { background:var(--cream); }
+    .addr-item strong { color:var(--blue); }
+    .addr-loading { padding:12px 16px; font-size:13px; color:var(--ink-soft); }
+    </style>
     <script>
+    // ── Nominatim address autocomplete (no API key needed) ──────────────
+    (function(){
+      var NOM_TIMER=null, NOM_CACHE={};
+
+      function initNominatim(inputId, onSelect) {
+        var input = document.getElementById(inputId);
+        if (!input) return;
+        var wrap = input.closest('.addr-wrap') || input.parentNode;
+        var drop = document.createElement('div');
+        drop.className = 'addr-dropdown';
+        input.parentNode.insertBefore(drop, input.nextSibling);
+
+        function hideDrop() { drop.style.display='none'; }
+
+        function renderResults(data, q) {
+          if (!data || !data.length) { drop.innerHTML='<div class="addr-loading">No results — try adding city name.</div>'; drop.style.display='block'; return; }
+          drop.innerHTML = data.map(function(r,i){
+            var road = r.address.road || '';
+            var num  = r.address.house_number || '';
+            var post = r.address.postcode || '';
+            var city = r.address.city || r.address.town || r.address.village || r.address.municipality || '';
+            var main = num ? (road + ' ' + num).trim() : road;
+            if (!main) main = r.display_name.split(',')[0];
+            return '<div class="addr-item" data-i="'+i+'"><strong>'+main+'</strong>'+(post?' &nbsp;<span style="opacity:.6">'+post+'</span>':'')+(city?', '+city:'')+'</div>';
+          }).join('');
+          drop.style.display='block';
+          drop.querySelectorAll('.addr-item').forEach(function(el){
+            el.addEventListener('mousedown', function(e){
+              e.preventDefault();
+              var r = data[parseInt(el.dataset.i)];
+              var road = r.address.road || '';
+              var num  = r.address.house_number || '';
+              input.value = num ? (road+' '+num).trim() : road || r.display_name.split(',')[0];
+              hideDrop();
+              onSelect(r);
+            });
+          });
+        }
+
+        input.addEventListener('input', function(){
+          clearTimeout(NOM_TIMER);
+          var q = input.value.trim();
+          if (q.length < 3) { hideDrop(); return; }
+          drop.innerHTML='<div class="addr-loading">Searching\u2026</div>'; drop.style.display='block';
+          if (NOM_CACHE[q]) { renderResults(NOM_CACHE[q], q); return; }
+          NOM_TIMER = setTimeout(function(){
+            var url = 'https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q+', Netherlands')+'&format=json&limit=6&countrycodes=nl&addressdetails=1';
+            fetch(url, {headers:{'Accept-Language':'nl','User-Agent':'hutko-kitchen/1.0'}})
+              .then(function(r){return r.json();})
+              .then(function(data){ NOM_CACHE[q]=data; if(input.value.trim()===q) renderResults(data, q); })
+              .catch(function(){ drop.innerHTML='<div class="addr-loading">Search unavailable. Enter address manually.</div>'; });
+          }, 350);
+        });
+        input.addEventListener('blur', function(){ setTimeout(hideDrop, 200); });
+        document.addEventListener('click', function(e){ if(!wrap.contains(e.target)&&!drop.contains(e.target)) hideDrop(); });
+      }
+
+      window.initNominatim = initNominatim;
+    })();
+
+    // ── Zone detection ──────────────────────────────────────────────────
     function _r(d){return d*Math.PI/180}
-    function _km(a,b,c,d){const R=6371,dL=_r(c-a),dG=_r(d-b);const x=Math.sin(dL/2)**2+Math.cos(_r(a))*Math.cos(_r(c))*Math.sin(dG/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+    function _km(a,b,cc,d){var R=6371,dL=_r(cc-a),dG=_r(d-b),x=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(_r(a))*Math.cos(_r(cc))*Math.sin(dG/2)*Math.sin(dG/2);return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+    var Z_INNER=[{n:'Amsterdam',lat:52.3676,lng:4.9041,km:10},{n:'Den Bosch',lat:51.6978,lng:5.3037,km:10},{n:'Den Haag',lat:52.0705,lng:4.3007,km:15}];
+    var Z_REG=['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
+    var Z_CON=['Gelderland','Overijssel','Limburg','Groningen','Friesland','Drenthe','Zeeland'];
 
     function detectZone(lat,lng,prov){
-      for(const h of (typeof ZONE_INNER!=='undefined'?ZONE_INNER:[])){
-        if(_km(lat,lng,h.lat,h.lng)<=h.km) return {type:'inner',fee:10,hub:h.name};
-      }
-      const pn=(prov||'').toLowerCase();
-      const ZONE_R=['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
-      const ZONE_C=['Gelderland','Overijssel','Limburg','Groningen','Friesland','Drenthe','Zeeland'];
-      if(ZONE_R.some(p=>pn.includes(p.toLowerCase()))) return {type:'regular',fee:15,hub:prov};
-      if(ZONE_C.some(p=>pn.includes(p.toLowerCase()))) return {type:'contact',fee:15,hub:prov};
-      return {type:'outside',fee:null};
+      for(var i=0;i<Z_INNER.length;i++) if(_km(lat,lng,Z_INNER[i].lat,Z_INNER[i].lng)<=Z_INNER[i].km) return{type:'inner',fee:Z_INNER[i].fee,hub:Z_INNER[i].n};
+      var pn=(prov||'').toLowerCase();
+      if(Z_REG.some(function(p){return pn.indexOf(p.toLowerCase())>-1})) return{type:'regular',fee:15,hub:prov};
+      if(Z_CON.some(function(p){return pn.indexOf(p.toLowerCase())>-1})) return{type:'contact',fee:15,hub:prov};
+      return{type:'outside',fee:null};
     }
 
     function applyZone(zone){
-      const el=document.getElementById('zoneStatus'); if(!el) return;
-      const note=document.getElementById('zoneContactNote');
-      el.style.display='block'; el.dataset.zoneOk=zone.type==='outside'?'0':'1';
-
+      var el=document.getElementById('zoneStatus'); if(!el) return;
+      var note=document.getElementById('zoneContactNote');
+      el.style.display='block'; el.dataset.zoneOk=(zone.type==='outside'?'0':'1');
       if(zone.type==='outside'){
         el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#FCEBEB;color:#A32D2D;border:1.5px solid #F09595';
-        el.innerHTML="&#10007; <strong>We don&#39;t deliver to this address yet.</strong> <a href='contact.html' style='color:#A32D2D;font-weight:600'>Contact us &#8594;</a>";
+        el.innerHTML='&#10007; <strong>We don&#39;t deliver here yet.</strong> <a href="contact.html" style="color:#A32D2D;font-weight:600">Contact us &#8594;</a>';
         if(note) note.style.display='none';
-        const btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=true;btn.style.opacity='.45';}
+        var btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=true;btn.style.opacity='.45';}
         return;
       }
       el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#EAF3DE;color:#3B6D11;border:1.5px solid #97C459';
       el.innerHTML='&#10003; <strong>We deliver here!</strong> '+zone.hub+' &nbsp;&middot;&nbsp; Fee: <strong>&euro;'+zone.fee+'</strong>';
-      if(note) note.style.display=zone.type==='contact'?'block':'none';
-
-      // Set delivery method and refresh summary
-      if(typeof detectedZoneType !== 'undefined') detectedZoneType=zone.type;
-      if(typeof selectedDelivery !== 'undefined') selectedDelivery=zone.fee===10?'delivery_local':'delivery_other';
+      if(note) note.style.display=(zone.type==='contact'?'block':'none');
+      if(typeof detectedZoneType!=='undefined') detectedZoneType=zone.type;
+      if(typeof selectedDelivery!=='undefined') selectedDelivery=(zone.fee===10?'delivery_local':'delivery_other');
       if(typeof renderSummary==='function') renderSummary();
       if(typeof toggleBlocks==='function') toggleBlocks();
-      if(zone.type!=='contact' && typeof loadSlots==='function') loadSlots();
-
-      const btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=false;btn.style.opacity='1';}
+      if(zone.type!=='contact'&&typeof loadSlots==='function') loadSlots();
+      var btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=false;btn.style.opacity='1';}
     }
 
-    function initAddressAutocomplete(){
-      try {
-        const container=document.getElementById('addrAutoContainer'); if(!container) return;
-        const ac=new google.maps.places.PlaceAutocompleteElement({componentRestrictions:{country:'nl'},types:['address']});
-        ac.style.cssText='width:100%;display:block';
-        container.innerHTML=''; container.appendChild(ac);
+    document.addEventListener('DOMContentLoaded', function(){
+      initNominatim('addressSearchInput', function(result){
+        var addr=result.address;
+        var street=[(addr.house_number||''),(addr.road||'')].filter(Boolean).join(' ')||result.display_name.split(',')[0];
+        document.getElementById('coStreet').value=street;
+        document.getElementById('coPost').value=addr.postcode||'';
+        document.getElementById('coCity').value=addr.city||addr.town||addr.village||addr.municipality||'';
+        document.getElementById('coProvince').value=addr.state||'';
+        // Uncheck pickups
+        ['radio-pickup-ams','radio-pickup-db'].forEach(function(id){var el=document.getElementById(id);if(el)el.checked=false;});
+        ['opt-pickup-ams','opt-pickup-db'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.border='1.5px solid var(--border)';});
+        applyZone(detectZone(parseFloat(result.lat),parseFloat(result.lon),addr.state||''));
+      });
 
-        const wrap=document.getElementById('addrMapWrap'), mapDiv=document.getElementById('addrMap');
-        let miniMap=null, pin=null;
-        if(mapDiv){
-          miniMap=new google.maps.Map(mapDiv,{zoom:9,center:{lat:52.2,lng:5.0},mapTypeControl:false,streetViewControl:false,fullscreenControl:false,zoomControl:false,styles:[{featureType:'poi',stylers:[{visibility:'off'}]}]});
-          [{lat:52.3676,lng:4.9041},{lat:51.6978,lng:5.3037},{lat:52.0705,lng:4.3007}].forEach(h=>
-            new google.maps.Circle({map:miniMap,center:h,radius:10000,strokeColor:'#E84B22',strokeOpacity:.5,strokeWeight:1.5,fillColor:'#E84B22',fillOpacity:.1})
-          );
+      // Guard placeOrder
+      var orig=window.placeOrder;
+      if(orig) window.placeOrder=function(){
+        var isPickup=typeof selectedDelivery!=='undefined'&&selectedDelivery.startsWith('pickup');
+        if(!isPickup&&!document.getElementById('coStreet').value){
+          if(typeof showToast==='function') showToast('Please select your address from the dropdown.');
+          return;
         }
-
-        ac.addEventListener('gmp-placeselect',async({place})=>{
-          await place.fetchFields({fields:['location','addressComponents','formattedAddress']});
-          const lat=place.location.lat(),lng=place.location.lng();
-          document.getElementById('coStreet').value=place.formattedAddress||'';
-          let post='',city='',prov='';
-          for(const comp of(place.addressComponents||[])){
-            const t=comp.types||[];
-            if(t.includes('postal_code')) post=comp.longText||'';
-            if(t.includes('locality')||t.includes('postal_town')) city=comp.longText||'';
-            if(t.includes('administrative_area_level_1')) prov=comp.longText||'';
-          }
-          document.getElementById('coPost').value=post;
-          document.getElementById('coCity').value=city;
-          document.getElementById('coProvince').value=prov;
-          // Clear pickup selections
-          ['opt-pickup-ams','opt-pickup-db'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.border='1.5px solid var(--border)';});
-          ['radio-pickup-ams','radio-pickup-db'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
-          if(wrap) wrap.style.display='block';
-          if(miniMap){miniMap.setCenter({lat,lng});miniMap.setZoom(13);if(pin)pin.setMap(null);pin=new google.maps.Marker({map:miniMap,position:{lat,lng},animation:google.maps.Animation.DROP});}
-          applyZone(detectZone(lat,lng,prov));
-        });
-
-        // Guard placeOrder
-        const orig=window.placeOrder;
-        if(orig) window.placeOrder=function(){
-          const isPickup=selectedDelivery&&selectedDelivery.startsWith('pickup');
-          if(!isPickup&&!document.getElementById('coStreet').value){
-            if(typeof showToast==='function') showToast('Please select your address from the dropdown.');
-            return;
-          }
-          const zEl=document.getElementById('zoneStatus');
-          if(!isPickup&&zEl&&zEl.dataset.zoneOk==='0'){
-            if(typeof showToast==='function') showToast("We don't deliver to this address. Please contact us.");
-            return;
-          }
-          orig();
-        };
-      } catch(e){console.warn('Maps error:',e);}
-    }
+        var zEl=document.getElementById('zoneStatus');
+        if(!isPickup&&zEl&&zEl.dataset.zoneOk==='0'){
+          if(typeof showToast==='function') showToast('We don\'t deliver to this address yet. Contact us.');
+          return;
+        }
+        orig();
+      };
+    });
     </script>
-    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM&libraries=places&v=weekly&loading=async&callback=initAddressAutocomplete"></script>
 </body>
 </html>
