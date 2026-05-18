@@ -173,7 +173,7 @@
                     </div>
                 </div>
 
-                <!-- 2. DELIVERY: address + auto price detection -->
+                <!-- 2. DELIVERY — merged address + method + auto-price -->
                 <div class="checkout-block">
                     <div class="checkout-block-head">
                         <div class="checkout-block-num">2</div>
@@ -181,30 +181,44 @@
                     </div>
                     <div class="checkout-block-body">
 
-                        <!-- Google Places address search -->
+                        <!-- Address autocomplete -->
                         <div class="field">
-                            <label data-i18n="checkout_street">Delivery address</label>
-                            <div id="addrAutoContainer" style="width:100%;min-height:48px;border-radius:12px;overflow:hidden;"></div>
-                            <span class="hint" data-i18n="checkout_addr_hint">Type your address and select from the dropdown — delivery price is set automatically.</span>
+                            <label data-i18n="checkout_street">Your delivery address</label>
+                            <div id="addrAutoContainer" style="width:100%;min-height:50px;border-radius:12px;overflow:hidden;"></div>
+                            <span class="hint" data-i18n="checkout_addr_hint">Type your address — delivery fee is set automatically.</span>
                         </div>
 
-                        <!-- Zone status banner (shown after selection) -->
+                        <!-- Zone result banner -->
                         <div id="zoneStatus" style="display:none;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;line-height:1.5;"></div>
 
-                        <!-- Mini map -->
-                        <div id="addrMapWrap" style="display:none;margin-top:10px;border-radius:14px;overflow:hidden;height:200px;border:1px solid var(--border);">
-                            <div id="addrMap" style="width:100%;height:200px;"></div>
+                        <!-- Zone 3 contact note -->
+                        <div id="zoneContactNote" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin:4px 0 8px;background:#FFF3CD;color:#856404;border:1px solid #FFD761;">
+                            ℹ️ We deliver to your region — but please note we'll contact you within 24h to confirm the exact delivery date and time.
                         </div>
 
-                        <!-- Pickup option -->
+                        <!-- Mini map -->
+                        <div id="addrMapWrap" style="display:none;margin:8px 0;border-radius:14px;overflow:hidden;height:180px;border:1px solid var(--border);">
+                            <div id="addrMap" style="width:100%;height:180px;"></div>
+                        </div>
+
+                        <!-- Pickup options -->
                         <div style="margin-top:14px;">
-                            <label class="delivery-option" id="opt-pickup" style="cursor:pointer;display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:14px;border:1.5px solid var(--border);margin-top:8px;">
-                                <input type="radio" name="delivery" value="pickup" id="radioPickup" onchange="selectPickupMode(this)">
+                            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft);margin-bottom:8px;" data-i18n="checkout_or_pickup">— or pick up for free —</div>
+                            <label class="delivery-option" id="opt-pickup-ams" onclick="selectPickup('amsterdam')" style="cursor:pointer;display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;border:1.5px solid var(--border);margin-bottom:6px;transition:.15s;">
+                                <input type="radio" name="delivery" value="pickup_amsterdam" id="radio-pickup-ams">
                                 <div style="flex:1;">
-                                    <div class="delivery-option-name" data-i18n="checkout_pickup_name">Pick-up — Graafseweg 194B, Den Bosch</div>
-                                    <div class="delivery-option-desc" data-i18n="checkout_pickup_desc">Mon–Fri during working hours · Free</div>
+                                    <div style="font-size:13px;font-weight:600;">📍 Amsterdam — Overtoom 239</div>
+                                    <div style="font-size:12px;color:var(--ink-soft);" data-i18n="checkout_pickup_ams_desc">Daily 10:00–22:00 · Reservation required</div>
                                 </div>
-                                <div class="delivery-option-price" data-i18n="checkout_free_label">Free</div>
+                                <div style="font-weight:700;color:var(--blue);" data-i18n="checkout_free_label">Free</div>
+                            </label>
+                            <label class="delivery-option" id="opt-pickup-db" onclick="selectPickup('denbosch')" style="cursor:pointer;display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;border:1.5px solid var(--border);transition:.15s;">
+                                <input type="radio" name="delivery" value="pickup_denbosch" id="radio-pickup-db">
+                                <div style="flex:1;">
+                                    <div style="font-size:13px;font-weight:600;">📍 Den Bosch — Graafseweg 194B</div>
+                                    <div style="font-size:12px;color:var(--ink-soft);" data-i18n="checkout_pickup_desc">Mon–Fri during working hours · Free</div>
+                                </div>
+                                <div style="font-weight:700;color:var(--blue);" data-i18n="checkout_free_label">Free</div>
                             </label>
                         </div>
 
@@ -212,10 +226,10 @@
                         <div class="field" style="margin-top:14px;">
                             <label for="coNotes"><span data-i18n="checkout_notes">Delivery notes</span> <span class="optional" data-i18n="checkout_optional">optional</span></label>
                             <input type="text" id="coNotes" placeholder="e.g. ring bell 2nd floor">
-                            <span class="hint" data-i18n="checkout_hint_notes">Apartment number, gate code, or anything useful for the driver.</span>
+                            <span class="hint" data-i18n="checkout_hint_notes">Apartment number, gate code, or anything useful.</span>
                         </div>
 
-                        <!-- Hidden fields used by backend -->
+                        <!-- Hidden backend fields -->
                         <input type="hidden" id="coStreet">
                         <input type="hidden" id="coPost">
                         <input type="hidden" id="coCity">
@@ -231,7 +245,7 @@
                     </div>
                     <div class="checkout-block-body">
                         <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;" data-i18n="checkout_date_sub">
-                            We deliver on <strong>Thursdays and Saturdays</strong>, between <strong>16:00 and 20:00</strong>.
+                            <span id="dateBlockSub">We deliver on <strong>Thursdays and Saturdays</strong>, 16:00–20:00. Pick-up available any day 10:00–22:00.</span>
                             Each day has a maximum of 15 orders.
                         </p>
                         <div id="slotGrid" class="slot-grid">
@@ -249,13 +263,10 @@
                     </div>
                     <div class="checkout-block-body">
                         <div style="background:var(--cream);border-radius:10px;padding:1.25rem;display:flex;gap:14px;align-items:flex-start;">
-                            <div style="font-size:22px;">🔒</div>
+                            <div style="font-size:22px;">💳</div>
                             <div>
                                 <div style="font-size:14px;font-weight:600;color:var(--blue);margin-bottom:4px;" data-i18n="checkout_payment_title">Secure online payment</div>
-                                <div style="font-size:13px;color:var(--ink-soft);line-height:1.65;" data-i18n="checkout_payment_desc">
-                                    After clicking "Pay &amp; Order" you will be redirected to a secure Stripe payment page.
-                                    We accept all major credit &amp; debit cards, Apple Pay and Google Pay.
-                                </div>
+                                <div style="font-size:13px;color:var(--ink-soft);line-height:1.65;" data-i18n="checkout_payment_desc">After clicking Pay &amp; Order you will be redirected to Stripe. We accept all cards, Apple Pay and Google Pay.</div>
                             </div>
                         </div>
                     </div>
@@ -308,8 +319,12 @@
     <script src="js/components.js"></script>
     <script src="js/main.js"></script>
     <script>
-        const DELIVERY_PRICES = { delivery_local: 10, delivery_other: 15, pickup: 0 };
-        let detectedDeliveryCost = 10; // updated by zone detection
+        // Zone config
+        const ZONE_INNER = [{name:'Amsterdam',lat:52.3676,lng:4.9041,km:10},{name:'Den Bosch',lat:51.6978,lng:5.3037,km:10}];
+        const ZONE_REGULAR = ['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
+        const ZONE_CONTACT  = ['Gelderland','Overijssel','Limburg','Groningen','Friesland','Drenthe','Zeeland'];
+        const DELIVERY_PRICES = { delivery_local:10, delivery_other:15, delivery_contact:15, pickup_amsterdam:0, pickup_denbosch:0, pickup:0 };
+        let detectedZoneType = 'regular'; // 'inner'|'regular'|'contact'|'outside'
         let selectedDelivery = 'delivery_local';
         let selectedDate = null;
 
@@ -323,22 +338,19 @@
         // ── DELIVERY DATE SLOTS ─────────────────────────────
         const MAX_PER_DAY = 15;
 
-        function getUpcomingSlots(weeksAhead = 4) {
+        function getUpcomingSlots(mode = 'delivery') {
             const slots = [];
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const cutoff = new Date(today);
-            cutoff.setDate(today.getDate() + 1); // must book at least 1 day ahead
-
-            for (let d = 0; d < weeksAhead * 7; d++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + d);
-                const dow = date.getDay(); // 0=Sun,4=Thu,6=Sat
-                if (dow === 4 || dow === 6) {
-                    if (date >= cutoff) slots.push(date);
-                }
+            const today = new Date(); today.setHours(0,0,0,0);
+            const cutoff = new Date(today); cutoff.setDate(today.getDate() + 1);
+            const days = mode === 'pickup_amsterdam' ? 21 : mode === 'pickup_denbosch' ? 21 : 28;
+            for (let d = 1; d <= days; d++) {
+                const date = new Date(today); date.setDate(today.getDate() + d);
+                const dow = date.getDay();
+                if (mode === 'pickup_amsterdam' && date >= cutoff) { slots.push(date); }
+                else if (mode === 'pickup_denbosch' && dow >= 1 && dow <= 5 && date >= cutoff) { slots.push(date); }
+                else if (mode === 'delivery' && (dow === 4 || dow === 6) && date >= cutoff) { slots.push(date); }
             }
-            return slots.slice(0, 8); // show next 8 available days
+            return mode === 'delivery' ? slots.slice(0,10) : slots.slice(0,14);
         }
 
         function formatDate(d) {
@@ -350,7 +362,8 @@
 
         async function loadSlots() {
             const grid = document.getElementById('slotGrid');
-            const upcoming = getUpcomingSlots();
+            const mode = selectedDelivery.startsWith('pickup') ? selectedDelivery : 'delivery';
+            const upcoming = getUpcomingSlots(mode);
 
             // Fetch booked counts from backend
             let bookedMap = {};
@@ -366,7 +379,7 @@
                 const booked = bookedMap[iso] || 0;
                 const spots = MAX_PER_DAY - booked;
                 const full = spots <= 0;
-                const dow = date.getDay() === 4 ? 'Thursday' : 'Saturday';
+                const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][date.getDay()];
                 return `<button class="slot-btn" data-date="${iso}" onclick="selectSlot(this,'${iso}')"
                       ${full ? 'disabled' : ''}>
               <div class="slot-day">${dow}</div>
@@ -385,14 +398,26 @@
         window.selectSlot = selectSlot;
 
         // ── DELIVERY METHOD ─────────────────────────────────
-        function selectDelivery(radio) {
-            selectedDelivery = radio.value;
-            document.querySelectorAll('.delivery-option').forEach(el => el.classList.remove('selected'));
-            radio.closest('.delivery-option').classList.add('selected');
-            toggleBlocks();
-            renderSummary();
+        function selectPickup(location) {
+            selectedDelivery = 'pickup_' + location;
+            // Clear address zone since pickup
+            document.getElementById('zoneStatus').style.display = 'none';
+            document.getElementById('zoneContactNote').style.display = 'none';
+            document.getElementById('addrMapWrap').style.display = 'none';
+            document.getElementById('coStreet').value = location === 'amsterdam' ? 'Overtoom 239, 1054 HV Amsterdam' : 'Graafseweg 194B, 5223 AP Den Bosch';
+            document.getElementById('coCity').value = location === 'amsterdam' ? 'Amsterdam' : 'Den Bosch';
+            // Highlight selected pickup
+            ['opt-pickup-ams','opt-pickup-db'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.style.border = '1.5px solid var(--border)';
+            });
+            const sel = document.getElementById('opt-pickup-' + (location === 'amsterdam' ? 'ams' : 'db'));
+            if(sel) sel.style.border = '2px solid var(--blue)';
+            // Reset radio for address (uncheck via hack)
+            document.getElementById('radio-pickup-' + (location === 'amsterdam' ? 'ams' : 'db')).checked = true;
+            toggleBlocks(); loadSlots(); renderSummary();
         }
-        window.selectDelivery = selectDelivery;
+        window.selectPickup = selectPickup;
 
         // ── SUMMARY ─────────────────────────────────────────
         function renderSummary() {
@@ -572,74 +597,71 @@
         });
     </script>
 
-    <!-- Google Maps Zone Detection + Address Autocomplete -->
+    <!-- Google Maps Zone Detection -->
     <script>
-    const ZONE_HUBS = [
-      { name:'Amsterdam', lat:52.3676, lng:4.9041, fee:10, km:10 },
-      { name:'Den Bosch', lat:51.6978, lng:5.3037, fee:10, km:10 },
-      { name:'Den Haag',  lat:52.0705, lng:4.3007, fee:15, km:15 },
-    ];
-    const ZONE_COVERED = ['Noord-Holland','South Holland','Zuid-Holland','North Holland',
-      'Noord-Brabant','North Brabant','Limburg','Utrecht','Flevoland','Overijssel','Gelderland'];
-
     function _r(d){return d*Math.PI/180}
     function _km(a,b,c,d){const R=6371,dL=_r(c-a),dG=_r(d-b);const x=Math.sin(dL/2)**2+Math.cos(_r(a))*Math.cos(_r(c))*Math.sin(dG/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
 
     function detectZone(lat,lng,prov){
-      for(const h of ZONE_HUBS){ if(_km(lat,lng,h.lat,h.lng)<=h.km) return {ok:true,fee:h.fee,hub:h.name}; }
-      if(ZONE_COVERED.some(p=>(prov||'').toLowerCase().includes(p.toLowerCase()))) return {ok:true,fee:15,hub:'Netherlands'};
-      return {ok:false,fee:null,hub:null};
+      for(const h of (typeof ZONE_INNER!=='undefined'?ZONE_INNER:[])){
+        if(_km(lat,lng,h.lat,h.lng)<=h.km) return {type:'inner',fee:10,hub:h.name};
+      }
+      const pn=(prov||'').toLowerCase();
+      const ZONE_R=['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
+      const ZONE_C=['Gelderland','Overijssel','Limburg','Groningen','Friesland','Drenthe','Zeeland'];
+      if(ZONE_R.some(p=>pn.includes(p.toLowerCase()))) return {type:'regular',fee:15,hub:prov};
+      if(ZONE_C.some(p=>pn.includes(p.toLowerCase()))) return {type:'contact',fee:15,hub:prov};
+      return {type:'outside',fee:null};
     }
 
-    function applyZone(zone,address){
-      const el=document.getElementById('zoneStatus');
-      if(!el) return;
-      el.style.display='block';
-      el.dataset.zoneOk=zone.ok?'1':'0';
-      if(zone.ok){
-        el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#EAF3DE;color:#3B6D11;border:1.5px solid #97C459';
-        el.innerHTML='✓ <strong>We deliver here!</strong> via '+zone.hub+' &nbsp;·&nbsp; Delivery fee: <strong>€'+zone.fee+'</strong>';
-        // Update delivery method and summary
-        selectedDelivery = zone.fee === 10 ? 'delivery_local' : 'delivery_other';
-        detectedDeliveryCost = zone.fee;
-        renderSummary();
-        const btn=document.getElementById('placeOrderBtn');
-        if(btn){btn.disabled=false;btn.style.opacity='1';}
-      } else {
+    function applyZone(zone){
+      const el=document.getElementById('zoneStatus'); if(!el) return;
+      const note=document.getElementById('zoneContactNote');
+      el.style.display='block'; el.dataset.zoneOk=zone.type==='outside'?'0':'1';
+
+      if(zone.type==='outside'){
         el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#FCEBEB;color:#A32D2D;border:1.5px solid #F09595';
-        el.innerHTML="✗ <strong>We don&#39;t deliver to this address yet.</strong> <a href='contact.html' style='color:#A32D2D;font-weight:600'>Contact us →</a>";
-        const btn=document.getElementById('placeOrderBtn');
-        if(btn){btn.disabled=true;btn.style.opacity='0.45';}
+        el.innerHTML="&#10007; <strong>We don&#39;t deliver to this address yet.</strong> <a href='contact.html' style='color:#A32D2D;font-weight:600'>Contact us &#8594;</a>";
+        if(note) note.style.display='none';
+        const btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=true;btn.style.opacity='.45';}
+        return;
       }
+      el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#EAF3DE;color:#3B6D11;border:1.5px solid #97C459';
+      el.innerHTML='&#10003; <strong>We deliver here!</strong> '+zone.hub+' &nbsp;&middot;&nbsp; Fee: <strong>&euro;'+zone.fee+'</strong>';
+      if(note) note.style.display=zone.type==='contact'?'block':'none';
+
+      // Set delivery method and refresh summary
+      if(typeof detectedZoneType !== 'undefined') detectedZoneType=zone.type;
+      if(typeof selectedDelivery !== 'undefined') selectedDelivery=zone.fee===10?'delivery_local':'delivery_other';
+      if(typeof renderSummary==='function') renderSummary();
+      if(typeof toggleBlocks==='function') toggleBlocks();
+      if(zone.type!=='contact' && typeof loadSlots==='function') loadSlots();
+
+      const btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=false;btn.style.opacity='1';}
     }
 
     function initAddressAutocomplete(){
       try {
-        const container=document.getElementById('addrAutoContainer');
-        if(!container) return;
+        const container=document.getElementById('addrAutoContainer'); if(!container) return;
         const ac=new google.maps.places.PlaceAutocompleteElement({componentRestrictions:{country:'nl'},types:['address']});
         ac.style.cssText='width:100%;display:block';
         container.innerHTML=''; container.appendChild(ac);
 
-        // Mini map
-        const mapDiv=document.getElementById('addrMap'), mapWrap=document.getElementById('addrMapWrap');
-        let miniMap=null,miniMarker=null;
+        const wrap=document.getElementById('addrMapWrap'), mapDiv=document.getElementById('addrMap');
+        let miniMap=null, pin=null;
         if(mapDiv){
-          miniMap=new google.maps.Map(mapDiv,{zoom:9,center:{lat:52.2,lng:5.0},mapTypeControl:false,streetViewControl:false,fullscreenControl:false,zoomControl:false});
-          ZONE_HUBS.forEach(h=>{new google.maps.Circle({map:miniMap,center:{lat:h.lat,lng:h.lng},radius:h.km*1000,strokeColor:'#E84B22',strokeOpacity:.5,strokeWeight:1.5,fillColor:'#E84B22',fillOpacity:.1});});
-          if(mapWrap) mapWrap.style.display='block';
+          miniMap=new google.maps.Map(mapDiv,{zoom:9,center:{lat:52.2,lng:5.0},mapTypeControl:false,streetViewControl:false,fullscreenControl:false,zoomControl:false,styles:[{featureType:'poi',stylers:[{visibility:'off'}]}]});
+          [{lat:52.3676,lng:4.9041},{lat:51.6978,lng:5.3037},{lat:52.0705,lng:4.3007}].forEach(h=>
+            new google.maps.Circle({map:miniMap,center:h,radius:10000,strokeColor:'#E84B22',strokeOpacity:.5,strokeWeight:1.5,fillColor:'#E84B22',fillOpacity:.1})
+          );
         }
 
         ac.addEventListener('gmp-placeselect',async({place})=>{
           await place.fetchFields({fields:['location','addressComponents','formattedAddress']});
-          const lat=place.location.lat(), lng=place.location.lng();
-
-          // Always save formattedAddress as street (most reliable)
+          const lat=place.location.lat(),lng=place.location.lng();
           document.getElementById('coStreet').value=place.formattedAddress||'';
-
-          // Extract postcode, city, province from components
           let post='',city='',prov='';
-          for(const comp of (place.addressComponents||[])){
+          for(const comp of(place.addressComponents||[])){
             const t=comp.types||[];
             if(t.includes('postal_code')) post=comp.longText||'';
             if(t.includes('locality')||t.includes('postal_town')) city=comp.longText||'';
@@ -648,36 +670,30 @@
           document.getElementById('coPost').value=post;
           document.getElementById('coCity').value=city;
           document.getElementById('coProvince').value=prov;
-
-          // Uncheck pickup radio if user enters address
-          const pr=document.getElementById('radioPickup');
-          if(pr) pr.checked=false;
-          document.getElementById('opt-pickup').style.border='1.5px solid var(--border)';
-
-          if(miniMap){
-            miniMap.setCenter({lat,lng}); miniMap.setZoom(13);
-            if(miniMarker) miniMarker.setMap(null);
-            miniMarker=new google.maps.Marker({map:miniMap,position:{lat,lng},animation:google.maps.Animation.DROP});
-          }
-          applyZone(detectZone(lat,lng,prov),place.formattedAddress);
+          // Clear pickup selections
+          ['opt-pickup-ams','opt-pickup-db'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.border='1.5px solid var(--border)';});
+          ['radio-pickup-ams','radio-pickup-db'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
+          if(wrap) wrap.style.display='block';
+          if(miniMap){miniMap.setCenter({lat,lng});miniMap.setZoom(13);if(pin)pin.setMap(null);pin=new google.maps.Marker({map:miniMap,position:{lat,lng},animation:google.maps.Animation.DROP});}
+          applyZone(detectZone(lat,lng,prov));
         });
 
-        // Guard placeOrder to require address or pickup selection
-        const origPlaceOrder=window.placeOrder;
-        if(origPlaceOrder) window.placeOrder=function(){
-          const isPickup=selectedDelivery==='pickup';
-          if(!isPickup && !document.getElementById('coStreet').value){
-            if(typeof showToast==='function') showToast(t('checkout_addr_hint')||'Please select your address from the dropdown.');
+        // Guard placeOrder
+        const orig=window.placeOrder;
+        if(orig) window.placeOrder=function(){
+          const isPickup=selectedDelivery&&selectedDelivery.startsWith('pickup');
+          if(!isPickup&&!document.getElementById('coStreet').value){
+            if(typeof showToast==='function') showToast('Please select your address from the dropdown.');
             return;
           }
-          const z=document.getElementById('zoneStatus');
-          if(!isPickup && z && z.dataset.zoneOk==='0'){
-            if(typeof showToast==='function') showToast("We don't deliver to this address yet.");
+          const zEl=document.getElementById('zoneStatus');
+          if(!isPickup&&zEl&&zEl.dataset.zoneOk==='0'){
+            if(typeof showToast==='function') showToast("We don't deliver to this address. Please contact us.");
             return;
           }
-          origPlaceOrder();
+          orig();
         };
-      } catch(e){ console.warn('Maps init error:',e); }
+      } catch(e){console.warn('Maps error:',e);}
     }
     </script>
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM&libraries=places&v=weekly&loading=async&callback=initAddressAutocomplete"></script>

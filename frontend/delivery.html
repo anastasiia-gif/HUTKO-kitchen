@@ -54,9 +54,11 @@
                     <div class="info-card"><div class="info-icon">📅</div><div><div class="ic-title">Delivery days</div><div class="ic-text">Thursday &amp; Saturday · 16:00–21:00</div></div></div>
                     <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title">Amsterdam</div><div class="ic-text">Within A10 — €10 · Up to 10 km outside — €15<br><span style="font-size:12px;opacity:0.8;">Amstelveen, Diemen, Duivendrecht, Ouderkerk a/d Amstel, Badhoevedorp &amp; nearby western areas</span></div></div></div>
                     <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title">Den Bosch</div><div class="ic-text">City — €10 · Up to 10 km — €15</div></div></div>
-                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title">Den Haag</div><div class="ic-text">City &amp; up to 15 km — €15<br><span style="font-size:12px;opacity:0.7;">Contact us to confirm your delivery day</span></div></div></div>
+                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title">Den Haag</div><div class="ic-text">City &amp; up to 15 km — €15 · Thu &amp; Sat</div></div></div>
+                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title">Noord-Holland · Zuid-Holland · Noord-Brabant · Utrecht · Flevoland</div><div class="ic-text">€15 · Thu &amp; Sat · 16:00–21:00</div></div></div>
+                    <div class="info-card" style="border:1.5px solid #FFD761;background:#FFFBEA;"><div class="info-icon">📞</div><div><div class="ic-title" style="color:#856404;">Other Netherlands regions</div><div class="ic-text">Gelderland, Overijssel, Limburg, Groningen, etc.<br>€15 — we'll contact you to confirm delivery date &amp; time</div></div></div>
                     <div class="info-card"><div class="info-icon">🎉</div><div><div class="ic-title">Free delivery</div><div class="ic-text">On orders over €100 — valid within Amsterdam &amp; nearby areas</div></div></div>
-                    <div class="info-card"><div class="info-icon">🏠</div><div><div class="ic-title">Pickup</div><div class="ic-text">Amsterdam (Sloterdijk area) — by request<br>Den Bosch — Graafseweg 194B · Mon–Fri</div></div></div>
+                    <div class="info-card"><div class="info-icon">🏠</div><div><div class="ic-title">Pickup</div><div class="ic-text"><strong>Amsterdam</strong> — Overtoom 239, 1054 HV · Daily 10:00–22:00<br><strong>Den Bosch</strong> — Graafseweg 194B · Mon–Fri working hours<br><span style="font-size:12px;opacity:0.7;">Reservation required</span></div></div></div>
                     <div class="info-card"><div class="info-icon">📦</div><div><div class="ic-title">How it arrives</div><div class="ic-text">Delivered frozen · Packed in insulated boxes</div></div></div>
                 </div>
             </div>
@@ -225,73 +227,105 @@
         </div>
     </section>
 
-    
-    <!-- ── DELIVERY ZONE MAP ────────────────────────────────────── -->
-    <section style="background:var(--white);padding:3rem 2rem;">
+
+    <!-- ── DELIVERY ZONE MAP ────────────────────────────────────────── -->
+    <section style="background:var(--cream);padding:3rem 1.5rem;">
         <div class="section-inner">
             <div class="label" style="text-align:center;">Find your zone</div>
-            <h2 class="choose-title" style="text-align:center;margin-bottom:1rem;" data-i18n="delivery_title_map">Check your address</h2>
-            <p style="text-align:center;font-size:14px;color:var(--ink-soft);max-width:500px;margin:0 auto 1.5rem;" data-i18n="delivery_map_sub">Type your address to see if we deliver to you and what the fee is.</p>
-            <div style="max-width:540px;margin:0 auto 1rem;">
-                <div id="deliverySearchContainer" style="width:100%;"></div>
-                <div id="deliveryZoneResult" style="display:none;margin-top:10px;padding:12px 16px;border-radius:12px;font-size:14px;"></div>
+            <h2 class="choose-title" style="text-align:center;margin-bottom:.75rem;">Check your address</h2>
+            <p style="text-align:center;font-size:14px;color:var(--ink-soft);max-width:500px;margin:0 auto 1.5rem;">
+                Type your address to see if we deliver to you and what the fee is.
+            </p>
+            <div style="max-width:560px;margin:0 auto;">
+                <div id="deliverySearchContainer" style="width:100%;min-height:48px;border-radius:12px;overflow:hidden;margin-bottom:10px;"></div>
+                <div id="deliveryZoneResult" style="display:none;padding:12px 16px;border-radius:12px;font-size:14px;margin-bottom:12px;"></div>
             </div>
-            <div id="deliveryMap" style="width:100%;height:450px;border-radius:20px;border:1px solid var(--border);overflow:hidden;"></div>
+            <div id="deliveryMap" style="width:100%;height:460px;border-radius:20px;border:1px solid var(--border);overflow:hidden;"></div>
             <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:1.25rem;">
-                <span style="font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#E84B22;display:inline-block;"></span>Amsterdam &amp; Den Bosch inner (€10)</span>
-                <span style="font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#f4a261;display:inline-block;opacity:.7"></span>Holland provinces (€15)</span>
-                <span style="font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#2a9d8f;display:inline-block;opacity:.7"></span>Noord-Brabant &amp; Limburg (€15)</span>
+                <span style="font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;border-radius:50%;background:#E84B22;display:inline-block;"></span>Amsterdam &amp; Den Bosch city (€10)</span>
+                <span style="font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;border-radius:50%;background:#f4a261;display:inline-block;"></span>Holland &amp; Noord-Brabant (€15 Thu/Sat)</span>
+                <span style="font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;"><span style="width:11px;height:11px;border-radius:50%;background:#FFD761;display:inline-block;"></span>Other NL regions (€15, contact for date)</span>
             </div>
         </div>
     </section>
 
     <script>
-    async function initDeliveryMap(){
-      try {
-        const {Map,Circle,Marker,Polygon}=await google.maps.importLibrary('maps');
-        const {PlaceAutocompleteElement}=await google.maps.importLibrary('places');
-        const HUBS=[
-          {name:'Amsterdam',lat:52.3676,lng:4.9041,color:'#E84B22',r:10000,fee:10},
-          {name:'Den Bosch',lat:51.6978,lng:5.3037,color:'#E84B22',r:10000,fee:10},
-          {name:'Den Haag', lat:52.0705,lng:4.3007,color:'#f4a261',r:15000,fee:15},
-        ];
-        const COVERED=['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Limburg','Utrecht','Flevoland','Overijssel','Gelderland'];
-        function r(d){return d*Math.PI/180}
-        function km(a,b,c,d){const R=6371,dL=r(c-a),dG=r(d-b);const x=Math.sin(dL/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dG/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
-        function zone(lat,lng,prov){for(const h of HUBS)if(km(lat,lng,h.lat,h.lng)<=h.r/1000)return{ok:true,fee:h.fee,hub:h.name};if(COVERED.some(p=>(prov||'').toLowerCase().includes(p.toLowerCase())))return{ok:true,fee:15,hub:'Netherlands'};return{ok:false};}
+    function initDeliveryMap() {
+      const mapEl = document.getElementById('deliveryMap');
+      const searchEl = document.getElementById('deliverySearchContainer');
+      if (!mapEl || !searchEl) return;
 
-        const dMap=new Map(document.getElementById('deliveryMap'),{zoom:7,center:{lat:52.1,lng:5.1},mapTypeControl:false,streetViewControl:false,fullscreenControl:false});
-        HUBS.forEach(h=>{
-          new Circle({map:dMap,center:{lat:h.lat,lng:h.lng},radius:h.r,strokeColor:h.color,strokeOpacity:.7,strokeWeight:2,fillColor:h.color,fillOpacity:.22});
-          new Marker({map:dMap,position:{lat:h.lat,lng:h.lng},label:{text:h.name+' €'+h.fee,color:'#fff',fontSize:'11px',fontWeight:'600'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:6,fillColor:h.color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2}});
+      const HUBS = [
+        {name:'Amsterdam',lat:52.3676,lng:4.9041,color:'#E84B22',r:10000,fee:10},
+        {name:'Den Bosch',lat:51.6978,lng:5.3037,color:'#E84B22',r:10000,fee:10},
+        {name:'Den Haag', lat:52.0705,lng:4.3007,color:'#f4a261',r:15000,fee:15},
+      ];
+      const ZONE_R=['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
+      const ZONE_C=['Gelderland','Overijssel','Limburg','Groningen','Friesland','Drenthe','Zeeland'];
+
+      function _r(d){return d*Math.PI/180}
+      function _km(a,b,c,d){const R=6371,dL=_r(c-a),dG=_r(d-b);const x=Math.sin(dL/2)**2+Math.cos(_r(a))*Math.cos(_r(c))*Math.sin(dG/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+      function getZone(lat,lng,prov){
+        for(const h of HUBS) if(_km(lat,lng,h.lat,h.lng)<=h.r/1000) return {type:'inner',fee:h.fee,hub:h.name};
+        const pn=(prov||'').toLowerCase();
+        if(ZONE_R.some(p=>pn.includes(p.toLowerCase()))) return {type:'regular',fee:15,hub:prov};
+        if(ZONE_C.some(p=>pn.includes(p.toLowerCase()))) return {type:'contact',fee:15,hub:prov};
+        return {type:'outside'};
+      }
+
+      const dMap = new google.maps.Map(mapEl, {
+        zoom:7, center:{lat:52.1,lng:5.1},
+        mapTypeControl:false, streetViewControl:false, fullscreenControl:false,
+        styles:[{featureType:'poi',stylers:[{visibility:'off'}]}]
+      });
+
+      HUBS.forEach(h=>{
+        new google.maps.Circle({map:dMap,center:{lat:h.lat,lng:h.lng},radius:h.r,strokeColor:h.color,strokeOpacity:.7,strokeWeight:2,fillColor:h.color,fillOpacity:.25});
+        new google.maps.Marker({map:dMap,position:{lat:h.lat,lng:h.lng},
+          label:{text:h.name+' €'+h.fee,color:'#fff',fontSize:'11px',fontWeight:'600'},
+          icon:{path:google.maps.SymbolPath.CIRCLE,scale:6,fillColor:h.color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2}
         });
-        [[{color:'#f0a070',coords:[[52.92,4.72],[52.90,5.09],[52.77,5.18],[52.62,5.22],[52.44,5.07],[52.38,5.17],[52.35,5.02],[52.28,4.97],[52.22,4.85],[52.18,4.55],[52.35,4.49],[52.55,4.52],[52.68,4.62],[52.83,4.68]]},{color:'#f4a261',coords:[[52.22,4.85],[52.14,4.88],[52.12,5.02],[52.04,5.10],[51.92,5.12],[51.85,4.93],[51.88,4.55],[51.82,4.38],[51.76,4.18],[51.75,4.00],[51.85,3.99],[51.96,4.12],[52.04,4.32],[52.12,4.48],[52.18,4.55]]},{color:'#2a9d8f',coords:[[51.80,4.00],[51.82,4.38],[51.88,4.55],[51.85,4.93],[51.92,5.12],[51.95,5.38],[51.90,5.60],[51.88,5.88],[51.85,6.00],[51.55,6.08],[51.42,6.05],[51.38,5.88],[51.30,5.45],[51.26,5.05],[51.28,4.55],[51.38,4.20],[51.50,3.86],[51.65,3.86]]},{color:'#8338ec',coords:[[51.85,6.00],[51.95,5.65],[52.04,5.10],[52.12,5.18],[51.98,5.40],[51.88,5.90],[51.60,6.20],[51.42,6.12],[51.10,6.15],[50.75,5.92],[50.75,5.68],[50.85,5.57],[51.20,5.72],[51.42,5.72],[51.55,5.80],[51.68,5.95]]}]].flat().forEach(p=>new Polygon({map:dMap,paths:p.coords.map(([lat,lng])=>({lat,lng})),strokeColor:p.color,strokeOpacity:.4,strokeWeight:1,fillColor:p.color,fillOpacity:.12}));
+      });
 
-        const sc=document.getElementById('deliverySearchContainer');
-        if(sc){
-          const ac=new PlaceAutocompleteElement({componentRestrictions:{country:'nl'},types:['address']});
-          ac.style.cssText='width:100%;display:block';
-          sc.appendChild(ac);
-          let pin=null;
-          ac.addEventListener('gmp-placeselect',async({place})=>{
-            await place.fetchFields({fields:['location','addressComponents','formattedAddress']});
-            const lat=place.location.lat(),lng=place.location.lng();
-            let prov='';
-            for(const comp of(place.addressComponents||[]))if((comp.types||[]).includes('administrative_area_level_1'))prov=comp.longText||'';
-            dMap.setCenter({lat,lng});dMap.setZoom(13);
-            if(pin)pin.setMap(null);
-            pin=new Marker({map:dMap,position:{lat,lng},animation:google.maps.Animation.DROP});
-            const z=zone(lat,lng,prov),el=document.getElementById('deliveryZoneResult');
-            el.style.display='block';
-            if(z.ok){el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#EAF3DE;color:#3B6D11;border:1.5px solid #97C459';el.innerHTML='<strong>✓ We deliver here!</strong> via '+z.hub+' &nbsp;·&nbsp; Fee: <strong>€'+z.fee+'</strong> &nbsp;<a href="shop.html" style="color:#3B6D11;font-weight:600">Order now →</a>';}
-            else{el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#FCEBEB;color:#A32D2D;border:1.5px solid #F09595';el.innerHTML='<strong>✗ We don't deliver here yet.</strong> <a href="contact.html" style="color:#A32D2D;font-weight:600">Contact us to arrange →</a>';}
-          });
+      const POLYS=[
+        {color:'#f0a070',coords:[[52.92,4.72],[52.90,5.09],[52.77,5.18],[52.62,5.22],[52.44,5.07],[52.38,5.17],[52.35,5.02],[52.28,4.97],[52.22,4.85],[52.18,4.55],[52.35,4.49],[52.55,4.52],[52.68,4.62],[52.83,4.68]]},
+        {color:'#f4a261',coords:[[52.22,4.85],[52.14,4.88],[52.12,5.02],[52.04,5.10],[51.92,5.12],[51.85,4.93],[51.88,4.55],[51.82,4.38],[51.76,4.18],[51.75,4.00],[51.85,3.99],[51.96,4.12],[52.04,4.32],[52.12,4.48],[52.18,4.55]]},
+        {color:'#2a9d8f',coords:[[51.80,4.00],[51.82,4.38],[51.88,4.55],[51.85,4.93],[51.92,5.12],[51.95,5.38],[51.90,5.60],[51.88,5.88],[51.85,6.00],[51.55,6.08],[51.42,6.05],[51.38,5.88],[51.30,5.45],[51.26,5.05],[51.28,4.55],[51.38,4.20],[51.50,3.86],[51.65,3.86]]},
+        {color:'#FFD761',coords:[[51.85,6.00],[51.95,5.65],[52.04,5.10],[52.12,5.18],[51.98,5.40],[51.88,5.90],[51.60,6.20],[51.42,6.12],[51.10,6.15],[50.75,5.92],[50.75,5.68],[50.85,5.57],[51.20,5.72],[51.42,5.72],[51.55,5.80],[51.68,5.95]]}
+      ];
+      POLYS.forEach(p=>new google.maps.Polygon({map:dMap,paths:p.coords.map(([lat,lng])=>({lat,lng})),strokeColor:p.color,strokeOpacity:.5,strokeWeight:1.5,fillColor:p.color,fillOpacity:.14}));
+
+      // Address search
+      const ac = new google.maps.places.PlaceAutocompleteElement({componentRestrictions:{country:'nl'},types:['address']});
+      ac.style.cssText='width:100%;display:block';
+      searchEl.appendChild(ac);
+      let pin=null;
+
+      ac.addEventListener('gmp-placeselect',async({place})=>{
+        await place.fetchFields({fields:['location','addressComponents','formattedAddress']});
+        const lat=place.location.lat(),lng=place.location.lng();
+        let prov='';
+        for(const comp of(place.addressComponents||[])) if((comp.types||[]).includes('administrative_area_level_1')) prov=comp.longText||'';
+        dMap.setCenter({lat,lng}); dMap.setZoom(13);
+        if(pin) pin.setMap(null);
+        pin=new google.maps.Marker({map:dMap,position:{lat,lng},animation:google.maps.Animation.DROP});
+        const z=getZone(lat,lng,prov);
+        const el=document.getElementById('deliveryZoneResult');
+        el.style.display='block';
+        if(z.type==='outside'){
+          el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#FCEBEB;color:#A32D2D;border:1.5px solid #F09595';
+          el.innerHTML='&#10007; <strong>We don't deliver here yet.</strong> <a href="contact.html" style="color:#A32D2D;font-weight:600">Contact us &#8594;</a>';
+        } else if(z.type==='contact'){
+          el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#FFFBEA;color:#856404;border:1.5px solid #FFD761';
+          el.innerHTML='&#9432; <strong>We deliver to '+z.hub+'</strong> &mdash; fee &euro;'+z.fee+'. We will contact you to confirm the exact delivery date &amp; time. <a href="shop.html" style="color:#856404;font-weight:600">Order &#8594;</a>';
+        } else {
+          el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#EAF3DE;color:#3B6D11;border:1.5px solid #97C459';
+          el.innerHTML='&#10003; <strong>We deliver here!</strong> via '+z.hub+' &mdash; Fee: <strong>&euro;'+z.fee+'</strong> &nbsp; <a href="shop.html" style="color:#3B6D11;font-weight:600">Order now &#8594;</a>';
         }
-      } catch(e){console.warn('Map error:',e);}
+      });
     }
     </script>
-    <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);a.src=`https://maps.googleapis.com/maps/api/js?`+e;a.onerror=()=>n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a);d[l]=f}));async function f(c,...d){await h;return await d.reduce(async(f,g)=>{await f;const a=google.maps;a[q]||(a[q]=(await a[l](g)));return a[q]},Promise.resolve())};g[l]=f;return f})({key:"AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM",v:"weekly"});
-    initDeliveryMap();</script>
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM&libraries=places&v=weekly&loading=async&callback=initDeliveryMap"></script>
     <div id="footer-placeholder"></div>
     <script src="js/api.js"></script>
     <script src="js/i18n.js"></script>

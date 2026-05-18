@@ -215,6 +215,8 @@ const TRANSLATIONS = {
         about_dish5_text: "While shakshuka has deep roots in North African and Middle Eastern cooking, it found an enthusiastic home in Ukrainian kitchens. Ukrainian shakshuka is typically bolder and spicier, enriched with local paprika. It reflects Ukraine's position as a crossroads of civilisations — a country that has always absorbed and reimagined the culinary traditions of its neighbours.",
 
         /* Checkout keys */
+
+        checkout_or_pickup: '— or pick up for free —', checkout_pickup_ams_desc: 'Daily 10:00–22:00 · Reservation required',
         checkout_addr_hint: 'Type your address and select from dropdown — delivery price is set automatically.',
         checkout_delivery_local_name: "Delivery — Amsterdam or Den Bosch",
         checkout_delivery_local_desc: "Thu & Sat · 16:00–20:00 · Insulated packaging",
@@ -506,6 +508,8 @@ const TRANSLATIONS = {
         btn_add_cart: 'Додати в кошик', btn_added: 'Додано!',
         btn_details: 'Деталі', btn_order_pack: 'Замовити набір',
 
+
+        checkout_or_pickup: '— або заберіть безкоштовно —', checkout_pickup_ams_desc: 'Щодня 10:00–22:00 · Необхідна резервація',
         checkout_addr_hint: 'Введіть адресу та оберіть зі списку — ціна доставки визначається автоматично.',
         checkout_delivery_local_name: "Доставка — Амстердам або Ден Бос",
         checkout_delivery_local_desc: "Чт і Сб · 16:00–20:00 · Ізольоване пакування",
@@ -803,6 +807,8 @@ const TRANSLATIONS = {
         btn_add_cart: 'Toevoegen', btn_added: 'Toegevoegd!',
         btn_details: 'Details', btn_order_pack: 'Bestel dit pakket',
 
+
+        checkout_or_pickup: '— of gratis afhalen —', checkout_pickup_ams_desc: 'Dagelijks 10:00–22:00 · Reservering vereist',
         checkout_addr_hint: 'Typ uw adres en selecteer uit het dropdown — bezorgprijs wordt automatisch ingesteld.',
         checkout_delivery_local_name: "Bezorging — Amsterdam of Den Bosch",
         checkout_delivery_local_desc: "Do & Za · 16:00–20:00 · Geïsoleerde verpakking",
