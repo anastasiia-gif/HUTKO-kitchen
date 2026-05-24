@@ -486,14 +486,19 @@
             const items = Object.values(cart);
             if (!items.length) return;
 
+            // Save cart items before clearing (needed for payment API)
+            const cartItems = items.map(i => ({ name: i.name, qty: i.qty, price: i.price }));
+            const deliveryFee = DELIVERY_PRICES[selectedDelivery] ?? 10;
+            const customerEmail = document.getElementById('coEmail').value.trim();
+
             const btn = document.getElementById('placeOrderBtn');
-            btn.textContent = t('checkout_place') + '…' || 'Placing order…';
+            btn.textContent = 'Placing order…';
             btn.disabled = true;
 
             const payload = {
                 first_name: document.getElementById('coFirst').value.trim(),
                 last_name: document.getElementById('coLast').value.trim(),
-                email: document.getElementById('coEmail').value.trim(),
+                email: customerEmail,
                 phone: document.getElementById('coPhone').value.trim(),
                 street: isPickup ? 'PICKUP: Graafseweg 194B, \'s-Hertogenbosch' : document.getElementById('coStreet').value.trim(),
                 postcode: isPickup ? '' : document.getElementById('coPost').value.trim(),
@@ -502,17 +507,47 @@
                 notes: document.getElementById('coNotes').value.trim(),
                 delivery_method: selectedDelivery.startsWith('pickup') ? 'pickup' : selectedDelivery,
                 delivery_date: isPickup ? '' : selectedDate,
-                items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+                items: cartItems,
             };
 
             try {
                 const res = await window.Api.Orders.checkout(payload);
                 if (!res.ok) {
                     showToast(res.data.error || 'Order failed. Please try again.');
-                    btn.textContent = t('checkout_place') || 'Place order →';
+                    btn.textContent = t('checkout_place') || 'Pay & Order →';
                     btn.disabled = false;
                     return;
                 }
+
+                // Clear cart immediately
+                localStorage.removeItem('hutko_cart');
+
+                // Redirect straight to Stripe
+                btn.textContent = 'Redirecting to payment…';
+                try {
+                    const payRes = await fetch((window.API_BASE || 'https://hutko-kitchen.onrender.com') + '/api/payment/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+                        body: JSON.stringify({
+                            order_ref: res.data.order_ref,
+                            items: cartItems,
+                            delivery_fee: deliveryFee,
+                            customer_email: customerEmail,
+                        }),
+                    });
+                    const payData = await payRes.json();
+                    if (payData.payment_url) {
+                        window.location.href = payData.payment_url;
+                        return; // browser navigates away
+                    } else {
+                        // Payment creation failed — show success screen with manual pay button
+                        showToast(payData.error || 'Payment redirect failed. Use the button below.');
+                    }
+                } catch (e) {
+                    showToast('Could not reach payment service. Use the button below.');
+                }
+
+                // Fallback: show success screen with pay button
                 document.getElementById('orderRef').textContent = res.data.order_ref || '';
                 if (selectedDate) {
                     const d = new Date(selectedDate + 'T00:00:00');
@@ -520,35 +555,31 @@
                     const dateEl = document.getElementById('orderDeliveryDate');
                     if (dateEl) dateEl.textContent = '📅 ' + (t('checkout_delivery') || 'Delivery') + ': ' + dateStr;
                 }
-                localStorage.removeItem('hutko_cart');
-
-                // Offer online payment if Mollie is available
                 const payBtn = document.getElementById('payOnlineBtn');
                 if (payBtn && res.data.order_ref) {
-                    const cart2 = {}; // cart already cleared, use totals from res
-                    const subtotal = Object.values(JSON.parse(localStorage.getItem('hutko_cart_last') || '{}')).reduce((s, i) => s + i.qty * i.price, 0) || 0;
                     payBtn.style.display = 'block';
+                    payBtn.textContent = '💳 Pay online →';
                     payBtn.onclick = async () => {
-                        payBtn.textContent = 'Redirecting to payment…';
+                        payBtn.textContent = 'Redirecting…';
                         payBtn.disabled = true;
                         try {
-                            const payRes = await fetch(API_BASE + '/api/payment/create', {
+                            const payRes2 = await fetch((window.API_BASE || 'https://hutko-kitchen.onrender.com') + '/api/payment/create', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
                                 body: JSON.stringify({
                                     order_ref: res.data.order_ref,
-                                    total: res.data.total,
-                                    customer_email: document.getElementById('coEmail').value,
-                                    description: `HUTKO order #${res.data.order_ref}`,
+                                    items: cartItems,
+                                    delivery_fee: deliveryFee,
+                                    customer_email: customerEmail,
                                 }),
                             });
-                            const payData = await payRes.json();
-                            if (payData.payment_url) {
-                                window.location.href = payData.payment_url;
+                            const payData2 = await payRes2.json();
+                            if (payData2.payment_url) {
+                                window.location.href = payData2.payment_url;
                             } else {
                                 payBtn.textContent = '💳 Pay online →';
                                 payBtn.disabled = false;
-                                showToast(payData.error || 'Payment service unavailable. Please pay on delivery.');
+                                showToast(payData2.error || 'Payment service unavailable.');
                             }
                         } catch (e) {
                             payBtn.textContent = '💳 Pay online →';
@@ -556,13 +587,12 @@
                         }
                     };
                 }
-
                 document.getElementById('checkoutBody').style.display = 'none';
                 document.getElementById('successScreen').style.display = 'block';
                 window.scrollTo(0, 0);
             } catch (e) {
                 showToast('Network error. Please try again.');
-                btn.textContent = t('checkout_place') || 'Place order →';
+                btn.textContent = t('checkout_place') || 'Pay & Order →';
                 btn.disabled = false;
             }
         }
@@ -685,7 +715,7 @@
     // ── Zone detection ──────────────────────────────────────────────────
     function _r(d){return d*Math.PI/180}
     function _km(a,b,cc,d){var R=6371,dL=_r(cc-a),dG=_r(d-b),x=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(_r(a))*Math.cos(_r(cc))*Math.sin(dG/2)*Math.sin(dG/2);return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
-    var Z_INNER=[{n:'Amsterdam',lat:52.3676,lng:4.9041,km:10},{n:'Den Bosch',lat:51.6978,lng:5.3037,km:10},{n:'Den Haag',lat:52.0705,lng:4.3007,km:15}];
+    var Z_INNER=[{n:'Amsterdam',lat:52.3676,lng:4.9041,km:10,fee:10},{n:'Den Bosch',lat:51.6978,lng:5.3037,km:10,fee:10},{n:'Den Haag',lat:52.0705,lng:4.3007,km:15,fee:10}];
     var Z_REG=['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
     var Z_CON=['Gelderland','Overijssel','Limburg','Groningen','Friesland','Drenthe','Zeeland'];
 
