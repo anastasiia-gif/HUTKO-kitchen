@@ -161,7 +161,7 @@ def send_order_confirmation(order_ref: str, name: str, email: str,
             ×{item['qty']}
           </td>
           <td style="padding:10px 0;border-bottom:1px solid #f0ece4;font-size:14px;font-weight:700;color:#111;text-align:right;">
-            €{item['qty'] * item['price']}
+            €{int(item['qty']) * float(item['price']):.2f}
           </td>
         </tr>"""
         for item in items
@@ -252,7 +252,7 @@ def send_order_notification(order_ref: str, name: str, email: str,
                               address: str, delivery_method: str, notes: str,
                               delivery_date: str = ''):
     owner_email = os.environ.get('OWNER_EMAIL', 'nastiapolimasheva@hutko-kitchen.com')
-    items_text = '<br>'.join([f"• {i['name']} ×{i['qty']} — €{i['qty']*i['price']}" for i in items])
+    items_text = '<br>'.join([f"• {i['name']} ×{i['qty']} — €{int(i['qty'])*float(i['price']):.2f}" for i in items])
 
     content = f"""
       <div style="background:{BRAND_ORANGE};border-radius:12px;padding:16px 24px;margin:0 0 24px;">
