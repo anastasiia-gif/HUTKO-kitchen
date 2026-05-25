@@ -652,65 +652,84 @@
     .addr-loading { padding:12px 16px; font-size:13px; color:var(--ink-soft); }
     </style>
     <script>
-    // ── Nominatim address autocomplete (no API key needed) ──────────────
-    (function(){
-      var NOM_TIMER=null, NOM_CACHE={};
+    // ── Google Places Autocomplete ───────────────────────────────────────
+    var _gmapReady = false;
+    var _gmapCallbackQueue = [];
 
-      function initNominatim(inputId, onSelect) {
+    function onGoogleMapsReady() {
+      _gmapReady = true;
+      _gmapCallbackQueue.forEach(function(fn){ fn(); });
+      _gmapCallbackQueue = [];
+    }
+    window.onGoogleMapsReady = onGoogleMapsReady;
+
+    function withGoogleMaps(fn) {
+      if (_gmapReady) { fn(); } else { _gmapCallbackQueue.push(fn); }
+    }
+
+    function initGooglePlaces(inputId, onSelect) {
+      withGoogleMaps(function(){
         var input = document.getElementById(inputId);
         if (!input) return;
-        var wrap = input.closest('.addr-wrap') || input.parentNode;
-        var drop = document.createElement('div');
-        drop.className = 'addr-dropdown';
-        input.parentNode.insertBefore(drop, input.nextSibling);
 
-        function hideDrop() { drop.style.display='none'; }
+        var autocomplete = new google.maps.places.Autocomplete(input, {
+          componentRestrictions: { country: 'nl' },
+          fields: ['address_components', 'geometry', 'formatted_address'],
+          types: ['address']
+        });
 
-        function renderResults(data, q) {
-          if (!data || !data.length) { drop.innerHTML='<div class="addr-loading">No results — try adding city name.</div>'; drop.style.display='block'; return; }
-          drop.innerHTML = data.map(function(r,i){
-            var road = r.address.road || '';
-            var num  = r.address.house_number || '';
-            var post = r.address.postcode || '';
-            var city = r.address.city || r.address.town || r.address.village || r.address.municipality || '';
-            var main = num ? (road + ' ' + num).trim() : road;
-            if (!main) main = r.display_name.split(',')[0];
-            return '<div class="addr-item" data-i="'+i+'"><strong>'+main+'</strong>'+(post?' &nbsp;<span style="opacity:.6">'+post+'</span>':'')+(city?', '+city:'')+'</div>';
-          }).join('');
-          drop.style.display='block';
-          drop.querySelectorAll('.addr-item').forEach(function(el){
-            el.addEventListener('mousedown', function(e){
-              e.preventDefault();
-              var r = data[parseInt(el.dataset.i)];
-              var road = r.address.road || '';
-              var num  = r.address.house_number || '';
-              input.value = num ? (road+' '+num).trim() : road || r.display_name.split(',')[0];
-              hideDrop();
-              onSelect(r);
-            });
+        // Style the Google dropdown to sit below the input
+        autocomplete.addListener('place_changed', function(){
+          var place = autocomplete.getPlace();
+          if (!place.geometry) return;
+          onSelect(place);
+        });
+      });
+    }
+
+    // Adapter: converts Google place result to the same onSelect shape the rest of the page expects
+    function initNominatim(inputId, onSelect) {
+      initGooglePlaces(inputId, function(place){
+        var comps = {};
+        (place.address_components || []).forEach(function(c){
+          c.types.forEach(function(t){ comps[t] = c.long_name; comps[t+'_short'] = c.short_name; });
+        });
+
+        var street   = (comps['route'] || '');
+        var number   = (comps['street_number'] || '');
+        var postcode = (comps['postal_code'] || '');
+        var city     = comps['locality'] || comps['postal_town'] || comps['administrative_area_level_2'] || '';
+        var state    = comps['administrative_area_level_1'] || '';
+        var lat      = place.geometry.location.lat();
+        var lng      = place.geometry.location.lng();
+
+        // Fill hidden fields
+        document.getElementById('coStreet').value   = number ? (street+' '+number).trim() : street;
+        document.getElementById('coPost').value     = postcode;
+        document.getElementById('coCity').value     = city;
+        document.getElementById('coProvince').value = state;
+
+        // Uncheck pickups
+        ['radio-pickup-ams','radio-pickup-db'].forEach(function(id){var el=document.getElementById(id);if(el)el.checked=false;});
+        ['opt-pickup-ams','opt-pickup-db'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.border='1.5px solid var(--border)';});
+
+        // Show mini map
+        var mapWrap = document.getElementById('addrMapWrap');
+        var mapDiv  = document.getElementById('addrMap');
+        if (mapWrap && mapDiv) {
+          mapWrap.style.display = 'block';
+          var miniMap = new google.maps.Map(mapDiv, {
+            center: { lat: lat, lng: lng },
+            zoom: 15,
+            disableDefaultUI: true,
+            zoomControl: true
           });
+          new google.maps.Marker({ position: { lat: lat, lng: lng }, map: miniMap });
         }
 
-        input.addEventListener('input', function(){
-          clearTimeout(NOM_TIMER);
-          var q = input.value.trim();
-          if (q.length < 3) { hideDrop(); return; }
-          drop.innerHTML='<div class="addr-loading">Searching\u2026</div>'; drop.style.display='block';
-          if (NOM_CACHE[q]) { renderResults(NOM_CACHE[q], q); return; }
-          NOM_TIMER = setTimeout(function(){
-            var url = 'https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q+', Netherlands')+'&format=json&limit=6&countrycodes=nl&addressdetails=1';
-            fetch(url, {headers:{'Accept-Language':'nl','User-Agent':'hutko-kitchen/1.0'}})
-              .then(function(r){return r.json();})
-              .then(function(data){ NOM_CACHE[q]=data; if(input.value.trim()===q) renderResults(data, q); })
-              .catch(function(){ drop.innerHTML='<div class="addr-loading">Search unavailable. Enter address manually.</div>'; });
-          }, 350);
-        });
-        input.addEventListener('blur', function(){ setTimeout(hideDrop, 200); });
-        document.addEventListener('click', function(e){ if(!wrap.contains(e.target)&&!drop.contains(e.target)) hideDrop(); });
-      }
-
-      window.initNominatim = initNominatim;
-    })();
+        applyZone(detectZone(lat, lng, state));
+      });
+    }
 
     // ── Zone detection ──────────────────────────────────────────────────
     function _r(d){return d*Math.PI/180}
@@ -750,17 +769,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', function(){
-      initNominatim('addressSearchInput', function(result){
-        var addr=result.address;
-        var street=[(addr.house_number||''),(addr.road||'')].filter(Boolean).join(' ')||result.display_name.split(',')[0];
-        document.getElementById('coStreet').value=street;
-        document.getElementById('coPost').value=addr.postcode||'';
-        document.getElementById('coCity').value=addr.city||addr.town||addr.village||addr.municipality||'';
-        document.getElementById('coProvince').value=addr.state||'';
-        // Uncheck pickups
-        ['radio-pickup-ams','radio-pickup-db'].forEach(function(id){var el=document.getElementById(id);if(el)el.checked=false;});
-        ['opt-pickup-ams','opt-pickup-db'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.border='1.5px solid var(--border)';});
-        applyZone(detectZone(parseFloat(result.lat),parseFloat(result.lon),addr.state||''));
+      initNominatim('addressSearchInput', function(){
+        // handled inside initGooglePlaces adapter
       });
 
       // Guard placeOrder
@@ -779,6 +789,9 @@
         orig();
       };
     });
+    </script>
+    <script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM&libraries=places&callback=onGoogleMapsReady">
     </script>
 </body>
 </html>
