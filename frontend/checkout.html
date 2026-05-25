@@ -652,59 +652,49 @@
     .addr-loading { padding:12px 16px; font-size:13px; color:var(--ink-soft); }
     </style>
     <script>
-    // ── Google Places Autocomplete ───────────────────────────────────────
-    var _gmapReady = false;
-    var _gmapCallbackQueue = [];
+    // ── Google Places (New API — PlaceAutocompleteElement) ───────────────
+    async function initNominatim(inputId, _unused) {
+      var inputEl = document.getElementById(inputId);
+      if (!inputEl) return;
 
-    function onGoogleMapsReady() {
-      _gmapReady = true;
-      _gmapCallbackQueue.forEach(function(fn){ fn(); });
-      _gmapCallbackQueue = [];
-    }
-    window.onGoogleMapsReady = onGoogleMapsReady;
+      // Load the new Places library
+      var { PlaceAutocompleteElement } = await google.maps.importLibrary('places');
+      var { Map, marker: { AdvancedMarkerElement } } = await Promise.all([
+        google.maps.importLibrary('maps'),
+        google.maps.importLibrary('marker')
+      ]).then(([maps, marker]) => ({ Map: maps.Map, marker }));
 
-    function withGoogleMaps(fn) {
-      if (_gmapReady) { fn(); } else { _gmapCallbackQueue.push(fn); }
-    }
-
-    function initGooglePlaces(inputId, onSelect) {
-      withGoogleMaps(function(){
-        var input = document.getElementById(inputId);
-        if (!input) return;
-
-        var autocomplete = new google.maps.places.Autocomplete(input, {
-          componentRestrictions: { country: 'nl' },
-          fields: ['address_components', 'geometry', 'formatted_address'],
-          types: ['address']
-        });
-
-        // Style the Google dropdown to sit below the input
-        autocomplete.addListener('place_changed', function(){
-          var place = autocomplete.getPlace();
-          if (!place.geometry) return;
-          onSelect(place);
-        });
+      // Build the autocomplete element and insert it in place of the plain input
+      var container = inputEl.closest('#addrAutoContainer') || inputEl.parentNode;
+      var pac = new PlaceAutocompleteElement({
+        componentRestrictions: { country: 'nl' },
+        types: ['address'],
       });
-    }
 
-    // Adapter: converts Google place result to the same onSelect shape the rest of the page expects
-    function initNominatim(inputId, onSelect) {
-      initGooglePlaces(inputId, function(place){
+      // Match the existing input's visual style
+      pac.style.cssText = 'width:100%;display:block;';
+      inputEl.style.display = 'none';          // hide original input
+      container.appendChild(pac);
+
+      pac.addEventListener('gmp-select', async function(e) {
+        var place = e.placePrediction.toPlace();
+        await place.fetchFields({ fields: ['addressComponents', 'location', 'displayName'] });
+
         var comps = {};
-        (place.address_components || []).forEach(function(c){
-          c.types.forEach(function(t){ comps[t] = c.long_name; comps[t+'_short'] = c.short_name; });
+        (place.addressComponents || []).forEach(function(c) {
+          c.types.forEach(function(t) { comps[t] = c.longText; });
         });
 
-        var street   = (comps['route'] || '');
-        var number   = (comps['street_number'] || '');
-        var postcode = (comps['postal_code'] || '');
+        var street   = comps['route'] || '';
+        var number   = comps['street_number'] || '';
+        var postcode = comps['postal_code'] || '';
         var city     = comps['locality'] || comps['postal_town'] || comps['administrative_area_level_2'] || '';
         var state    = comps['administrative_area_level_1'] || '';
-        var lat      = place.geometry.location.lat();
-        var lng      = place.geometry.location.lng();
+        var lat      = place.location.lat();
+        var lng      = place.location.lng();
 
         // Fill hidden fields
-        document.getElementById('coStreet').value   = number ? (street+' '+number).trim() : street;
+        document.getElementById('coStreet').value   = number ? (street + ' ' + number).trim() : street;
         document.getElementById('coPost').value     = postcode;
         document.getElementById('coCity').value     = city;
         document.getElementById('coProvince').value = state;
@@ -721,10 +711,11 @@
           var miniMap = new google.maps.Map(mapDiv, {
             center: { lat: lat, lng: lng },
             zoom: 15,
+            mapId: 'hutko_mini',
             disableDefaultUI: true,
-            zoomControl: true
+            zoomControl: true,
           });
-          new google.maps.Marker({ position: { lat: lat, lng: lng }, map: miniMap });
+          new google.maps.marker.AdvancedMarkerElement({ position: { lat: lat, lng: lng }, map: miniMap });
         }
 
         applyZone(detectZone(lat, lng, state));
@@ -768,10 +759,8 @@
       var btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=false;btn.style.opacity='1';}
     }
 
-    document.addEventListener('DOMContentLoaded', function(){
-      initNominatim('addressSearchInput', function(){
-        // handled inside initGooglePlaces adapter
-      });
+    document.addEventListener('DOMContentLoaded', async function(){
+      await initNominatim('addressSearchInput');
 
       // Guard placeOrder
       var orig=window.placeOrder;
@@ -790,8 +779,9 @@
       };
     });
     </script>
-    <script async defer
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM&libraries=places&callback=onGoogleMapsReady">
+    <script>
+      (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+      ({ key: "AIzaSyBuALDFhPWlTupW40rPKXkpS3coKgTnOEM", v: "weekly" });
     </script>
 </body>
 </html>
