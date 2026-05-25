@@ -71,24 +71,26 @@ function productCard(p) {
 }
 
 // ── BUNDLE CARD ───────────────────────────────────────
-function buildChoicePills(b) {
+function buildChoiceDropdown(b) {
     var raw = b['choice_' + lang()] || b.choice_en || '';
     if (!raw) return '';
-    var parts = raw.split(/\s+OR\s+|\s+OR\s+/i).join('|SPLIT|')
+    var parts = raw.split(/\s+OR\s+/i).join('|SPLIT|')
                    .split(/\s+АБО\s+/i).join('|SPLIT|')
                    .split(/\s+OF\s+/i).join('|SPLIT|')
                    .split('|SPLIT|')
                    .map(function(s){ return s.trim(); })
                    .filter(function(s){ return s.length > 0; });
     if (parts.length < 2) return '';
-    var html = '<div class="pack-choice-row"><div class="pack-choice-pills" id="choice-' + b.id + '">';
-    for (var i = 0; i < parts.length; i++) {
-        var cls = 'pack-choice-pill' + (i === 0 ? ' selected' : '');
-        var pid = b.id; var ptxt = parts[i];
-        html += '<div class="' + cls + '" onclick="selectBundleChoice(\''+pid+'\',this,\''+ptxt+'\')">'+ptxt+'</div>';
-    }
-    html += '</div></div>';
-    return html;
+    var opts = parts.map(function(p){
+        return '<option value="' + p + '">' + p + '</option>';
+    }).join('');
+    return '<div class="pack-choice-row">'
+         + '<div class="pack-choice-label">Choose one ↓</div>'
+         + '<select class="pack-choice-select" id="choice-' + b.id + '" onchange="this.classList.remove(\'error\')">'
+         + '<option value="">— select an option —</option>'
+         + opts
+         + '</select>'
+         + '</div>';
 }
 
 function bundleCard(b) {
@@ -109,7 +111,7 @@ function bundleCard(b) {
       <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>
       <div class="pack-name">${bName(b)}</div>
       <div class="pack-items">${items}</div>
-      ${buildChoicePills(b)}
+      ${buildChoiceDropdown(b)}
       <div class="pack-price-row">${oldPriceHtml}<span class="pack-price-new">€${b.discount_price}</span></div>
       ${portions ? `<div class="pack-per">~€${(b.discount_price / portions).toFixed(1)} per portion</div>` : ''}
     </div>
@@ -181,19 +183,23 @@ function shopAddToCart(id) {
 }
 window.shopAddToCart = shopAddToCart;
 
-function selectBundleChoice(bundleId, el, value) {
-    document.querySelectorAll(`#choice-${bundleId} .pack-choice-pill`).forEach(p => p.classList.remove('selected'));
-    el.classList.add('selected');
-}
-window.selectBundleChoice = selectBundleChoice;
-
 function bundleAddToCart(id) {
     const b = ALL_BUNDLES.find(x => x.id === id);
     if (!b) return;
-    const selected = document.querySelector(`#choice-${id} .pack-choice-pill.selected`);
-    const choiceText = selected ? selected.textContent.trim() : '';
-    const label = choiceText ? `${b.size_label} · ${choiceText}` : b.size_label;
-    addToCart(id, bName(b), '🎁', b.discount_price, label);
+    const sel = document.getElementById(`choice-${id}`);
+    if (sel) {
+        const choiceText = sel.value.trim();
+        if (!choiceText) {
+            sel.classList.add('error');
+            sel.focus();
+            if (typeof showToast === 'function') showToast('Please choose an option first.');
+            return;
+        }
+        const label = `${b.size_label} · ${choiceText}`;
+        addToCart(id, bName(b), '🎁', b.discount_price, label);
+    } else {
+        addToCart(id, bName(b), '🎁', b.discount_price, b.size_label);
+    }
 }
 window.bundleAddToCart = bundleAddToCart;
 
@@ -247,24 +253,72 @@ const FALLBACK_PRODUCTS = [
 ];
 const FALLBACK_BUNDLES = [
     {
-        id: 'pack-s1', name_en: 'Starter Pack — Borscht', name_ua: 'Стартовий набір — Борщ', name_nl: 'Starterpakket — Borsjt',
-        size_label: 'Pack S', items: [{ product_id: 'syrnyky', qty: 8 }, { product_id: 'borscht', qty: 1 }, { product_id: 'zrazy', qty: 6 }, { product_id: 'chicken', qty: 8 }],
-        original_price: 41, discount_price: 37, photo: 'assets/Bundles/s_pack_orange.png', badge: ''
+        id: 'pack-m1',
+        name_en: 'Pack M (1) — Syrnyky + Borscht + Choice',
+        name_ua: 'Набір M (1) — Сирники + Борщ + Вибір',
+        name_nl: 'Pack M (1) — Syrnyky + Borsjt + Keuze',
+        size_label: 'Pack M',
+        items: [
+            { product_id: 'syrnyky', qty: 16 },
+            { product_id: 'borscht', qty: 2 },
+        ],
+        original_price: 77, discount_price: 72,
+        photo: 'assets/Bundles/m_pack_orange.png', badge: '',
+        choice_en: 'Zrazy 12 pcs OR Chicken balls 16 pcs OR Mlyntsi 12 pcs',
+        choice_ua: 'Зрази 12 шт АБО Курячі кульки 16 шт АБО Млинці 12 шт',
+        choice_nl: 'Zrazy 12 st OF Chicken balls 16 st OF Mlyntsi 12 st',
     },
     {
-        id: 'pack-s2', name_en: 'Starter Pack — Solyanka', name_ua: 'Стартовий набір — Солянка', name_nl: 'Starterpakket — Solyanka',
-        size_label: 'Pack S', items: [{ product_id: 'syrnyky', qty: 8 }, { product_id: 'solyanka', qty: 1 }, { product_id: 'zrazy', qty: 6 }, { product_id: 'chicken', qty: 8 }],
-        original_price: 44, discount_price: 39, photo: 'assets/Bundles/s_pack_blue.jpeg', badge: ''
+        id: 'pack-m2',
+        name_en: 'Pack M (2) — Syrnyky + Shakshuka + Solyanka + Choice',
+        name_ua: 'Набір M (2) — Сирники + Шакшука + Солянка + Вибір',
+        name_nl: 'Pack M (2) — Syrnyky + Shakshuka + Solyanka + Keuze',
+        size_label: 'Pack M',
+        items: [
+            { product_id: 'syrnyky', qty: 8 },
+            { product_id: 'shakshuka', qty: 2 },
+            { product_id: 'solyanka', qty: 2 },
+        ],
+        original_price: 85, discount_price: 80,
+        photo: 'assets/Bundles/m_pack_blue.jpeg', badge: 'Most popular',
+        choice_en: 'Zrazy 12 pcs OR Chicken balls 16 pcs OR Mlyntsi 12 pcs',
+        choice_ua: 'Зрази 12 шт АБО Курячі кульки 16 шт АБО Млинці 12 шт',
+        choice_nl: 'Zrazy 12 st OF Chicken balls 16 st OF Mlyntsi 12 st',
     },
     {
-        id: 'pack-m1', name_en: 'Family Pack — Classic', name_ua: 'Сімейний набір — Класик', name_nl: 'Familiepakket — Klassiek',
-        size_label: 'Pack M', items: [{ product_id: 'syrnyky', qty: 16 }, { product_id: 'borscht', qty: 2 }, { product_id: 'zrazy', qty: 12 }, { product_id: 'chicken', qty: 16 }],
-        original_price: 77, discount_price: 69, photo: 'assets/Bundles/m_pack_orange.png', badge: 'Most popular'
+        id: 'pack-l1',
+        name_en: 'Pack L (1) — Syrnyky + Borscht + Solyanka + Choice',
+        name_ua: 'Набір L (1) — Сирники + Борщ + Солянка + Вибір',
+        name_nl: 'Pack L (1) — Syrnyky + Borsjt + Solyanka + Keuze',
+        size_label: 'Pack L',
+        items: [
+            { product_id: 'syrnyky', qty: 24 },
+            { product_id: 'borscht', qty: 2 },
+            { product_id: 'solyanka', qty: 1 },
+        ],
+        original_price: 100, discount_price: 95,
+        photo: 'assets/Bundles/l_pack_blue.png', badge: '',
+        choice_en: 'Zrazy 12 pcs OR Chicken balls 16 pcs OR Mlyntsi 12 pcs',
+        choice_ua: 'Зрази 12 шт АБО Курячі кульки 16 шт АБО Млинці 12 шт',
+        choice_nl: 'Zrazy 12 st OF Chicken balls 16 st OF Mlyntsi 12 st',
     },
     {
-        id: 'pack-l1', name_en: 'Big Pack', name_ua: 'Великий набір', name_nl: 'Groot pakket',
-        size_label: 'Pack L', items: [{ product_id: 'syrnyky', qty: 24 }, { product_id: 'borscht', qty: 2 }, { product_id: 'solyanka', qty: 1 }, { product_id: 'zrazy', qty: 16 }, { product_id: 'chicken', qty: 20 }],
-        original_price: 107, discount_price: 97, photo: 'assets/Bundles/l_pack_blue.png', badge: ''
+        id: 'pack-l2',
+        name_en: 'Pack L (2) — Syrnyky + Borscht + Solyanka + Shakshuka + Choice',
+        name_ua: 'Набір L (2) — Сирники + Борщ + Солянка + Шакшука + Вибір',
+        name_nl: 'Pack L (2) — Syrnyky + Borsjt + Solyanka + Shakshuka + Keuze',
+        size_label: 'Pack L',
+        items: [
+            { product_id: 'syrnyky', qty: 16 },
+            { product_id: 'borscht', qty: 1 },
+            { product_id: 'solyanka', qty: 2 },
+            { product_id: 'shakshuka', qty: 2 },
+        ],
+        original_price: 108, discount_price: 100,
+        photo: 'assets/Bundles/l_pack_orange.png', badge: '',
+        choice_en: 'Zrazy 12 pcs OR Chicken balls 16 pcs OR Mlyntsi 12 pcs',
+        choice_ua: 'Зрази 12 шт АБО Курячі кульки 16 шт АБО Млинці 12 шт',
+        choice_nl: 'Zrazy 12 st OF Chicken balls 16 st OF Mlyntsi 12 st',
     },
 ];
 // ── TAB SWITCHING ─────────────────────────────────────
