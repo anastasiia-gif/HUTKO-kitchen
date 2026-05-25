@@ -104,7 +104,7 @@ function bundleCard(b) {
     const portions = b.items.reduce((s, i) => s + i.qty, 0);
 
     return `<div class="pack-card ${featured ? 'featured' : ''} reveal">
-    <div class="pack-img-wrap">
+    <div class="pack-img-wrap" onclick="openPackLightbox('${b.photo}','${bName(b).replace(/'/g,"\\'")}')">
       <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="this.onerror=null;this.src='assets/Bundles/s_pack_orange.png'">
     </div>
     <div class="pack-body">
@@ -304,3 +304,73 @@ function switchTab(name, btn) {
   document.getElementById(`panel-${name}`).classList.add('active');
 }
 window.switchTab = switchTab;
+
+// ── PACK IMAGE LIGHTBOX ───────────────────────────────
+(function () {
+    function createLightbox() {
+        if (document.getElementById('packLightbox')) return;
+        const el = document.createElement('div');
+        el.id = 'packLightbox';
+        el.innerHTML = `
+          <div id="packLightboxBg"></div>
+          <button id="packLightboxClose" aria-label="Close">✕</button>
+          <img id="packLightboxImg" src="" alt="">
+        `;
+        document.body.appendChild(el);
+
+        const style = document.createElement('style');
+        style.textContent = `
+          #packLightbox {
+            display: none; position: fixed; inset: 0; z-index: 9999;
+            align-items: center; justify-content: center;
+          }
+          #packLightbox.open { display: flex; }
+          #packLightboxBg {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,.85); backdrop-filter: blur(6px);
+            cursor: zoom-out;
+          }
+          #packLightboxImg {
+            position: relative; max-width: min(92vw, 560px);
+            max-height: 92vh; border-radius: 20px;
+            object-fit: contain; box-shadow: 0 24px 80px rgba(0,0,0,.5);
+            animation: lbIn .22s ease;
+          }
+          #packLightboxClose {
+            position: absolute; top: 18px; right: 22px;
+            background: rgba(255,255,255,.15); border: none;
+            color: #fff; font-size: 20px; width: 40px; height: 40px;
+            border-radius: 50%; cursor: pointer; z-index: 1;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .15s;
+          }
+          #packLightboxClose:hover { background: rgba(255,255,255,.3); }
+          @keyframes lbIn {
+            from { opacity: 0; transform: scale(.92); }
+            to   { opacity: 1; transform: scale(1); }
+          }
+          .pack-img-wrap { cursor: zoom-in; }
+        `;
+        document.head.appendChild(style);
+
+        document.getElementById('packLightboxBg').onclick = closeLightbox;
+        document.getElementById('packLightboxClose').onclick = closeLightbox;
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+    }
+
+    function closeLightbox() {
+        const lb = document.getElementById('packLightbox');
+        if (lb) lb.classList.remove('open');
+    }
+
+    window.openPackLightbox = function(src, alt) {
+        createLightbox();
+        const lb  = document.getElementById('packLightbox');
+        const img = document.getElementById('packLightboxImg');
+        img.src = src;
+        img.alt = alt || '';
+        lb.classList.add('open');
+    };
+
+    window.closePackLightbox = closeLightbox;
+})();
