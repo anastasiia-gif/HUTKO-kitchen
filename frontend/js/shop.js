@@ -195,8 +195,7 @@ function bundleAddToCart(id) {
             if (typeof showToast === 'function') showToast('Please choose an option first.');
             return;
         }
-        const label = `${b.size_label} · ${choiceText}`;
-        addToCart(id, bName(b), '🎁', b.discount_price, label);
+        addToCart(id, bName(b), '🎁', b.discount_price, `${b.size_label} · ${choiceText}`);
     } else {
         addToCart(id, bName(b), '🎁', b.discount_price, b.size_label);
     }
@@ -254,68 +253,44 @@ const FALLBACK_PRODUCTS = [
 const FALLBACK_BUNDLES = [
     {
         id: 'pack-m1',
-        name_en: 'Pack M (1) — Syrnyky + Borscht + Choice',
-        name_ua: 'Набір M (1) — Сирники + Борщ + Вибір',
-        name_nl: 'Pack M (1) — Syrnyky + Borsjt + Keuze',
+        name_en: 'Pack M (1) — Syrnyky + Borscht', name_ua: 'Набір M (1) — Сирники + Борщ', name_nl: 'Pack M (1) — Syrnyky + Borsjt',
         size_label: 'Pack M',
-        items: [
-            { product_id: 'syrnyky', qty: 16 },
-            { product_id: 'borscht', qty: 2 },
-        ],
+        items: [{ product_id: 'syrnyky', qty: 16 }, { product_id: 'borscht', qty: 2 }],
         original_price: 77, discount_price: 72,
-        photo: 'assets/Bundles/m_pack_orange.png', badge: '',
+        photo: 'assets/Bundles/packM_72euro.PNG', badge: '',
         choice_en: 'Zrazy 12 pcs OR Chicken balls 16 pcs OR Mlyntsi 12 pcs',
         choice_ua: 'Зрази 12 шт АБО Курячі кульки 16 шт АБО Млинці 12 шт',
         choice_nl: 'Zrazy 12 st OF Chicken balls 16 st OF Mlyntsi 12 st',
     },
     {
         id: 'pack-m2',
-        name_en: 'Pack M (2) — Syrnyky + Shakshuka + Solyanka + Choice',
-        name_ua: 'Набір M (2) — Сирники + Шакшука + Солянка + Вибір',
-        name_nl: 'Pack M (2) — Syrnyky + Shakshuka + Solyanka + Keuze',
+        name_en: 'Pack M (2) — Syrnyky + Shakshuka + Solyanka', name_ua: 'Набір M (2) — Сирники + Шакшука + Солянка', name_nl: 'Pack M (2) — Syrnyky + Shakshuka + Solyanka',
         size_label: 'Pack M',
-        items: [
-            { product_id: 'syrnyky', qty: 8 },
-            { product_id: 'shakshuka', qty: 2 },
-            { product_id: 'solyanka', qty: 2 },
-        ],
+        items: [{ product_id: 'syrnyky', qty: 8 }, { product_id: 'shakshuka', qty: 2 }, { product_id: 'solyanka', qty: 2 }],
         original_price: 85, discount_price: 80,
-        photo: 'assets/Bundles/m_pack_blue.jpeg', badge: 'Most popular',
+        photo: 'assets/Bundles/packM_80euro.JPEG', badge: 'Most popular',
         choice_en: 'Zrazy 12 pcs OR Chicken balls 16 pcs OR Mlyntsi 12 pcs',
         choice_ua: 'Зрази 12 шт АБО Курячі кульки 16 шт АБО Млинці 12 шт',
         choice_nl: 'Zrazy 12 st OF Chicken balls 16 st OF Mlyntsi 12 st',
     },
     {
         id: 'pack-l1',
-        name_en: 'Pack L (1) — Syrnyky + Borscht + Solyanka + Choice',
-        name_ua: 'Набір L (1) — Сирники + Борщ + Солянка + Вибір',
-        name_nl: 'Pack L (1) — Syrnyky + Borsjt + Solyanka + Keuze',
+        name_en: 'Pack L (1) — Syrnyky + Borscht + Solyanka', name_ua: 'Набір L (1) — Сирники + Борщ + Солянка', name_nl: 'Pack L (1) — Syrnyky + Borsjt + Solyanka',
         size_label: 'Pack L',
-        items: [
-            { product_id: 'syrnyky', qty: 24 },
-            { product_id: 'borscht', qty: 2 },
-            { product_id: 'solyanka', qty: 1 },
-        ],
+        items: [{ product_id: 'syrnyky', qty: 24 }, { product_id: 'borscht', qty: 2 }, { product_id: 'solyanka', qty: 1 }],
         original_price: 100, discount_price: 95,
-        photo: 'assets/Bundles/l_pack_blue.png', badge: '',
+        photo: 'assets/Bundles/packL_95euro.PNG', badge: '',
         choice_en: 'Zrazy 12 pcs OR Chicken balls 16 pcs OR Mlyntsi 12 pcs',
         choice_ua: 'Зрази 12 шт АБО Курячі кульки 16 шт АБО Млинці 12 шт',
         choice_nl: 'Zrazy 12 st OF Chicken balls 16 st OF Mlyntsi 12 st',
     },
     {
         id: 'pack-l2',
-        name_en: 'Pack L (2) — Syrnyky + Borscht + Solyanka + Shakshuka + Choice',
-        name_ua: 'Набір L (2) — Сирники + Борщ + Солянка + Шакшука + Вибір',
-        name_nl: 'Pack L (2) — Syrnyky + Borsjt + Solyanka + Shakshuka + Keuze',
+        name_en: 'Pack L (2) — Syrnyky + Borscht + Solyanka + Shakshuka', name_ua: 'Набір L (2) — Сирники + Борщ + Солянка + Шакшука', name_nl: 'Pack L (2) — Syrnyky + Borsjt + Solyanka + Shakshuka',
         size_label: 'Pack L',
-        items: [
-            { product_id: 'syrnyky', qty: 16 },
-            { product_id: 'borscht', qty: 1 },
-            { product_id: 'solyanka', qty: 2 },
-            { product_id: 'shakshuka', qty: 2 },
-        ],
+        items: [{ product_id: 'syrnyky', qty: 16 }, { product_id: 'borscht', qty: 1 }, { product_id: 'solyanka', qty: 2 }, { product_id: 'shakshuka', qty: 2 }],
         original_price: 108, discount_price: 100,
-        photo: 'assets/Bundles/l_pack_orange.png', badge: '',
+        photo: 'assets/Bundles/packL_100euro.PNG', badge: '',
         choice_en: 'Zrazy 12 pcs OR Chicken balls 16 pcs OR Mlyntsi 12 pcs',
         choice_ua: 'Зрази 12 шт АБО Курячі кульки 16 шт АБО Млинці 12 шт',
         choice_nl: 'Zrazy 12 st OF Chicken balls 16 st OF Mlyntsi 12 st',
