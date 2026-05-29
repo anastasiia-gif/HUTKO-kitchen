@@ -309,6 +309,70 @@ def send_order_notification(order_ref: str, name: str, email: str,
     )
 
 
+# ── ABANDONED / FAILED PAYMENT (to customer) ────────────────
+def send_payment_failed(order_ref: str, name: str, email: str,
+                         items: list, total: float, checkout_url: str):
+    first = name.split()[0]
+    items_html = ''.join([
+        f'<tr><td style="padding:8px 0;border-bottom:1px solid #f0ece4;font-size:14px;color:#333;">{i["name"]}</td>'
+        f'<td style="padding:8px 0;border-bottom:1px solid #f0ece4;font-size:14px;color:#666;text-align:center;">×{i["qty"]}</td>'
+        f'<td style="padding:8px 0;border-bottom:1px solid #f0ece4;font-size:14px;font-weight:700;text-align:right;">€{int(i["qty"])*float(i["price"]):.2f}</td></tr>'
+        for i in items
+    ])
+    content = f"""
+      <h1 style="margin:0 0 8px;font-size:26px;font-weight:900;color:#111;">
+        Something went wrong 😕
+      </h1>
+      <p style="margin:0 0 24px;font-size:15px;color:#666;line-height:1.6;">
+        Hi {first}, it looks like your payment for order
+        <strong style="color:{BRAND_BLUE};">#{order_ref}</strong> didn't go through —
+        but don't worry, your order is saved and ready to retry!
+      </p>
+
+      <div style="background:{BRAND_CREAM};border-radius:12px;padding:20px 24px;margin:0 0 24px;">
+        <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#666;">Your saved order</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          {items_html}
+          <tr>
+            <td colspan="2" style="padding:12px 0 0;font-size:14px;font-weight:700;color:#111;">Total</td>
+            <td style="padding:12px 0 0;font-size:16px;font-weight:900;color:{BRAND_BLUE};text-align:right;">€{total:.2f}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="margin:0 0 20px;font-size:15px;font-weight:700;color:#111;text-align:center;">
+        Ready to try again? Just click below:
+      </p>
+
+      <table cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td align="center">
+            <a href="{checkout_url}"
+               style="display:inline-block;background:{BRAND_ORANGE};color:#fff;
+                      text-decoration:none;font-size:15px;font-weight:700;
+                      padding:15px 40px;border-radius:100px;">
+              Complete my order →
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:20px 0 0;font-size:12px;color:#bbb;text-align:center;">
+        Or copy this link: {checkout_url}
+      </p>
+
+      <p style="margin:24px 0 0;font-size:13px;color:#999;text-align:center;">
+        If you keep having trouble, <a href="{SITE_URL}/contact.html" style="color:{BRAND_BLUE};">contact us</a>
+        and we'll sort it out for you.
+      </p>
+    """
+    send_email(
+        email,
+        f"Your HUTKO order #{order_ref} is waiting for you 🛒",
+        _base_template(content, f"Complete your order #{order_ref} — €{total:.2f}")
+    )
+
+
 # ── DELIVERY DISPATCH (to customer when out for delivery) ───
 def send_delivery_dispatch(order_ref: str, name: str, email: str,
                             delivery_date: str = ''):
