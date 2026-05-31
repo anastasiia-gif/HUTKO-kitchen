@@ -21,7 +21,7 @@ from database import get_db, _use_postgres
 
 payments_bp    = Blueprint('payments', __name__)
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
-STRIPE_WH_KEY  = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+STRIPE_WH_KEY  = os.environ.get('STRIPE_WEBHOOK_SECRET') or os.environ.get('WEBHOOK_SECRET', '')
 SITE_URL       = os.environ.get('FRONTEND_URL', 'https://hutko-kitchen.com')
 
 
