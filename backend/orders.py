@@ -53,6 +53,11 @@ def checkout():
 
     delivery_date = data.get('delivery_date', '')
 
+    street   = data.get('street', '').strip() or 'PICKUP'
+    postcode = data.get('postcode', '').strip() or '-'
+    city     = data.get('city', '').strip() or '-'
+    province = data.get('province', '').strip() or '-'
+
     if _use_postgres():
         cur = conn.cursor()
         cur.execute(f"""
@@ -65,7 +70,7 @@ def checkout():
             order_ref, user_id,
             f"{data['first_name']} {data['last_name']}",
             data['email'], data['phone'],
-            data['street'], data['postcode'], data['city'], data['province'],
+            street, postcode, city, province,
             data.get('notes', ''), delivery_method, delivery_date,
             json.dumps(items), subtotal, delivery_cost, total
         ))
@@ -80,7 +85,7 @@ def checkout():
             order_ref, user_id,
             f"{data['first_name']} {data['last_name']}",
             data['email'], data['phone'],
-            data['street'], data['postcode'], data['city'], data['province'],
+            street, postcode, city, province,
             data.get('notes', ''), delivery_method, delivery_date,
             json.dumps(items), subtotal, delivery_cost, total
         ))

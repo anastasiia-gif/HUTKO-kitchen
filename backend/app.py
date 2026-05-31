@@ -61,6 +61,20 @@ app.register_blueprint(shop_bp)
 app.register_blueprint(payments_bp)
 
 
+@app.route('/api/admin/run-migrations', methods=['POST'])
+def run_migrations():
+    """One-time endpoint to run DB migrations on the live Postgres instance."""
+    from flask import request as req
+    admin_pw = os.environ.get('ADMIN_PASSWORD', '')
+    if not admin_pw or req.headers.get('X-Admin-Key') != admin_pw:
+        return jsonify({'error': 'Unauthorised'}), 401
+    try:
+        init_db()
+        return jsonify({'ok': True, 'message': 'Migrations ran successfully.'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/health', methods=['GET'])
 def health():
     return jsonify({'status': 'ok', 'service': 'HUTKO API'}), 200

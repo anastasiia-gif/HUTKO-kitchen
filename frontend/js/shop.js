@@ -1,6 +1,31 @@
 let ALL_PRODUCTS = [];
 let ALL_BUNDLES = [];
 
+/**
+ * Case-insensitive image fallback.
+ * Tries lowercase, uppercase, and common mixed variants before showing placeholder.
+ * This way it doesn't matter if the file on the server is .png, .PNG, .jpeg, .JPEG etc.
+ */
+function tryImgFallbacks(el, originalSrc) {
+    if (!el._fallbacks) {
+        const ext = originalSrc.split('.').pop();
+        const base = originalSrc.slice(0, -ext.length - 1);
+        el._fallbacks = [
+            base + '.' + ext.toLowerCase(),
+            base + '.' + ext.toUpperCase(),
+            base + '.' + ext[0].toUpperCase() + ext.slice(1).toLowerCase(),
+            'assets/Bundles/s_pack_orange.png',  // final placeholder
+        ].filter(s => s !== originalSrc);  // don't retry the one that already failed
+    }
+    const next = el._fallbacks.shift();
+    if (next) {
+        el.src = next;
+    } else {
+        el.onerror = null;  // give up
+    }
+}
+window.tryImgFallbacks = tryImgFallbacks;
+
 async function _loadShopData() {
     const grid = document.getElementById('productGrid');
     const bgrid = document.getElementById('bundleGrid');
@@ -105,7 +130,7 @@ function bundleCard(b) {
 
     return `<div class="pack-card ${featured ? 'featured' : ''} reveal">
     <div class="pack-img-wrap" onclick="openPackLightbox('${b.photo}','${bName(b).replace(/'/g,"\\'")}')">
-      <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="this.onerror=null;this.src='assets/Bundles/s_pack_orange.png'">
+      <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="tryImgFallbacks(this,'${b.photo}')">
     </div>
     <div class="pack-body">
       <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>
