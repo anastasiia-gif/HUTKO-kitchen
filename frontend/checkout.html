@@ -408,8 +408,10 @@
             document.getElementById('zoneStatus').style.display = 'none';
             document.getElementById('zoneContactNote').style.display = 'none';
             document.getElementById('addrMapWrap').style.display = 'none';
-            document.getElementById('coStreet').value = location === 'amsterdam' ? 'Overtoom 239, 1054 HV Amsterdam' : 'Graafseweg 194B, 5223 AP Den Bosch';
-            document.getElementById('coCity').value = location === 'amsterdam' ? 'Amsterdam' : 'Den Bosch';
+            document.getElementById('coStreet').value   = location === 'amsterdam' ? 'Overtoom 239' : 'Graafseweg 194B';
+            document.getElementById('coPost').value     = location === 'amsterdam' ? '1054 HV' : '5223 AP';
+            document.getElementById('coCity').value     = location === 'amsterdam' ? 'Amsterdam' : 'Den Bosch';
+            document.getElementById('coProvince').value = location === 'amsterdam' ? 'Noord-Holland' : 'Noord-Brabant';
             // Highlight selected pickup
             ['opt-pickup-ams','opt-pickup-db'].forEach(id => {
                 const el = document.getElementById(id);
@@ -521,6 +523,11 @@
 
                 // Clear cart immediately
                 localStorage.removeItem('hutko_cart');
+
+                // Show order ref BEFORE redirecting — customer can note it down
+                const orderRefEl = document.getElementById('orderRef');
+                if (orderRefEl) orderRefEl.textContent = res.data.order_ref || '';
+                showToast('Order saved! Ref: ' + res.data.order_ref + ' — redirecting to payment…', 4000);
 
                 // Redirect straight to Stripe
                 btn.textContent = 'Redirecting to payment…';
