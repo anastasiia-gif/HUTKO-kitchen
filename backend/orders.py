@@ -27,8 +27,7 @@ def make_ref():
 @optional_token
 def checkout():
     data = request.get_json()
-    required = ['first_name', 'last_name', 'email', 'phone',
-                'street', 'postcode', 'city', 'province', 'items']
+    required = ['first_name', 'last_name', 'email', 'phone', 'street', 'items']
     for field in required:
         if not data.get(field):
             return jsonify({'error': f'Missing required field: {field}'}), 400
