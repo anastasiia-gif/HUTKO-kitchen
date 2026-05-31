@@ -130,7 +130,7 @@ function bundleCard(b) {
 
     return `<div class="pack-card ${featured ? 'featured' : ''} reveal">
     <div class="pack-img-wrap" onclick="openPackLightbox('${b.photo}','${bName(b).replace(/'/g,"\\'")}')">
-      <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="tryImgFallbacks(this,'${b.photo}')">
+      <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="tryImgFallbacks(this,'${b.photo}')" onload="this.closest('.pack-img-wrap').onclick=()=>openPackLightbox(this.src,'${bName(b).replace(/'/g,"\\'")}')">
     </div>
     <div class="pack-body">
       <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>

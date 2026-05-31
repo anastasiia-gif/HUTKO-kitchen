@@ -39,12 +39,18 @@ def _exec(conn, sql, params=()):
 
 
 def _ensure_admin_tokens_table(conn):
-    conn.execute("""
+    dt = "DEFAULT NOW()" if _use_postgres() else "DEFAULT (datetime('now'))"
+    sql = f"""
         CREATE TABLE IF NOT EXISTS admin_tokens (
             token      TEXT PRIMARY KEY,
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TEXT {dt}
         )
-    """)
+    """
+    if _use_postgres():
+        cur = conn.cursor()
+        cur.execute(sql)
+    else:
+        conn.execute(sql)
     conn.commit()
 
 
