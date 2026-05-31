@@ -48,7 +48,7 @@ if os.environ.get('FRONTEND_URL'):
 
 CORS(app,
      origins=ALLOWED_ORIGINS,
-     allow_headers=["Content-Type", "Authorization"],
+     allow_headers=["Content-Type", "Authorization", "X-Admin-Key"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
      supports_credentials=True)
 
