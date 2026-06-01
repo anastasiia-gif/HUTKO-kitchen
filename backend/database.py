@@ -1,68 +1,43 @@
 """
 HUTKO — database.py
-PostgreSQL in production (when DATABASE_URL is set), SQLite locally.
-psycopg2 is imported lazily — only when DATABASE_URL is actually present,
-so the app starts fine on SQLite even if psycopg2 isn't installed.
+SQLite, stored on Render persistent disk at /data/hutko.db
 """
 
 import os
 import sqlite3
 
-DB_PATH      = os.environ.get('DB_PATH', 'hutko.db')
-DATABASE_URL = os.environ.get('DATABASE_URL', '')
+DB_PATH = os.environ.get('DB_PATH', 'hutko.db')
 
 
 def _use_postgres():
-    return bool(DATABASE_URL)
+    return False
 
 
 def get_db():
-    if _use_postgres():
-        import psycopg2
-        import psycopg2.extras
-        conn = psycopg2.connect(DATABASE_URL,
-                                cursor_factory=psycopg2.extras.RealDictCursor)
-        conn.autocommit = False
-        return conn
-    else:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys = ON")
-        return conn
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 
 def _placeholder():
-    return '%s' if _use_postgres() else '?'
+    return '?'
 
 
 def _autoincrement():
-    return 'SERIAL PRIMARY KEY' if _use_postgres() else 'INTEGER PRIMARY KEY AUTOINCREMENT'
+    return 'INTEGER PRIMARY KEY AUTOINCREMENT'
 
-
-def _datetime_type():
-    return 'TIMESTAMPTZ' if _use_postgres() else 'TEXT'
 
 def _datetime_default():
-    return 'DEFAULT NOW()' if _use_postgres() else "DEFAULT (datetime('now'))"
+    return "DEFAULT (datetime('now'))"
 
 
 def init_db():
     conn = get_db()
 
-    if _use_postgres():
-        cur  = conn.cursor()
-        _exec = cur.execute
-    else:
-        cur  = conn
-        _exec = conn.execute
-
-    ai  = _autoincrement()
-    dt  = _datetime_default()
-    dtt = _datetime_type()
-
-    _exec(f"""
+    conn.execute(f"""
         CREATE TABLE IF NOT EXISTS users (
-            id            {ai},
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
             name          TEXT    NOT NULL,
             email         TEXT    NOT NULL UNIQUE,
             password_hash TEXT    NOT NULL,
@@ -71,21 +46,21 @@ def init_db():
             addr_postcode TEXT,
             addr_city     TEXT,
             addr_province TEXT,
-            created_at    {dtt} {dt}
+            created_at    TEXT    DEFAULT (datetime('now'))
         )
     """)
 
-    _exec(f"""
+    conn.execute(f"""
         CREATE TABLE IF NOT EXISTS auth_tokens (
             token      TEXT PRIMARY KEY,
             user_id    INTEGER NOT NULL,
-            created_at {dtt} {dt}
+            created_at TEXT DEFAULT (datetime('now'))
         )
     """)
 
-    _exec(f"""
+    conn.execute(f"""
         CREATE TABLE IF NOT EXISTS orders (
-            id              {ai},
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
             order_ref       TEXT    NOT NULL UNIQUE,
             user_id         INTEGER,
             customer_name   TEXT    NOT NULL,
@@ -104,23 +79,25 @@ def init_db():
             total           REAL    NOT NULL,
             status          TEXT    NOT NULL DEFAULT 'confirmed',
             trello_card_id  TEXT,
-            created_at      {dtt} {dt}
+            payment_id      TEXT,
+            payment_status  TEXT    DEFAULT 'pending',
+            created_at      TEXT    DEFAULT (datetime('now'))
         )
     """)
 
-    _exec(f"""
+    conn.execute(f"""
         CREATE TABLE IF NOT EXISTS delivery_slots (
-            id         {ai},
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
             slot_date  TEXT NOT NULL UNIQUE,
             booked     INTEGER NOT NULL DEFAULT 0,
             max_slots  INTEGER NOT NULL DEFAULT 15,
-            created_at {dtt} {dt}
+            created_at TEXT DEFAULT (datetime('now'))
         )
     """)
 
-    _exec(f"""
+    conn.execute(f"""
         CREATE TABLE IF NOT EXISTS messages (
-            id         {ai},
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
             name       TEXT NOT NULL,
             email      TEXT NOT NULL,
             phone      TEXT,
@@ -128,38 +105,38 @@ def init_db():
             topic      TEXT NOT NULL,
             title      TEXT NOT NULL,
             body       TEXT NOT NULL,
-            created_at {dtt} {dt}
+            created_at TEXT DEFAULT (datetime('now'))
         )
     """)
 
-    _exec(f"""
+    conn.execute(f"""
         CREATE TABLE IF NOT EXISTS newsletter (
-            id         {ai},
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
             email      TEXT NOT NULL UNIQUE,
-            created_at {dtt} {dt}
+            created_at TEXT DEFAULT (datetime('now'))
         )
     """)
 
-    # Migrations — safe on both SQLite and Postgres
-    _safe_alter(conn, cur, "ALTER TABLE orders ADD COLUMN trello_card_id TEXT")
-    _safe_alter(conn, cur, "ALTER TABLE orders ADD COLUMN delivery_date TEXT")
-    _safe_alter(conn, cur, "ALTER TABLE orders ADD COLUMN payment_id TEXT")
-    _safe_alter(conn, cur, "ALTER TABLE orders ADD COLUMN payment_status TEXT DEFAULT 'pending'")
+    conn.execute(f"""
+        CREATE TABLE IF NOT EXISTS admin_tokens (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            token      TEXT NOT NULL UNIQUE,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+
+    # Safe migrations
+    for sql in [
+        "ALTER TABLE orders ADD COLUMN trello_card_id TEXT",
+        "ALTER TABLE orders ADD COLUMN delivery_date TEXT",
+        "ALTER TABLE orders ADD COLUMN payment_id TEXT",
+        "ALTER TABLE orders ADD COLUMN payment_status TEXT DEFAULT 'pending'",
+    ]:
+        try:
+            conn.execute(sql)
+        except Exception:
+            pass
 
     conn.commit()
     conn.close()
-    print(f"[DB] Initialised ({'PostgreSQL' if _use_postgres() else 'SQLite'})")
-
-
-def _safe_alter(conn, cur, sql):
-    try:
-        if _use_postgres():
-            cur.execute(sql)
-            conn.commit()
-        else:
-            conn.execute(sql)
-            conn.commit()
-    except Exception:
-        if _use_postgres():
-            try: conn.rollback()
-            except: pass
+    print(f"[DB] Initialised (SQLite) at {DB_PATH}")
