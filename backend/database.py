@@ -52,20 +52,12 @@ def init_db():
     if _use_postgres():
         cur  = conn.cursor()
         _exec = cur.execute
-        # Drop and recreate all tables cleanly on Postgres
-        # (safe since we just migrated — no real data yet)
-        for tbl in ['newsletter', 'messages', 'delivery_slots', 'orders', 'auth_tokens', 'users', 'admin_tokens']:
-            try:
-                cur.execute(f"DROP TABLE IF EXISTS {tbl} CASCADE")
-            except Exception:
-                pass
-        conn.commit()
     else:
         cur  = conn
         _exec = conn.execute
 
-    ai = _autoincrement()
-    dt = _datetime_default()
+    ai  = _autoincrement()
+    dt  = _datetime_default()
     dtt = _datetime_type()
 
     _exec(f"""

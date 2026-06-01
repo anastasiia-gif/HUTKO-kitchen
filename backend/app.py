@@ -198,11 +198,15 @@ def _keep_alive():
         time.sleep(600)   # 10 minutes
 
 
-# Always init DB on startup — safe with gunicorn preload
+# Always init DB on startup — use a lock file to prevent worker races
+import fcntl, tempfile
 _db_ready = False
 try:
-    init_db()
-    _db_ready = True
+    _lock_path = os.path.join(tempfile.gettempdir(), 'hutko_db_init.lock')
+    with open(_lock_path, 'w') as _lf:
+        fcntl.flock(_lf, fcntl.LOCK_EX)
+        init_db()
+        _db_ready = True
 except Exception as _e:
     print(f"[STARTUP] DB init error: {_e}")
 
