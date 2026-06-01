@@ -39,6 +39,9 @@ def _autoincrement():
     return 'SERIAL PRIMARY KEY' if _use_postgres() else 'INTEGER PRIMARY KEY AUTOINCREMENT'
 
 
+def _datetime_type():
+    return 'TIMESTAMPTZ' if _use_postgres() else 'TEXT'
+
 def _datetime_default():
     return 'DEFAULT NOW()' if _use_postgres() else "DEFAULT (datetime('now'))"
 
@@ -49,12 +52,21 @@ def init_db():
     if _use_postgres():
         cur  = conn.cursor()
         _exec = cur.execute
+        # Drop and recreate all tables cleanly on Postgres
+        # (safe since we just migrated — no real data yet)
+        for tbl in ['newsletter', 'messages', 'delivery_slots', 'orders', 'auth_tokens', 'users', 'admin_tokens']:
+            try:
+                cur.execute(f"DROP TABLE IF EXISTS {tbl} CASCADE")
+            except Exception:
+                pass
+        conn.commit()
     else:
         cur  = conn
         _exec = conn.execute
 
     ai = _autoincrement()
     dt = _datetime_default()
+    dtt = _datetime_type()
 
     _exec(f"""
         CREATE TABLE IF NOT EXISTS users (
@@ -67,7 +79,7 @@ def init_db():
             addr_postcode TEXT,
             addr_city     TEXT,
             addr_province TEXT,
-            created_at    TEXT    {dt}
+            created_at    {dtt} {dt}
         )
     """)
 
@@ -75,7 +87,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS auth_tokens (
             token      TEXT PRIMARY KEY,
             user_id    INTEGER NOT NULL,
-            created_at TEXT {dt}
+            created_at {dtt} {dt}
         )
     """)
 
@@ -100,7 +112,7 @@ def init_db():
             total           REAL    NOT NULL,
             status          TEXT    NOT NULL DEFAULT 'confirmed',
             trello_card_id  TEXT,
-            created_at      TEXT    {dt}
+            created_at      {dtt} {dt}
         )
     """)
 
@@ -110,7 +122,7 @@ def init_db():
             slot_date  TEXT NOT NULL UNIQUE,
             booked     INTEGER NOT NULL DEFAULT 0,
             max_slots  INTEGER NOT NULL DEFAULT 15,
-            created_at TEXT {dt}
+            created_at {dtt} {dt}
         )
     """)
 
@@ -124,7 +136,7 @@ def init_db():
             topic      TEXT NOT NULL,
             title      TEXT NOT NULL,
             body       TEXT NOT NULL,
-            created_at TEXT {dt}
+            created_at {dtt} {dt}
         )
     """)
 
@@ -132,7 +144,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS newsletter (
             id         {ai},
             email      TEXT NOT NULL UNIQUE,
-            created_at TEXT {dt}
+            created_at {dtt} {dt}
         )
     """)
 
