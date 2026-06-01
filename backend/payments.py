@@ -2,26 +2,25 @@
 HUTKO — payments.py  (Stripe Checkout)
 
 Flow:
-  1. POST /api/checkout        — saves order as 'pending_payment'
-  2. POST /api/payment/create  — creates Stripe session, returns URL
-  3. Customer pays on Stripe hosted page
-  4. Stripe calls POST /api/stripe-webhook — fires _process_paid_order in background thread
-  5. Customer redirected to confirm-delivery.html?ref=HK-XXXX&paid=1
+  1. POST /api/payment/create  — creates Stripe session, returns URL
+  2. Customer pays on Stripe hosted page
+  3. Stripe calls POST /api/stripe-webhook — marks paid, creates Trello card + sends email
+  4. Customer redirected to confirm-delivery.html?ref=HK-XXXX&paid=1
 
-Render environment variables:
-  STRIPE_SECRET_KEY      sk_live_...
-  STRIPE_PUBLISHABLE_KEY pk_live_...
-  STRIPE_WEBHOOK_SECRET  whsec_...
+Render environment variables to set:
+  STRIPE_SECRET_KEY      sk_live_51TVbx...
+  STRIPE_PUBLISHABLE_KEY pk_live_51TVbx...
+  STRIPE_WEBHOOK_SECRET  whsec_... (after adding webhook in Stripe Dashboard)
 """
 
-import os, json, threading
+import os, json
 import stripe
 from flask import Blueprint, request, jsonify
 from database import get_db, _use_postgres
 
 payments_bp    = Blueprint('payments', __name__)
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
-STRIPE_WH_KEY  = os.environ.get('STRIPE_WEBHOOK_SECRET') or os.environ.get('WEBHOOK_SECRET', '')
+STRIPE_WH_KEY  = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 SITE_URL       = os.environ.get('FRONTEND_URL', 'https://hutko-kitchen.com')
 
 
@@ -77,41 +76,15 @@ def _process_paid_order(order_ref):
         print(f'[STRIPE TRELLO ERROR] {e}')
 
 
-def _process_expired_order(order_ref):
-    """Send abandoned-cart recovery email when Stripe session expires."""
-    conn = get_db()
-    row  = _exec(conn, f"""
-        SELECT order_ref, customer_name, customer_email, items_json, total
-        FROM orders WHERE order_ref={_p()}
-    """, (order_ref,)).fetchone()
-    conn.close()
-    if not row:
-        return
-
-    # Build a direct link back to checkout pre-filled with the order ref
-    checkout_url = f"{SITE_URL}/checkout.html?recover={order_ref}"
-
-    try:
-        from emails import send_payment_failed
-        items = json.loads(row['items_json'])
-        send_payment_failed(
-            row['order_ref'], row['customer_name'], row['customer_email'],
-            items, row['total'], checkout_url
-        )
-        print(f'[STRIPE] Abandoned order email sent for {order_ref}')
-    except Exception as e:
-        print(f'[STRIPE ABANDONED EMAIL ERROR] {e}')
-
-
 @payments_bp.route('/api/payment/create', methods=['POST'])
 def create_payment():
     if not stripe.api_key:
         return jsonify({'error': 'Payment not configured.'}), 503
 
-    data           = request.get_json()
-    order_ref      = data.get('order_ref', '')
-    items          = data.get('items', [])
-    delivery_fee   = float(data.get('delivery_fee', 0))
+    data          = request.get_json()
+    order_ref     = data.get('order_ref', '')
+    items         = data.get('items', [])
+    delivery_fee  = float(data.get('delivery_fee', 0))
     customer_email = data.get('customer_email', '')
 
     if not order_ref:
@@ -129,12 +102,12 @@ def create_payment():
                            'quantity': 1})
     try:
         session = stripe.checkout.Session.create(
-            payment_method_types=['card', 'ideal'],
+            payment_method_types=['card'],
             line_items=line_items,
             mode='payment',
             customer_email=customer_email or None,
             success_url=f'{SITE_URL}/confirm-delivery.html?ref={order_ref}&paid=1',
-            cancel_url=f'{SITE_URL}/checkout.html?cancelled=1&recover={order_ref}',
+            cancel_url=f'{SITE_URL}/checkout.html?cancelled=1',
             metadata={'order_ref': order_ref},
             locale='auto',
         )
@@ -162,24 +135,23 @@ def stripe_webhook():
 
     if event['type'] == 'checkout.session.completed':
         s         = event['data']['object']
-        order_ref = (s.get('metadata') or {}).get('order_ref', '')
-        if order_ref and s.get('payment_status') == 'paid':
+        metadata  = s['metadata'] if 'metadata' in s else {}
+        order_ref = metadata.get('order_ref', '') if isinstance(metadata, dict) else getattr(metadata, 'order_ref', '')
+        pay_status = s['payment_status'] if 'payment_status' in s else ''
+        if order_ref and pay_status == 'paid':
             conn = get_db()
             _exec(conn, f"UPDATE orders SET payment_status='paid', status='confirmed' WHERE order_ref={_p()}", (order_ref,))
             conn.commit(); conn.close()
-            # Run in background thread so Stripe gets 200 immediately
-            # (avoids Render cold-start timeouts causing duplicate retries)
-            threading.Thread(target=_process_paid_order, args=(order_ref,), daemon=True).start()
+            _process_paid_order(order_ref)
 
     elif event['type'] == 'checkout.session.expired':
         s         = event['data']['object']
-        order_ref = (s.get('metadata') or {}).get('order_ref', '')
+        metadata  = s['metadata'] if 'metadata' in s else {}
+        order_ref = metadata.get('order_ref', '') if isinstance(metadata, dict) else getattr(metadata, 'order_ref', '')
         if order_ref:
             conn = get_db()
             _exec(conn, f"UPDATE orders SET payment_status='expired' WHERE order_ref={_p()}", (order_ref,))
             conn.commit(); conn.close()
-            # Send recovery email in background
-            threading.Thread(target=_process_expired_order, args=(order_ref,), daemon=True).start()
 
     return '', 200
 
