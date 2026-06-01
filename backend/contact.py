@@ -1,18 +1,29 @@
 """
 HUTKO — contact.py
 Contact form submissions and newsletter signups.
-Sends branded emails via emails.py
 """
 
 import os
 from flask import Blueprint, request, jsonify
-from database import get_db
+from database import get_db, _placeholder, _use_postgres
 from emails import send_contact_reply, send_contact_notification, send_email
 
 contact_bp = Blueprint('contact', __name__)
 
 
-# ── CONTACT FORM ─────────────────────────────────────────
+def _exec(conn, sql, params=()):
+    if _use_postgres():
+        cur = conn.cursor()
+        cur.execute(sql, params)
+        return cur
+    else:
+        return conn.execute(sql, params)
+
+
+def _p():
+    return _placeholder()
+
+
 @contact_bp.route('/api/contact', methods=['POST'])
 def contact():
     data  = request.get_json()
@@ -26,33 +37,22 @@ def contact():
         return jsonify({'error': 'All required fields must be filled in.'}), 400
 
     conn = get_db()
-    conn.execute("""
+    _exec(conn, f"""
         INSERT INTO messages (name, email, phone, social, topic, title, body)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (
-        name, email,
-        data.get('phone', ''),
-        data.get('social', ''),
-        topic, title, body
-    ))
+        VALUES ({_p()}, {_p()}, {_p()}, {_p()}, {_p()}, {_p()}, {_p()})
+    """, (name, email, data.get('phone', ''), data.get('social', ''), topic, title, body))
     conn.commit()
     conn.close()
 
-    # Send emails
     try:
         send_contact_reply(name, email, topic, body)
-        send_contact_notification(
-            name, email,
-            data.get('phone', ''),
-            topic, title, body
-        )
+        send_contact_notification(name, email, data.get('phone', ''), topic, title, body)
     except Exception as e:
         print(f"[CONTACT EMAIL ERROR] {e}")
 
     return jsonify({'message': 'Message received. Thank you!'}), 201
 
 
-# ── NEWSLETTER ───────────────────────────────────────────
 @contact_bp.route('/api/newsletter', methods=['POST'])
 def newsletter():
     data  = request.get_json()
@@ -62,15 +62,13 @@ def newsletter():
         return jsonify({'error': 'Please provide a valid email address.'}), 400
 
     conn = get_db()
-    existing = conn.execute(
-        "SELECT id FROM newsletter WHERE email=?", (email,)
-    ).fetchone()
+    existing = _exec(conn, f"SELECT id FROM newsletter WHERE email={_p()}", (email,)).fetchone()
 
     if existing:
         conn.close()
         return jsonify({'message': 'You are already subscribed!'}), 200
 
-    conn.execute("INSERT INTO newsletter (email) VALUES (?)", (email,))
+    _exec(conn, f"INSERT INTO newsletter (email) VALUES ({_p()})", (email,))
     conn.commit()
     conn.close()
 

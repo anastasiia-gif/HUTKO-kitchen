@@ -7,7 +7,7 @@ sends appropriate emails to customers.
 import os
 import json
 from flask import Blueprint, request, jsonify
-from database import get_db
+from database import get_db, _placeholder, _use_postgres
 from emails import send_email, _base_template
 from trello import add_comment
 
@@ -34,9 +34,13 @@ def get_order_by_card(card_name: str):
     try:
         ref = card_name.split('—')[0].strip().replace('#', '')
         conn = get_db()
-        row = conn.execute(
-            "SELECT * FROM orders WHERE order_ref=?", (ref,)
-        ).fetchone()
+        p = '%s' if _use_postgres() else '?'
+        cur = conn.cursor() if _use_postgres() else conn
+        if _use_postgres():
+            cur.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,))
+            row = cur.fetchone()
+        else:
+            row = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
         conn.close()
         return dict(row) if row else None
     except Exception as e:
@@ -272,10 +276,12 @@ def trello_webhook():
 
         # Update order status in DB
         conn = get_db()
-        conn.execute(
-            "UPDATE orders SET status=? WHERE order_ref=?",
-            (status, order['order_ref'])
-        )
+        p = '%s' if _use_postgres() else '?'
+        if _use_postgres():
+            cur = conn.cursor()
+            cur.execute(f"UPDATE orders SET status={p} WHERE order_ref={p}", (status, order['order_ref']))
+        else:
+            conn.execute(f"UPDATE orders SET status={p} WHERE order_ref={p}", (status, order['order_ref']))
         conn.commit()
         conn.close()
 

@@ -15,16 +15,7 @@ from trello import create_order_card, move_card, add_comment, get_card_by_order_
 
 orders_bp = Blueprint('orders', __name__)
 
-DELIVERY_PRICES = {
-    'standard':       5.0,
-    'express':        12.0,
-    'free':           0.0,
-    'delivery_local': 10.0,
-    'delivery_other': 15.0,
-    'pickup':         0.0,
-    'pickup_amsterdam': 0.0,
-    'pickup_denbosch':  0.0,
-}
+DELIVERY_PRICES = {'standard': 5.0, 'express': 12.0, 'free': 0.0}
 
 
 def make_ref():
@@ -47,9 +38,8 @@ def checkout():
         return jsonify({'error': 'Cart is empty.'}), 400
 
     delivery_method = data.get('delivery_method', 'standard')
-    subtotal      = sum(float(i['price']) * int(i['qty']) for i in items)
-    is_pickup     = delivery_method.startswith('pickup')
-    delivery_cost = 0.0 if is_pickup else (0.0 if subtotal >= 60 else DELIVERY_PRICES.get(delivery_method, 15.0))
+    subtotal     = sum(i['price'] * i['qty'] for i in items)
+    delivery_cost = 0.0 if subtotal >= 60 else DELIVERY_PRICES.get(delivery_method, 5.0)
     total        = subtotal + delivery_cost
     order_ref    = make_ref()
     user_id      = g.user['id'] if g.user else None
@@ -130,7 +120,9 @@ def get_my_orders():
 @orders_bp.route('/api/orders/<ref>', methods=['GET'])
 def get_order(ref):
     conn = get_db()
-    row  = conn.execute("SELECT * FROM orders WHERE order_ref=?", (ref,)).fetchone()
+    from database import _use_postgres
+    p = '%s' if _use_postgres() else '?'
+    row  = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
     conn.close()
     if not row:
         return jsonify({'error': 'Order not found.'}), 404
@@ -171,12 +163,13 @@ def update_order_status(ref):
     }
 
     conn = get_db()
-    row  = conn.execute("SELECT * FROM orders WHERE order_ref=?", (ref,)).fetchone()
+    p = '%s' if _use_postgres() else '?'
+    row  = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
     if not row:
         conn.close()
         return jsonify({'error': 'Order not found'}), 404
 
-    conn.execute("UPDATE orders SET status=? WHERE order_ref=?", (new_status, ref))
+    conn.execute(f"UPDATE orders SET status={p} WHERE order_ref={p}", (new_status, ref))
     conn.commit()
 
     # Send dispatch email when order goes out for delivery
@@ -193,7 +186,7 @@ def update_order_status(ref):
 
     # Move Trello card
     try:
-        card_id = row['trello_card_id'] if 'trello_card_id' in row.keys() else None
+        card_id = row['trello_card_id'] if 'trello_card_id' in dict(row) else None
         if not card_id:
             card_id = get_card_by_order_ref(ref)
         if card_id:
@@ -218,7 +211,9 @@ def confirm_delivery_link(ref):
     frontend = os.environ.get('FRONTEND_URL', 'https://hutko-kitchen.com').rstrip('/')
 
     conn = get_db()
-    row  = conn.execute("SELECT * FROM orders WHERE order_ref=?", (ref,)).fetchone()
+    from database import _use_postgres
+    p = '%s' if _use_postgres() else '?'
+    row  = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
     if not row:
         conn.close()
         return redirect(f"{frontend}/?confirm=notfound&ref={ref}")
@@ -227,13 +222,13 @@ def confirm_delivery_link(ref):
         conn.close()
         return redirect(f"{frontend}/?confirm=already&ref={ref}")
 
-    conn.execute("UPDATE orders SET status='ok_confirmed' WHERE order_ref=?", (ref,))
+    conn.execute(f"UPDATE orders SET status='ok_confirmed' WHERE order_ref={p}", (ref,))
     conn.commit()
     conn.close()
 
     # Move Trello card to Ok: Confirmed
     try:
-        card_id = row['trello_card_id'] if 'trello_card_id' in row.keys() else None
+        card_id = row['trello_card_id'] if 'trello_card_id' in dict(row) else None
         if not card_id:
             card_id = get_card_by_order_ref(ref)
         if card_id:
@@ -253,12 +248,14 @@ def confirm_delivery(ref):
     rating  = data.get('rating', 5)
 
     conn = get_db()
-    row  = conn.execute("SELECT * FROM orders WHERE order_ref=?", (ref,)).fetchone()
+    from database import _use_postgres
+    p = '%s' if _use_postgres() else '?'
+    row  = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
     if not row:
         conn.close()
         return jsonify({'error': 'Order not found'}), 404
 
-    conn.execute("UPDATE orders SET status='ok_confirmed' WHERE order_ref=?", (ref,))
+    conn.execute(f"UPDATE orders SET status='ok_confirmed' WHERE order_ref={p}", (ref,))
     conn.commit()
     conn.close()
 
