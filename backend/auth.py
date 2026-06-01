@@ -1,40 +1,30 @@
 """
 HUTKO — auth.py
-Token-based auth. On login/register the server returns a token
-which the frontend stores in localStorage and sends as
-Authorization: Bearer <token> on every request.
+Token-based auth. Works with both SQLite and PostgreSQL.
 """
 
-import bcrypt, secrets
+import bcrypt
+import secrets
 from flask import Blueprint, request, jsonify, g
-from database import get_db, _use_postgres
+from database import get_db, _placeholder, _use_postgres
 from functools import wraps
 from emails import send_welcome
 
 auth_bp = Blueprint('auth', __name__)
 
 
-def _p():
-    return '%s' if _use_postgres() else '?'
-
-
 def _exec(conn, sql, params=()):
+    """Execute a query on either SQLite or Postgres connection."""
     if _use_postgres():
-        cur = conn.cursor(); cur.execute(sql, params); return cur
-    return conn.execute(sql, params)
+        cur = conn.cursor()
+        cur.execute(sql, params)
+        return cur
+    else:
+        return conn.execute(sql, params)
 
 
-def _ensure_tokens_table(conn):
-    dt = "DEFAULT NOW()" if _use_postgres() else "DEFAULT (datetime('now'))"
-    sql = f"""
-        CREATE TABLE IF NOT EXISTS auth_tokens (
-            token      TEXT PRIMARY KEY,
-            user_id    INTEGER NOT NULL,
-            created_at TEXT {dt}
-        )
-    """
-    _exec(conn, sql)
-    conn.commit()
+def _p():
+    return _placeholder()
 
 
 def hash_password(plain: str) -> str:
@@ -47,10 +37,10 @@ def check_password(plain: str, hashed: str) -> bool:
 
 def make_token(user_id: int) -> str:
     token = secrets.token_hex(32)
-    conn  = get_db()
-    _ensure_tokens_table(conn)
-    _exec(conn, f"INSERT INTO auth_tokens (token, user_id) VALUES ({_p()},{_p()})", (token, user_id))
-    conn.commit(); conn.close()
+    conn = get_db()
+    _exec(conn, f"INSERT INTO auth_tokens (token, user_id) VALUES ({_p()}, {_p()})", (token, user_id))
+    conn.commit()
+    conn.close()
     return token
 
 
@@ -58,13 +48,10 @@ def get_user_from_token(token: str):
     if not token:
         return None
     conn = get_db()
-    _ensure_tokens_table(conn)
-    p   = _p()
-    row = _exec(conn, f"""
-        SELECT u.* FROM users u
-        JOIN auth_tokens t ON t.user_id = u.id
-        WHERE t.token = {p}
-    """, (token,)).fetchone()
+    row = _exec(conn,
+        f"SELECT u.* FROM users u JOIN auth_tokens t ON t.user_id = u.id WHERE t.token = {_p()}",
+        (token,)
+    ).fetchone()
     conn.close()
     return row
 
@@ -72,11 +59,13 @@ def get_user_from_token(token: str):
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
-        user  = get_user_from_token(token)
+        auth_header = request.headers.get('Authorization', '')
+        token = auth_header.replace('Bearer ', '').strip()
+        user = get_user_from_token(token)
         if not user:
             return jsonify({'error': 'Not logged in.'}), 401
-        g.user = user; g.token = token
+        g.user = user
+        g.token = token
         return f(*args, **kwargs)
     return decorated
 
@@ -84,7 +73,8 @@ def token_required(f):
 def optional_token(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token  = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
+        auth_header = request.headers.get('Authorization', '')
+        token = auth_header.replace('Bearer ', '').strip()
         g.user = get_user_from_token(token) if token else None
         g.token = token
         return f(*args, **kwargs)
@@ -101,7 +91,7 @@ def user_to_dict(user):
         'addr_postcode': user['addr_postcode'],
         'addr_city':     user['addr_city'],
         'addr_province': user['addr_province'],
-        'created_at':    user['created_at'],
+        'created_at':    str(user['created_at']) if user['created_at'] else '',
     }
 
 
@@ -128,15 +118,15 @@ def register():
     if _use_postgres():
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO users (name, email, password_hash, phone) VALUES (%s,%s,%s,%s) RETURNING id",
+            "INSERT INTO users (name, email, password_hash, phone) VALUES (%s, %s, %s, %s) RETURNING id",
             (name, email, pw_hash, phone)
         )
-        user_id = cur.fetchone()[0]
+        new_id = cur.fetchone()['id']
         conn.commit()
-        user = _exec(conn, "SELECT * FROM users WHERE id = %s", (user_id,)).fetchone()
+        user = _exec(conn, "SELECT * FROM users WHERE id = %s", (new_id,)).fetchone()
     else:
         cursor = conn.execute(
-            "INSERT INTO users (name, email, password_hash, phone) VALUES (?,?,?,?)",
+            "INSERT INTO users (name, email, password_hash, phone) VALUES (?, ?, ?, ?)",
             (name, email, pw_hash, phone)
         )
         conn.commit()
@@ -144,6 +134,7 @@ def register():
     conn.close()
 
     token = make_token(user['id'])
+
     try:
         send_welcome(user['name'], user['email'])
     except Exception as e:
@@ -180,7 +171,8 @@ def logout():
     if token:
         conn = get_db()
         _exec(conn, f"DELETE FROM auth_tokens WHERE token = {_p()}", (token,))
-        conn.commit(); conn.close()
+        conn.commit()
+        conn.close()
     return jsonify({'message': 'Logged out.'}), 200
 
 
@@ -207,11 +199,15 @@ def update_profile():
 
     conn = get_db()
     if pw:
-        _exec(conn, f"UPDATE users SET name={_p()}, phone={_p()}, password_hash={_p()} WHERE id={_p()}",
-              (name, phone, hash_password(pw), g.user['id']))
+        _exec(conn,
+            f"UPDATE users SET name={_p()}, phone={_p()}, password_hash={_p()} WHERE id={_p()}",
+            (name, phone, hash_password(pw), g.user['id'])
+        )
     else:
-        _exec(conn, f"UPDATE users SET name={_p()}, phone={_p()} WHERE id={_p()}",
-              (name, phone, g.user['id']))
+        _exec(conn,
+            f"UPDATE users SET name={_p()}, phone={_p()} WHERE id={_p()}",
+            (name, phone, g.user['id'])
+        )
     conn.commit()
     updated = _exec(conn, f"SELECT * FROM users WHERE id={_p()}", (g.user['id'],)).fetchone()
     conn.close()
@@ -228,7 +224,11 @@ def update_address():
         UPDATE users
         SET addr_street={_p()}, addr_postcode={_p()}, addr_city={_p()}, addr_province={_p()}
         WHERE id={_p()}
-    """, (data.get('street',''), data.get('postcode',''),
-          data.get('city',''), data.get('province',''), g.user['id']))
-    conn.commit(); conn.close()
+    """, (
+        data.get('street', ''), data.get('postcode', ''),
+        data.get('city', ''),   data.get('province', ''),
+        g.user['id']
+    ))
+    conn.commit()
+    conn.close()
     return jsonify({'message': 'Address saved.'}), 200
