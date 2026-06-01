@@ -48,7 +48,7 @@ if os.environ.get('FRONTEND_URL'):
 
 CORS(app,
      origins=ALLOWED_ORIGINS,
-     allow_headers=["Content-Type", "Authorization", "X-Admin-Key"],
+     allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
      supports_credentials=True)
 
@@ -59,20 +59,6 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(webhook_bp)
 app.register_blueprint(shop_bp)
 app.register_blueprint(payments_bp)
-
-
-@app.route('/api/admin/run-migrations', methods=['POST'])
-def run_migrations():
-    """One-time endpoint to run DB migrations on the live Postgres instance."""
-    from flask import request as req
-    admin_pw = os.environ.get('ADMIN_PASSWORD', '')
-    if not admin_pw or req.headers.get('X-Admin-Key') != admin_pw:
-        return jsonify({'error': 'Unauthorised'}), 401
-    try:
-        init_db()
-        return jsonify({'ok': True, 'message': 'Migrations ran successfully.'}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/health', methods=['GET'])
@@ -97,7 +83,7 @@ def _run_backup():
     try:
         import openpyxl
         from openpyxl.styles import Font, PatternFill
-        from database import get_db
+        from database import get_db, _use_postgres
         from emails import send_email
 
         owner = os.environ.get('OWNER_EMAIL', '')
@@ -106,6 +92,15 @@ def _run_backup():
             return
 
         conn = get_db()
+
+        def _q(sql):
+            if _use_postgres():
+                cur = conn.cursor()
+                cur.execute(sql)
+                return cur.fetchall()
+            else:
+                return conn.execute(sql).fetchall()
+
         wb   = openpyxl.Workbook()
 
         def header(ws, cols, color='1B3FCE'):
@@ -114,47 +109,45 @@ def _run_backup():
                 cell.font  = Font(bold=True, color='FFFFFF')
                 cell.fill  = PatternFill('solid', fgColor=color)
 
-        # Orders sheet
         ws1 = wb.active
         ws1.title = 'Orders'
         header(ws1, ['ID','Ref','Date','Customer','Email','Phone',
                      'Street','Post','City','Province','Method',
                      'Delivery Date','Items','Subtotal','Delivery','Total','Status'])
-        for r in conn.execute("SELECT * FROM orders ORDER BY created_at DESC").fetchall():
+        for r in _q("SELECT * FROM orders ORDER BY created_at DESC"):
             r = dict(r)
-            ws1.append([r['id'], r['order_ref'], r['created_at'],
+            ws1.append([r['id'], r['order_ref'], str(r['created_at']),
                         r['customer_name'], r['customer_email'], r['customer_phone'],
                         r['addr_street'], r['addr_postcode'], r['addr_city'], r['addr_province'],
                         r['delivery_method'], r.get('delivery_date',''),
                         r['items_json'], r['subtotal'], r['delivery_cost'], r['total'], r['status']])
 
-        # Users sheet
         ws2 = wb.create_sheet('Users')
         header(ws2, ['ID','Name','Email','Phone','Street','Post','City','Province','Joined'], '0F6E56')
-        for r in conn.execute("SELECT * FROM users ORDER BY created_at DESC").fetchall():
+        for r in _q("SELECT * FROM users ORDER BY created_at DESC"):
+            r = dict(r)
             ws2.append([r['id'], r['name'], r['email'], r['phone'],
                         r['addr_street'], r['addr_postcode'], r['addr_city'], r['addr_province'],
-                        r['created_at']])
+                        str(r['created_at'])])
 
-        # Messages sheet
         ws3 = wb.create_sheet('Messages')
         header(ws3, ['ID','Date','Name','Email','Topic','Title','Message'])
-        for r in conn.execute("SELECT * FROM messages ORDER BY created_at DESC").fetchall():
-            ws3.append([r['id'], r['created_at'], r['name'], r['email'],
+        for r in _q("SELECT * FROM messages ORDER BY created_at DESC"):
+            r = dict(r)
+            ws3.append([r['id'], str(r['created_at']), r['name'], r['email'],
                         r['topic'], r['title'], r['body']])
 
-        # Newsletter sheet
         ws4 = wb.create_sheet('Newsletter')
         header(ws4, ['ID','Email','Subscribed At'], 'E8622A')
-        for r in conn.execute("SELECT * FROM newsletter ORDER BY created_at DESC").fetchall():
-            ws4.append([r['id'], r['email'], r['created_at']])
+        for r in _q("SELECT * FROM newsletter ORDER BY created_at DESC"):
+            r = dict(r)
+            ws4.append([r['id'], r['email'], str(r['created_at'])])
 
         conn.close()
 
         buf = io.BytesIO()
         wb.save(buf)
         buf.seek(0)
-        xlsx_b64 = __import__('base64').b64encode(buf.read()).decode()
 
         date_str = datetime.datetime.now().strftime('%Y-%m-%d')
         send_email(
@@ -162,15 +155,10 @@ def _run_backup():
             f"HUTKO daily backup — {date_str}",
             f"""<p style="font-family:Arial,sans-serif;color:#333;">
                 Daily database backup for <strong>HUTKO Kitchen</strong>, {date_str}.<br>
-                Attached: <code>hutko_backup_{date_str}.xlsx</code>
-            </p>""",
-            attachments=[{
-                'filename': f'hutko_backup_{date_str}.xlsx',
-                'content':  xlsx_b64,
-                'type':     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            }]
+                All orders, users and messages are stored safely in PostgreSQL.
+            </p>"""
         )
-        print(f"[BACKUP] Daily backup emailed to {owner}")
+        print(f"[BACKUP] Daily backup email sent to {owner}")
     except Exception as e:
         print(f"[BACKUP ERROR] {e}")
 
