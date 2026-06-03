@@ -289,6 +289,12 @@
           <p id="ingredientsText"></p>
         </div>
 
+        <!-- Nutrition -->
+        <div class="product-block" id="nutritionSection" style="display:none;">
+          <h3>📊 <span data-i18n="prod_nutrition_title">Nutritional value</span></h3>
+          <p id="nutritionText" style="white-space:pre-line;"></p>
+        </div>
+
         <!-- Purchase -->
         <div class="product-purchase">
           <div class="product-price">
@@ -419,7 +425,17 @@
       zrazy: {
         about: { en: "Traditional Ukrainian pan-fried potato patties filled with sautéed mushrooms and melted cheese. Crispy on the outside, soft and savoury inside. Made from fresh grated potato, shaped by hand, and frozen individually." },
         prepare: { en: ["Take zrazy straight from the freezer.", "Heat a pan with oil on medium heat.", "Fry 5–7 min per side until golden and heated through.", "Serve with sour cream or a green salad."] },
-        ingredients: { en: "Potatoes (55%), mushrooms (28%), wheat flour (10%), cheese (7%), eggs (5%).\\nAllergens: milk, eggs, gluten (wheat).", ua: "Картопля (55%), гриби (28%), пшеничне борошно (10%), сир (7%), яйця (5%).\\nАлергени: молоко, яйця, глютен (пшениця).", nl: "Aardappelen (55%), champignons (28%), tarwebloem (10%), kaas (7%), eieren (5%).\\nAllergenen: melk, eieren, gluten (tarwe)." },
+        ingredients: { en: "Potatoes (55%), mushrooms (28%), wheat flour (10%), cheese (7%), eggs (5%).\nAllergens: milk, eggs, gluten (wheat).", ua: "Картопля (55%), гриби (28%), пшеничне борошно (10%), сир (7%), яйця (5%).\nАлергени: молоко, яйця, глютен (пшениця).", nl: "Aardappelen (55%), champignons (28%), tarwebloem (10%), kaas (7%), eieren (5%).\nAllergenen: melk, eieren, gluten (tarwe)." },
+        hutkoTip: {}, personalisation: null,
+      },
+      julien_balls: {
+        ingredients: { en: "Chicken mince (58%), fried mushrooms (12%), cheese (8%), breadcrumbs, egg, salt, black pepper." },
+        nutrition: { en: "Estimated values per 100 g\nEnergy: 790 kJ / 190 kcal\nFat: 11 g — of which saturates: 4.5 g\nCarbohydrates: 6 g — of which sugars: 1 g\nProtein: 17 g\nSalt: 0.8 g" },
+        hutkoTip: {}, personalisation: null,
+      },
+      mlyntsi: {
+        ingredients: { en: "Sweet (cottage cheese): Milk, cottage cheese (31%), wheat flour, eggs, sugar, butter, vanilla sugar (sugar, natural vanilla flavouring), salt.\nSavoury (chicken & mushroom): Milk, chicken fillet (13%), mushrooms (13%), cheese (5%), wheat flour, eggs, butter, sugar, salt, ground black pepper." },
+        nutrition: { en: "Sweet (cottage cheese) — per 100 g\nEnergy: 697 kJ / 167 kcal\nFat: 6.6 g — of which saturates: 3.8 g\nCarbohydrates: 17 g — of which sugars: 4.7 g\nProtein: 9.4 g\nSalt: 0.23 g\n\nSavoury (chicken & mushroom) — estimated per 100 g\nEnergy: 630 kJ / 150 kcal\nFat: 6.5 g — of which saturates: 2.8 g\nCarbohydrates: 14 g — of which sugars: 2.5 g\nProtein: 9.0 g\nSalt: 0.35 g" },
         hutkoTip: {}, personalisation: null,
       },
     };
@@ -593,9 +609,22 @@
       const ingr = (ingrApi && ingrApi.trim()) ? ingrApi.trim() : ingrFb;
       if (ingr) {
         ingrSection.style.display = 'block';
+        document.getElementById('ingredientsText').style.whiteSpace = 'pre-line';
         document.getElementById('ingredientsText').textContent = ingr;
       } else {
         ingrSection.style.display = 'none';
+      }
+
+      // ── Nutrition (API first, then JS fallback)
+      const nutrSection = document.getElementById('nutritionSection');
+      const nutrApi = p[`nutrition_${l}`] || p.nutrition_en || '';
+      const nutrFb  = fb.nutrition ? (fb.nutrition[l] || fb.nutrition.en || '') : '';
+      const nutr    = (nutrApi && nutrApi.trim()) ? nutrApi.trim() : nutrFb;
+      if (nutr) {
+        nutrSection.style.display = 'block';
+        document.getElementById('nutritionText').textContent = nutr;
+      } else {
+        nutrSection.style.display = 'none';
       }
 
       // ── Variants + price
