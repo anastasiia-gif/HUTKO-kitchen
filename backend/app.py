@@ -83,7 +83,7 @@ def _run_backup():
     try:
         import openpyxl
         from openpyxl.styles import Font, PatternFill
-        from database import get_db, _use_postgres
+        from database import get_db
         from emails import send_email
 
         owner = os.environ.get('OWNER_EMAIL', '')
@@ -92,15 +92,6 @@ def _run_backup():
             return
 
         conn = get_db()
-
-        def _q(sql):
-            if _use_postgres():
-                cur = conn.cursor()
-                cur.execute(sql)
-                return cur.fetchall()
-            else:
-                return conn.execute(sql).fetchall()
-
         wb   = openpyxl.Workbook()
 
         def header(ws, cols, color='1B3FCE'):
@@ -109,45 +100,47 @@ def _run_backup():
                 cell.font  = Font(bold=True, color='FFFFFF')
                 cell.fill  = PatternFill('solid', fgColor=color)
 
+        # Orders sheet
         ws1 = wb.active
         ws1.title = 'Orders'
         header(ws1, ['ID','Ref','Date','Customer','Email','Phone',
                      'Street','Post','City','Province','Method',
                      'Delivery Date','Items','Subtotal','Delivery','Total','Status'])
-        for r in _q("SELECT * FROM orders ORDER BY created_at DESC"):
+        for r in conn.execute("SELECT * FROM orders ORDER BY created_at DESC").fetchall():
             r = dict(r)
-            ws1.append([r['id'], r['order_ref'], str(r['created_at']),
+            ws1.append([r['id'], r['order_ref'], r['created_at'],
                         r['customer_name'], r['customer_email'], r['customer_phone'],
                         r['addr_street'], r['addr_postcode'], r['addr_city'], r['addr_province'],
                         r['delivery_method'], r.get('delivery_date',''),
                         r['items_json'], r['subtotal'], r['delivery_cost'], r['total'], r['status']])
 
+        # Users sheet
         ws2 = wb.create_sheet('Users')
         header(ws2, ['ID','Name','Email','Phone','Street','Post','City','Province','Joined'], '0F6E56')
-        for r in _q("SELECT * FROM users ORDER BY created_at DESC"):
-            r = dict(r)
+        for r in conn.execute("SELECT * FROM users ORDER BY created_at DESC").fetchall():
             ws2.append([r['id'], r['name'], r['email'], r['phone'],
                         r['addr_street'], r['addr_postcode'], r['addr_city'], r['addr_province'],
-                        str(r['created_at'])])
+                        r['created_at']])
 
+        # Messages sheet
         ws3 = wb.create_sheet('Messages')
         header(ws3, ['ID','Date','Name','Email','Topic','Title','Message'])
-        for r in _q("SELECT * FROM messages ORDER BY created_at DESC"):
-            r = dict(r)
-            ws3.append([r['id'], str(r['created_at']), r['name'], r['email'],
+        for r in conn.execute("SELECT * FROM messages ORDER BY created_at DESC").fetchall():
+            ws3.append([r['id'], r['created_at'], r['name'], r['email'],
                         r['topic'], r['title'], r['body']])
 
+        # Newsletter sheet
         ws4 = wb.create_sheet('Newsletter')
         header(ws4, ['ID','Email','Subscribed At'], 'E8622A')
-        for r in _q("SELECT * FROM newsletter ORDER BY created_at DESC"):
-            r = dict(r)
-            ws4.append([r['id'], r['email'], str(r['created_at'])])
+        for r in conn.execute("SELECT * FROM newsletter ORDER BY created_at DESC").fetchall():
+            ws4.append([r['id'], r['email'], r['created_at']])
 
         conn.close()
 
         buf = io.BytesIO()
         wb.save(buf)
         buf.seek(0)
+        xlsx_b64 = __import__('base64').b64encode(buf.read()).decode()
 
         date_str = datetime.datetime.now().strftime('%Y-%m-%d')
         send_email(
@@ -155,10 +148,15 @@ def _run_backup():
             f"HUTKO daily backup — {date_str}",
             f"""<p style="font-family:Arial,sans-serif;color:#333;">
                 Daily database backup for <strong>HUTKO Kitchen</strong>, {date_str}.<br>
-                All orders, users and messages are stored safely in PostgreSQL.
-            </p>"""
+                Attached: <code>hutko_backup_{date_str}.xlsx</code>
+            </p>""",
+            attachments=[{
+                'filename': f'hutko_backup_{date_str}.xlsx',
+                'content':  xlsx_b64,
+                'type':     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            }]
         )
-        print(f"[BACKUP] Daily backup email sent to {owner}")
+        print(f"[BACKUP] Daily backup emailed to {owner}")
     except Exception as e:
         print(f"[BACKUP ERROR] {e}")
 
@@ -197,6 +195,31 @@ def _keep_alive():
             print(f"[KEEP-ALIVE] ping failed: {e}")
         time.sleep(600)   # 10 minutes
 
+
+# Lowercase all image file extensions so Linux serving is case-insensitive
+def _normalize_asset_extensions():
+    base = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend', 'assets')
+    if not os.path.exists(base):
+        base = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets')
+    if not os.path.exists(base):
+        print(f"[ASSETS] No assets folder found, skipping normalization")
+        return
+    renamed = 0
+    for root, dirs, files in os.walk(base):
+        for fname in files:
+            name, ext = os.path.splitext(fname)
+            if ext and ext != ext.lower():
+                old_path = os.path.join(root, fname)
+                new_path = os.path.join(root, name + ext.lower())
+                try:
+                    os.rename(old_path, new_path)
+                    renamed += 1
+                    print(f"[ASSETS] {fname} → {name + ext.lower()}")
+                except Exception as e:
+                    print(f"[ASSETS] Could not rename {fname}: {e}")
+    print(f"[ASSETS] Normalized {renamed} file extension(s) to lowercase")
+
+_normalize_asset_extensions()
 
 # Always init DB on startup — safe with gunicorn preload
 _db_ready = False

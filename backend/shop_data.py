@@ -21,6 +21,16 @@ EXCEL_PATH = os.environ.get('SHOP_EXCEL_PATH', 'hutko_shop.xlsx')
 _cache     = {}
 
 
+def _normalize_photo(path: str) -> str:
+    """Lowercase the file extension so Linux serving is case-insensitive."""
+    if not path:
+        return path
+    dot = path.rfind('.')
+    if dot == -1:
+        return path
+    return path[:dot] + path[dot:].lower()
+
+
 # ── PARSER ───────────────────────────────────────────────────────────
 
 def _load_excel():
@@ -96,14 +106,11 @@ def _load_excel():
                 pid   = str(d['id'])
                 raw_photo = images.get(pid) or str(d.get('photo_file', '') or '')
                 # Ensure correct subfolder prefix
-                if raw_photo and '/' not in raw_photo:
-                    photo = 'assets/products/' + raw_photo
-                else:
-                    photo = raw_photo
+                photo = _normalize_photo(raw_photo)
 
                 # Gallery: extra photos as comma-separated paths
                 raw_gallery = str(d.get('gallery', '') or '')
-                gallery = [g.strip() for g in raw_gallery.split(',') if g.strip()]
+                gallery = [_normalize_photo(g.strip()) for g in raw_gallery.split(',') if g.strip()]
 
                 products.append({
                     'id':        pid,
@@ -187,10 +194,7 @@ def _load_excel():
                 bid   = str(d['id'])
                 raw_photo = images.get(bid) or str(d.get('photo_file', '') or '')
                 # Ensure correct subfolder prefix
-                if raw_photo and '/' not in raw_photo:
-                    photo = 'assets/Bundles/' + raw_photo
-                else:
-                    photo = raw_photo
+                photo = _normalize_photo(raw_photo)
 
                 items = []
                 for part in str(d.get('items', '') or '').split(','):
