@@ -1,31 +1,6 @@
 let ALL_PRODUCTS = [];
 let ALL_BUNDLES = [];
 
-/**
- * Case-insensitive image fallback.
- * Tries lowercase, uppercase, and common mixed variants before showing placeholder.
- * This way it doesn't matter if the file on the server is .png, .PNG, .jpeg, .JPEG etc.
- */
-function tryImgFallbacks(el, originalSrc) {
-    if (!el._fallbacks) {
-        const ext = originalSrc.split('.').pop();
-        const base = originalSrc.slice(0, -ext.length - 1);
-        el._fallbacks = [
-            base + '.' + ext.toLowerCase(),
-            base + '.' + ext.toUpperCase(),
-            base + '.' + ext[0].toUpperCase() + ext.slice(1).toLowerCase(),
-            'assets/Bundles/s_pack_orange.png',  // final placeholder
-        ].filter(s => s !== originalSrc);  // don't retry the one that already failed
-    }
-    const next = el._fallbacks.shift();
-    if (next) {
-        el.src = next;
-    } else {
-        el.onerror = null;  // give up
-    }
-}
-window.tryImgFallbacks = tryImgFallbacks;
-
 async function _loadShopData() {
     const grid = document.getElementById('productGrid');
     const bgrid = document.getElementById('bundleGrid');
@@ -130,7 +105,7 @@ function bundleCard(b) {
 
     return `<div class="pack-card ${featured ? 'featured' : ''} reveal">
     <div class="pack-img-wrap" onclick="openPackLightbox('${b.photo}','${bName(b).replace(/'/g,"\\'")}')">
-      <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="tryImgFallbacks(this,'${b.photo}')" onload="this.closest('.pack-img-wrap').onclick=()=>openPackLightbox(this.src,'${bName(b).replace(/'/g,"\\'")}')">
+      <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="this.onerror=null;this.src='assets/Bundles/s_pack_orange.png'">
     </div>
     <div class="pack-body">
       <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>
@@ -271,8 +246,20 @@ const FALLBACK_PRODUCTS = [
     {
         id: 'zrazy', name_en: 'Zrazy', name_ua: 'Зрази', name_nl: 'Zrazy', category: 'snacks',
         desc_en: 'Pan-fried potato patties with mushroom & cheese.', base_price: 15, unit: '6 pcs', badge: '',
-        photo: 'assets/products/zrazy.png', dietary: ['vegetarian'],
+        photo: 'assets/products/zrazy.jpeg', dietary: ['vegetarian'],
         variants: [{ label: '6 pcs', price: 15 }, { label: '12 pcs', price: 28 }]
+    },
+    {
+        id: 'julien_balls', name_en: 'Julien Kyiv Meat Balls', name_ua: 'Котлети Жульєн по-Київськи', name_nl: 'Julienne Kyiv Gehaktballen', category: 'mains',
+        desc_en: 'Golden crispy chicken balls filled with creamy mushroom & cheese julienne.', base_price: 15, unit: '4 pcs', badge: 'NEW',
+        photo: 'assets/products/julien_balls.png', dietary: [],
+        variants: [{ label: '4 pcs', price: 15 }, { label: '6 pcs', price: 21 }]
+    },
+    {
+        id: 'mlyntsi', name_en: 'Mlyntsi', name_ua: 'Млинці', name_nl: 'Mlyntsi (Crêpes)', category: 'mains',
+        desc_en: 'Thin Ukrainian crêpes — chicken & mushroom or cottage cheese filling.', base_price: 14, unit: '6 pcs', badge: 'NEW',
+        photo: 'assets/products/mlyntsi.png', dietary: [],
+        variants: [{ label: 'Chicken & mushrooms 6 pcs', price: 15 }, { label: 'Cottage cheese 6 pcs', price: 14 }]
     },
 ];
 const FALLBACK_BUNDLES = [
