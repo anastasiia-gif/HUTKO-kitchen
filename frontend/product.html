@@ -572,7 +572,7 @@
       const img = document.getElementById('prodImg');
       img.src = p.photo;
       img.alt = name;
-      img.onerror = () => { img.src = 'assets/products/syrnyky.png'; };
+      img.onerror = () => { img.onerror = null; img.src = 'assets/products/syrnyky.jpeg'; };
       buildGallery(p);
 
       // ── Text basics
