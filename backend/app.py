@@ -204,17 +204,21 @@ try:
 except Exception as _e:
     print(f"[STARTUP] DB init error: {_e}")
 
-# Copy Excel to persistent disk on first deploy so shop data survives redeploys
-_excel_src  = os.path.join(os.path.dirname(__file__), 'hutko_shop.xlsx')
-_excel_dest = os.environ.get('SHOP_EXCEL_PATH', 'hutko_shop.xlsx')
-if _excel_src != _excel_dest and os.path.exists(_excel_src):
+# Copy Excel to persistent disk on every deploy so shop data stays fresh
+import shutil as _shutil
+_excel_src  = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hutko_shop.xlsx')
+_excel_dest = os.environ.get('SHOP_EXCEL_PATH', '')
+if _excel_dest and _excel_dest != _excel_src and os.path.exists(_excel_src):
     try:
-        import shutil
-        os.makedirs(os.path.dirname(_excel_dest), exist_ok=True)
-        shutil.copy2(_excel_src, _excel_dest)
-        print(f"[STARTUP] Copied Excel to persistent disk: {_excel_dest}")
+        _dest_dir = os.path.dirname(_excel_dest)
+        if _dest_dir:
+            os.makedirs(_dest_dir, exist_ok=True)
+        _shutil.copy2(_excel_src, _excel_dest)
+        print(f"[STARTUP] Copied Excel → {_excel_dest}")
     except Exception as _e:
         print(f"[STARTUP] Excel copy failed: {_e}")
+else:
+    print(f"[STARTUP] Using Excel from Git: {_excel_src}")
 
 # Start background threads once per process
 if os.environ.get('FLASK_ENV') != 'development' or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
