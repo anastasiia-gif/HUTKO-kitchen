@@ -196,31 +196,6 @@ def _keep_alive():
         time.sleep(600)   # 10 minutes
 
 
-# Lowercase all image file extensions so Linux serving is case-insensitive
-def _normalize_asset_extensions():
-    base = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend', 'assets')
-    if not os.path.exists(base):
-        base = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets')
-    if not os.path.exists(base):
-        print(f"[ASSETS] No assets folder found, skipping normalization")
-        return
-    renamed = 0
-    for root, dirs, files in os.walk(base):
-        for fname in files:
-            name, ext = os.path.splitext(fname)
-            if ext and ext != ext.lower():
-                old_path = os.path.join(root, fname)
-                new_path = os.path.join(root, name + ext.lower())
-                try:
-                    os.rename(old_path, new_path)
-                    renamed += 1
-                    print(f"[ASSETS] {fname} → {name + ext.lower()}")
-                except Exception as e:
-                    print(f"[ASSETS] Could not rename {fname}: {e}")
-    print(f"[ASSETS] Normalized {renamed} file extension(s) to lowercase")
-
-_normalize_asset_extensions()
-
 # Always init DB on startup — safe with gunicorn preload
 _db_ready = False
 try:
@@ -232,7 +207,7 @@ except Exception as _e:
 # Copy Excel to persistent disk on first deploy so shop data survives redeploys
 _excel_src  = os.path.join(os.path.dirname(__file__), 'hutko_shop.xlsx')
 _excel_dest = os.environ.get('SHOP_EXCEL_PATH', 'hutko_shop.xlsx')
-if _excel_src != _excel_dest and os.path.exists(_excel_src) and not os.path.exists(_excel_dest):
+if _excel_src != _excel_dest and os.path.exists(_excel_src):
     try:
         import shutil
         os.makedirs(os.path.dirname(_excel_dest), exist_ok=True)
