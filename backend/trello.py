@@ -165,7 +165,7 @@ def create_order_card(order_ref: str, name: str, email: str, phone: str,
     delivery_day = _get_delivery_day()
 
     items_text = '\n'.join([
-        f"- {i['name']} ×{i['qty']} — €{int(i['qty']) * float(i['price']):.2f}"
+        f"- {i['name']}{(' — ' + i['label']) if i.get('label') else ''} ×{i['qty']} — €{int(i['qty']) * float(i['price']):.2f}"
         for i in items
     ])
 

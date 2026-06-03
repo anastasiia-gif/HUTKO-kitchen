@@ -489,7 +489,7 @@
             if (!items.length) return;
 
             // Save cart items before clearing (needed for payment API)
-            const cartItems = items.map(i => ({ name: i.name, qty: i.qty, price: i.price }));
+            const cartItems = items.map(i => ({ name: i.name, label: i.label, qty: i.qty, price: i.price }));
             const deliveryFee = DELIVERY_PRICES[selectedDelivery] ?? 10;
             const customerEmail = document.getElementById('coEmail').value.trim();
 

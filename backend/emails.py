@@ -155,7 +155,7 @@ def send_order_confirmation(order_ref: str, name: str, email: str,
     items_html = ''.join([
         f"""<tr>
           <td style="padding:10px 0;border-bottom:1px solid #f0ece4;font-size:14px;color:#333;">
-            {item['name']}
+            {item['name']}{f" — {item['label']}" if item.get('label') else ''}
           </td>
           <td style="padding:10px 0;border-bottom:1px solid #f0ece4;font-size:14px;color:#666;text-align:center;">
             ×{item['qty']}
@@ -252,7 +252,7 @@ def send_order_notification(order_ref: str, name: str, email: str,
                               address: str, delivery_method: str, notes: str,
                               delivery_date: str = ''):
     owner_email = os.environ.get('OWNER_EMAIL', 'nastiapolimasheva@hutko-kitchen.com')
-    items_text = '<br>'.join([f"• {i['name']} ×{i['qty']} — €{int(i['qty'])*float(i['price']):.2f}" for i in items])
+    items_text = '<br>'.join([f"• {i['name']}{(' — ' + i['label']) if i.get('label') else ''} ×{i['qty']} — €{int(i['qty'])*float(i['price']):.2f}" for i in items])
 
     content = f"""
       <div style="background:{BRAND_ORANGE};border-radius:12px;padding:16px 24px;margin:0 0 24px;">
@@ -314,7 +314,7 @@ def send_payment_failed(order_ref: str, name: str, email: str,
                          items: list, total: float, checkout_url: str):
     first = name.split()[0]
     items_html = ''.join([
-        f'<tr><td style="padding:8px 0;border-bottom:1px solid #f0ece4;font-size:14px;color:#333;">{i["name"]}</td>'
+        f'<tr><td style="padding:8px 0;border-bottom:1px solid #f0ece4;font-size:14px;color:#333;">{i["name"]}{(" — " + i["label"]) if i.get("label") else ""}</td>'
         f'<td style="padding:8px 0;border-bottom:1px solid #f0ece4;font-size:14px;color:#666;text-align:center;">×{i["qty"]}</td>'
         f'<td style="padding:8px 0;border-bottom:1px solid #f0ece4;font-size:14px;font-weight:700;text-align:right;">€{int(i["qty"])*float(i["price"]):.2f}</td></tr>'
         for i in items
