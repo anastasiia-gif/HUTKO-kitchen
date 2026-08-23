@@ -1,6 +1,11 @@
 """
 HUTKO — orders.py
-Uses token-based auth via Authorization header.
+Token-based auth via Authorization header.
+
+v1.1:
+  • Delivery pricing / free-delivery threshold read from settings using the same
+    keys the public site displays (free_delivery_at, delivery_cost, delivery_price_express).
+  • Fixed the admin guard on PUT /orders/<ref>/status (was a dead stub).
 """
 
 import json
@@ -12,17 +17,19 @@ from database import get_db
 from auth import optional_token, token_required
 from emails import send_order_confirmation, send_order_notification, send_delivery_dispatch
 from trello import create_order_card, move_card, add_comment, get_card_by_order_ref
+from settings_store import get_float
 
 orders_bp = Blueprint('orders', __name__)
 
-DELIVERY_PRICES = {
-    'delivery_local':   10.0,
-    'delivery_other':   15.0,
-    'delivery_contact': 15.0,
-    'pickup':            0.0,
-    'pickup_amsterdam':  0.0,
-    'pickup_denbosch':   0.0,
-}
+FALLBACK_PRICES = {'standard': 5.0, 'express': 12.0, 'free': 0.0}
+
+
+def _delivery_prices():
+    return {
+        'standard': get_float('delivery_cost', 5.0),
+        'express':  get_float('delivery_price_express', 12.0),
+        'free':     0.0,
+    }
 
 
 def make_ref():
@@ -44,12 +51,14 @@ def checkout():
     if not items:
         return jsonify({'error': 'Cart is empty.'}), 400
 
-    delivery_method = data.get('delivery_method', 'delivery_local')
-    subtotal     = sum(i['price'] * i['qty'] for i in items)
-    delivery_cost = DELIVERY_PRICES.get(delivery_method, 10.0)
-    total        = subtotal + delivery_cost
-    order_ref    = make_ref()
-    user_id      = g.user['id'] if g.user else None
+    delivery_method = data.get('delivery_method', 'standard')
+    subtotal        = sum(i['price'] * i['qty'] for i in items)
+    free_threshold  = get_float('free_delivery_at', 60.0)
+    prices          = _delivery_prices()
+    delivery_cost   = 0.0 if subtotal >= free_threshold else prices.get(delivery_method, FALLBACK_PRICES.get(delivery_method, 5.0))
+    total           = subtotal + delivery_cost
+    order_ref       = make_ref()
+    user_id         = g.user['id'] if g.user else None
 
     from database import _use_postgres
     p = '%s' if _use_postgres() else '?'
@@ -60,48 +69,23 @@ def checkout():
 
     delivery_date = data.get('delivery_date', '')
 
-    if _use_postgres():
-        cur = conn.cursor()
-        cur.execute(f"""
-            INSERT INTO orders
-              (order_ref, user_id, customer_name, customer_email, customer_phone,
-               addr_street, addr_postcode, addr_city, addr_province, delivery_notes,
-               delivery_method, delivery_date, items_json, subtotal, delivery_cost, total, status)
-            VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},'pending_payment')
-        """, (
-            order_ref, user_id,
-            f"{data['first_name']} {data['last_name']}",
-            data['email'], data['phone'],
-            data['street'], data['postcode'], data['city'], data['province'],
-            data.get('notes', ''), delivery_method, delivery_date,
-            json.dumps(items), subtotal, delivery_cost, total
-        ))
-    else:
-        conn.execute("""
-            INSERT INTO orders
-              (order_ref, user_id, customer_name, customer_email, customer_phone,
-               addr_street, addr_postcode, addr_city, addr_province, delivery_notes,
-               delivery_method, delivery_date, items_json, subtotal, delivery_cost, total, status)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending_payment')
-        """, (
-            order_ref, user_id,
-            f"{data['first_name']} {data['last_name']}",
-            data['email'], data['phone'],
-            data['street'], data['postcode'], data['city'], data['province'],
-            data.get('notes', ''), delivery_method, delivery_date,
-            json.dumps(items), subtotal, delivery_cost, total
-        ))
+    conn.execute("""
+        INSERT INTO orders
+          (order_ref, user_id, customer_name, customer_email, customer_phone,
+           addr_street, addr_postcode, addr_city, addr_province, delivery_notes,
+           delivery_method, delivery_date, items_json, subtotal, delivery_cost, total, status)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending_payment')
+    """, (
+        order_ref, user_id, f"{data['first_name']} {data['last_name']}",
+        data['email'], data['phone'], data['street'], data['postcode'], data['city'], data['province'],
+        data.get('notes', ''), delivery_method, delivery_date,
+        json.dumps(items), subtotal, delivery_cost, total))
     conn.commit()
     conn.close()
 
-    # Emails + Trello card are created AFTER payment confirmation
-    # (triggered by Stripe webhook in payments.py → _process_paid_order)
     print(f"[ORDER] Created {order_ref} — awaiting payment")
-
-    return jsonify({
-        'order_ref': order_ref, 'total': total,
-        'subtotal': subtotal, 'delivery_cost': delivery_cost, 'status': 'confirmed',
-    }), 201
+    return jsonify({'order_ref': order_ref, 'total': total,
+                    'subtotal': subtotal, 'delivery_cost': delivery_cost, 'status': 'confirmed'}), 201
 
 
 @orders_bp.route('/api/orders', methods=['GET'])
@@ -109,11 +93,8 @@ def checkout():
 def get_my_orders():
     from database import _use_postgres
     conn = get_db()
-    p    = '%s' if _use_postgres() else '?'
-    rows = conn.execute(
-        f"SELECT * FROM orders WHERE user_id={p} ORDER BY created_at DESC",
-        (g.user['id'],)
-    ).fetchall()
+    p = '%s' if _use_postgres() else '?'
+    rows = conn.execute(f"SELECT * FROM orders WHERE user_id={p} ORDER BY created_at DESC", (g.user['id'],)).fetchall()
     conn.close()
     orders = []
     for r in rows:
@@ -129,7 +110,7 @@ def get_order(ref):
     conn = get_db()
     from database import _use_postgres
     p = '%s' if _use_postgres() else '?'
-    row  = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
+    row = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
     conn.close()
     if not row:
         return jsonify({'error': 'Order not found.'}), 404
@@ -139,59 +120,41 @@ def get_order(ref):
     return jsonify({'order': o}), 200
 
 
-# ── UPDATE ORDER STATUS (called manually or by webhook) ──
 @orders_bp.route('/api/orders/<ref>/status', methods=['PUT'])
 def update_order_status(ref):
-    # Allow either an admin token OR a webhook secret header
-    from admin import _admin_tokens
+    from admin import _admin_token_valid
+    from database import _use_postgres
     token = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
     webhook_secret = request.headers.get('X-Webhook-Secret', '')
     expected_secret = os.environ.get('WEBHOOK_SECRET', '')
-    if token not in _admin_tokens and not (expected_secret and webhook_secret == expected_secret):
+    if not _admin_token_valid(token) and not (expected_secret and webhook_secret == expected_secret):
         return jsonify({'error': 'Admin access required.'}), 403
 
-    data       = request.get_json()
+    data = request.get_json()
     new_status = data.get('status', '')
-    comment    = data.get('comment', '')
-
+    comment = data.get('comment', '')
     valid = ['confirmed', 'cooking', 'storage', 'delivery', 'delivered', 'ok_confirmed', 'cancelled']
     if new_status not in valid:
         return jsonify({'error': f'Invalid status. Use: {valid}'}), 400
-
-    # Status → Trello list mapping
-    trello_map = {
-        'confirmed':    'confirmed',
-        'cooking':      'confirmed',
-        'storage':      'in_storage',
-        'delivery':     'out_for_delivery',
-        'delivered':    'delivered',
-        'ok_confirmed': 'ok_confirmed',
-        'cancelled':    'cancelled',
-    }
+    trello_map = {'confirmed': 'confirmed', 'cooking': 'confirmed', 'storage': 'in_storage',
+                  'delivery': 'out_for_delivery', 'delivered': 'delivered',
+                  'ok_confirmed': 'ok_confirmed', 'cancelled': 'cancelled'}
 
     conn = get_db()
     p = '%s' if _use_postgres() else '?'
-    row  = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
+    row = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
     if not row:
         conn.close()
         return jsonify({'error': 'Order not found'}), 404
-
     conn.execute(f"UPDATE orders SET status={p} WHERE order_ref={p}", (new_status, ref))
     conn.commit()
 
-    # Send dispatch email when order goes out for delivery
     if new_status == 'delivery':
         try:
-            send_delivery_dispatch(
-                ref,
-                row['customer_name'],
-                row['customer_email'],
-                row.get('delivery_date', '') or ''
-            )
+            send_delivery_dispatch(ref, row['customer_name'], row['customer_email'],
+                                   row['delivery_date'] if 'delivery_date' in dict(row) else '')
         except Exception as e:
             print(f"[DISPATCH EMAIL ERROR] {e}")
-
-    # Move Trello card
     try:
         card_id = row['trello_card_id'] if 'trello_card_id' in dict(row) else None
         if not card_id:
@@ -202,71 +165,53 @@ def update_order_status(ref):
                 add_comment(card_id, f"Status → **{new_status}**\n{comment}")
     except Exception as e:
         print(f"[TRELLO STATUS ERROR] {e}")
-
     conn.close()
     return jsonify({'order_ref': ref, 'status': new_status}), 200
 
 
-# ── ONE-CLICK DELIVERY CONFIRMATION (from email link) ───
 @orders_bp.route('/api/orders/<ref>/confirm-delivery-link', methods=['GET'])
 def confirm_delivery_link(ref):
-    """
-    Called directly from the email button.
-    Confirms delivery, moves Trello card, then redirects to frontend success page.
-    No JS required — works as a plain GET link.
-    """
     frontend = os.environ.get('FRONTEND_URL', 'https://hutko-kitchen.com').rstrip('/')
-
     conn = get_db()
     from database import _use_postgres
     p = '%s' if _use_postgres() else '?'
-    row  = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
+    row = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
     if not row:
         conn.close()
         return redirect(f"{frontend}/?confirm=notfound&ref={ref}")
-
     if row['status'] in ('ok_confirmed', 'delivered'):
         conn.close()
         return redirect(f"{frontend}/?confirm=already&ref={ref}")
-
     conn.execute(f"UPDATE orders SET status='ok_confirmed' WHERE order_ref={p}", (ref,))
     conn.commit()
     conn.close()
-
-    # Move Trello card to Ok: Confirmed
     try:
         card_id = row['trello_card_id'] if 'trello_card_id' in dict(row) else None
         if not card_id:
             card_id = get_card_by_order_ref(ref)
         if card_id:
             move_card(card_id, 'ok_confirmed')
-            add_comment(card_id, f"✅ Customer confirmed delivery via email link!\n⭐ (Rating left on website)")
+            add_comment(card_id, "✅ Customer confirmed delivery via email link!")
     except Exception as e:
         print(f"[TRELLO CONFIRM LINK ERROR] {e}")
-
     return redirect(f"{frontend}/?confirm=success&ref={ref}")
 
 
-# ── DELIVERY CONFIRMATION (customer confirms receipt via frontend) ────
 @orders_bp.route('/api/orders/<ref>/confirm-delivery', methods=['POST'])
 def confirm_delivery(ref):
-    data    = request.get_json()
+    data = request.get_json()
     message = (data.get('message') or '').strip()
-    rating  = data.get('rating', 5)
-
+    rating = data.get('rating', 5)
     conn = get_db()
     from database import _use_postgres
     p = '%s' if _use_postgres() else '?'
-    row  = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
+    row = conn.execute(f"SELECT * FROM orders WHERE order_ref={p}", (ref,)).fetchone()
     if not row:
         conn.close()
         return jsonify({'error': 'Order not found'}), 404
-
     conn.execute(f"UPDATE orders SET status='ok_confirmed' WHERE order_ref={p}", (ref,))
     conn.commit()
     conn.close()
-
-    # Move card to Ok: Confirmed + add customer comment
     try:
         card_id = get_card_by_order_ref(ref)
         if card_id:
@@ -277,37 +222,23 @@ def confirm_delivery(ref):
             add_comment(card_id, comment_text)
     except Exception as e:
         print(f"[TRELLO CONFIRM ERROR] {e}")
-
     return jsonify({'message': 'Delivery confirmed. Thank you!'}), 200
 
 
-# ── DELIVERY SLOTS AVAILABILITY ──────────────────────────
-MAX_SLOTS_PER_DAY = 15
-
 @orders_bp.route('/api/slots/availability', methods=['GET'])
 def slots_availability():
-    """
-    Returns booked count per date for the requested dates.
-    Query param: ?dates=2026-04-10,2026-04-12,...
-    Response: {"2026-04-10": 3, "2026-04-12": 0, ...}
-    """
     dates_param = request.args.get('dates', '')
     if not dates_param:
         return jsonify({}), 200
-
     dates = [d.strip() for d in dates_param.split(',') if d.strip()]
-    conn  = get_db()
+    conn = get_db()
     result = {}
-
     from database import _use_postgres
     p = '%s' if _use_postgres() else '?'
-
     for date in dates:
         row = conn.execute(
             f"SELECT COUNT(*) as cnt FROM orders WHERE delivery_date = {p} AND status != 'cancelled'",
-            (date,)
-        ).fetchone()
+            (date,)).fetchone()
         result[date] = row['cnt'] if row else 0
-
     conn.close()
     return jsonify(result), 200

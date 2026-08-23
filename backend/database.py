@@ -1,6 +1,10 @@
 """
 HUTKO — database.py
 SQLite, stored on Render persistent disk at /data/hutko.db
+
+v2: adds catalog (products, product_variants, bundles), settings,
+    admin_audit; extends delivery_slots and admin_tokens.
+    The public shop now reads products from these tables instead of Excel.
 """
 
 import os
@@ -32,10 +36,23 @@ def _datetime_default():
     return "DEFAULT (datetime('now'))"
 
 
+def _safe_alter(conn, sql):
+    """Run an ALTER that may already have been applied; ignore duplicates."""
+    try:
+        conn.execute(sql)
+    except Exception:
+        pass
+
+
 def init_db():
     conn = get_db()
 
-    conn.execute(f"""
+    try:
+        conn.execute("PRAGMA journal_mode = WAL")
+    except Exception:
+        pass
+
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id            INTEGER PRIMARY KEY AUTOINCREMENT,
             name          TEXT    NOT NULL,
@@ -50,7 +67,7 @@ def init_db():
         )
     """)
 
-    conn.execute(f"""
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS auth_tokens (
             token      TEXT PRIMARY KEY,
             user_id    INTEGER NOT NULL,
@@ -58,7 +75,7 @@ def init_db():
         )
     """)
 
-    conn.execute(f"""
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS orders (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
             order_ref       TEXT    NOT NULL UNIQUE,
@@ -85,7 +102,7 @@ def init_db():
         )
     """)
 
-    conn.execute(f"""
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS delivery_slots (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
             slot_date  TEXT NOT NULL UNIQUE,
@@ -95,7 +112,7 @@ def init_db():
         )
     """)
 
-    conn.execute(f"""
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS messages (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
             name       TEXT NOT NULL,
@@ -109,7 +126,7 @@ def init_db():
         )
     """)
 
-    conn.execute(f"""
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS newsletter (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
             email      TEXT NOT NULL UNIQUE,
@@ -117,25 +134,97 @@ def init_db():
         )
     """)
 
-    conn.execute(f"""
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS admin_tokens (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
             token      TEXT NOT NULL UNIQUE,
+            created_at TEXT DEFAULT (datetime('now')),
+            expires_at TEXT
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS products (
+            id              TEXT PRIMARY KEY,
+            category        TEXT,
+            name_en         TEXT, name_ua         TEXT, name_nl         TEXT,
+            desc_en         TEXT, desc_ua         TEXT, desc_nl         TEXT,
+            about_en        TEXT, about_ua        TEXT, about_nl        TEXT,
+            prepare_en      TEXT, prepare_ua      TEXT, prepare_nl      TEXT,
+            ingredients_en  TEXT, ingredients_ua  TEXT, ingredients_nl  TEXT,
+            hutko_tip_en    TEXT, hutko_tip_ua    TEXT, hutko_tip_nl    TEXT,
+            storage_en      TEXT, storage_ua      TEXT, storage_nl      TEXT,
+            base_price      REAL DEFAULT 0,
+            unit            TEXT,
+            badge           TEXT,
+            photo           TEXT,
+            gallery         TEXT,
+            dietary         TEXT,
+            active          INTEGER NOT NULL DEFAULT 1,
+            sort_order      INTEGER NOT NULL DEFAULT 0,
+            created_at      TEXT DEFAULT (datetime('now')),
+            updated_at      TEXT DEFAULT (datetime('now'))
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS product_variants (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            product_id  TEXT NOT NULL,
+            label       TEXT,
+            price       REAL DEFAULT 0,
+            active      INTEGER NOT NULL DEFAULT 1,
+            sort_order  INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS bundles (
+            id              TEXT PRIMARY KEY,
+            name_en         TEXT, name_ua        TEXT, name_nl        TEXT,
+            size_label      TEXT,
+            items           TEXT,
+            original_price  REAL DEFAULT 0,
+            discount_price  REAL DEFAULT 0,
+            photo           TEXT,
+            badge           TEXT,
+            choice_en       TEXT, choice_ua      TEXT, choice_nl      TEXT,
+            active          INTEGER NOT NULL DEFAULT 1,
+            sort_order      INTEGER NOT NULL DEFAULT 0,
+            created_at      TEXT DEFAULT (datetime('now')),
+            updated_at      TEXT DEFAULT (datetime('now'))
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS settings (
+            key        TEXT PRIMARY KEY,
+            value      TEXT,
+            updated_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS admin_audit (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            actor      TEXT,
+            action     TEXT,
+            detail     TEXT,
             created_at TEXT DEFAULT (datetime('now'))
         )
     """)
 
-    # Safe migrations
     for sql in [
         "ALTER TABLE orders ADD COLUMN trello_card_id TEXT",
         "ALTER TABLE orders ADD COLUMN delivery_date TEXT",
         "ALTER TABLE orders ADD COLUMN payment_id TEXT",
         "ALTER TABLE orders ADD COLUMN payment_status TEXT DEFAULT 'pending'",
+        "ALTER TABLE admin_tokens ADD COLUMN expires_at TEXT",
+        "ALTER TABLE delivery_slots ADD COLUMN is_open INTEGER NOT NULL DEFAULT 1",
+        "ALTER TABLE delivery_slots ADD COLUMN note TEXT",
     ]:
-        try:
-            conn.execute(sql)
-        except Exception:
-            pass
+        _safe_alter(conn, sql)
 
     conn.commit()
     conn.close()

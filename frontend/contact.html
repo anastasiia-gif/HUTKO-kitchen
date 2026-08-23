@@ -113,9 +113,9 @@
             <div class="info-group">
                 <div class="info-group-title" data-i18n="cf_hours_title">Office hours</div>
                 <div class="hours-box">
-                    <div class="hours-row"><span data-i18n="cf_mon_fri">Monday – Friday</span><strong>9:00 – 18:00</strong></div>
-                    <div class="hours-row"><span data-i18n="cf_saturday">Saturday</span><strong>10:00 – 15:00</strong></div>
-                    <div class="hours-row"><span data-i18n="cf_sunday">Sunday</span><strong data-i18n="cf_closed">Closed</strong></div>
+                    <div class="hours-row"><span data-i18n="cf_mon_fri">Monday – Friday</span><strong data-setting="hours_weekday">9:00 – 18:00</strong></div>
+                    <div class="hours-row"><span data-i18n="cf_saturday">Saturday</span><strong data-setting="hours_saturday">10:00 – 15:00</strong></div>
+                    <div class="hours-row"><span data-i18n="cf_sunday">Sunday</span><strong data-setting="hours_sunday">Closed</strong></div>
                 </div>
             </div>
             <div class="response-note"><span data-i18n="cf_response_note">We typically respond within <strong>2 business days</strong>. For urgent order issues, WhatsApp is fastest.</span></div>
@@ -142,9 +142,7 @@
     <script src="js/components.js"></script>
     <script src="js/main.js"></script>
     <script>
-        // After i18n.js loadSettingsIntoPage runs, fix the href links too
         document.addEventListener('DOMContentLoaded', () => {
-            // Small delay to let loadSettingsIntoPage finish
             setTimeout(() => {
                 const email = document.querySelector('[data-setting="email_contact"]');
                 if (email) {
@@ -177,7 +175,6 @@
             if (em.value && !em.value.includes('@')) { em.classList.add('error'); ok = false; }
             if (!ok) { showToast('Please fill in all required fields.'); return; }
 
-            // Show loading state
             const btn = document.querySelector('.contact-submit');
             const origText = btn.innerHTML;
             btn.innerHTML = 'Sending…'; btn.disabled = true;

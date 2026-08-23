@@ -1,4 +1,7 @@
-/* ── HUTKO — components.js ────────────────────────── */
+/* ── HUTKO — components.js (v1.1) ──────────────────────────
+   v1.1: footer contact (email/phone/instagram) is now driven by
+   /api/shop/settings so it can be edited from the admin panel.
+   ────────────────────────────────────────────────────────── */
 
 const LOGO_SVG = `<img src="assets/logos/logo_nav.png" alt="Hutko logo" class="nav-logo-img">`;
 const CART_SVG = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 1h2.5l2 8h7l1.5-5.5H4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="13.5" r="1.2" fill="currentColor"/><circle cx="11.5" cy="13.5" r="1.2" fill="currentColor"/></svg>`;
@@ -86,7 +89,6 @@ function renderNavbar() {
     </button>
   </div>`;
 
-    /* Hamburger */
     const h = document.getElementById('navHamburger');
     const d = document.getElementById('navDrawer');
     if (h && d) {
@@ -95,17 +97,12 @@ function renderNavbar() {
             if (!h.contains(e.target) && !d.contains(e.target)) { h.classList.remove('open'); d.classList.remove('open'); }
         });
     }
-
-    /* User dropdown outside click */
     document.addEventListener('click', e => {
         const menu = document.getElementById('userDropdown');
         if (menu && !e.target.closest('.nav-user-menu')) menu.classList.remove('open');
     });
-
-    /* Re-init search after navbar re-render */
     if (typeof initSearch === 'function') setTimeout(initSearch, 50);
 
-    /* Mark active link */
     const page = location.pathname.split('/').pop() || 'index.html';
     document.querySelectorAll('.nav-links a, .nav-drawer a').forEach(a => {
         if (a.getAttribute('href') === page) a.classList.add('active');
@@ -129,6 +126,24 @@ function renderCartPanel() {
   </div>`;
 }
 
+/* v1.1: pull footer contact details from settings so the admin can edit them */
+async function patchFooterContact() {
+    try {
+        const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? 'http://localhost:5000' : 'https://hutko-kitchen.onrender.com';
+        const res = await fetch(`${API}/api/shop/settings`);
+        if (!res.ok) return;
+        const { settings } = await res.json();
+        if (!settings) return;
+        const email = document.getElementById('footEmail');
+        if (email && settings.email_contact) { email.textContent = settings.email_contact; email.href = 'mailto:' + settings.email_contact; }
+        const phone = document.getElementById('footPhone');
+        if (phone && settings.phone) { phone.textContent = settings.phone; phone.href = 'tel:' + String(settings.phone).replace(/\s+/g, ''); }
+        const ig = document.getElementById('footIg');
+        if (ig && settings.instagram) { const handle = String(settings.instagram).replace('@', ''); ig.textContent = settings.instagram; ig.href = 'https://instagram.com/' + handle; }
+    } catch (e) { /* keep static fallback values */ }
+}
+
 function renderFooter() {
     const tr = (key) => (typeof t === 'function') ? t(key) : key;
     const links = NAV_LINKS.map(l => `<a href="${l.href}" data-i18n="${l.key}">${tr(l.key) || l.label}</a>`).join('');
@@ -142,9 +157,9 @@ function renderFooter() {
         <a href="shop.html">Kyiv Chicken Balls</a><a href="shop.html">Solyanka</a><a href="shop.html">Zrazy</a>
       </div>
       <div class="footer-col"><h4 data-i18n="footer_contact">${tr('footer_contact')}</h4>
-        <a href="mailto:info@hutko.nl">info@hutko.nl</a>
-        <a href="tel:+31600000000">+31 6 00 00 00 00</a>
-        <a href="https://www.instagram.com/hutko.kitchen/" target="_blank" rel="noopener">@hutko.kitchen</a>
+        <a href="mailto:info@hutko.nl" id="footEmail">info@hutko.nl</a>
+        <a href="tel:+31600000000" id="footPhone">+31 6 00 00 00 00</a>
+        <a href="https://www.instagram.com/hutko.kitchen/" id="footIg" target="_blank" rel="noopener">@hutko.kitchen</a>
       </div>
     </div>
     <div class="footer-bottom">
@@ -161,13 +176,13 @@ function renderFooter() {
       </div>
     </div>
   </div></footer>`;
+    patchFooterContact();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     renderNavbar();
     renderCartPanel();
     renderFooter();
-    // Apply translations to all injected HTML
     if (typeof applyTranslations === 'function') applyTranslations();
     if (typeof updateLangSwitcher === 'function') updateLangSwitcher();
 });

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="assets/logos/logo_nav.png">
+  <title>HUTKO — Admin</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin">
+
+  <!-- LOGIN -->
+  <div id="loginView" class="admin-login">
+    <div class="admin-login-card">
+      <div class="logo">HUTKO <span>Admin</span></div>
+      <div class="sub">Kitchen control panel</div>
+      <div id="loginErr" class="inline-err"></div>
+      <input type="password" id="loginPass" class="form-control" placeholder="Admin password" autocomplete="current-password">
+      <button class="btn btn-blue" style="width:100%;justify-content:center;" onclick="Admin.login()">Log in →</button>
+    </div>
+  </div>
+
+  <!-- APP SHELL -->
+  <div id="appView" class="admin-shell">
+    <div class="admin-topbar">
+      <div class="brand">HUTKO <span class="tag">Admin</span></div>
+      <div class="who">
+        <span id="tokenNote"></span>
+        <button class="btn btn-outline" style="padding:8px 16px;" onclick="Admin.logout()">Log out</button>
+      </div>
+    </div>
+
+    <div class="admin-body">
+      <nav class="admin-side">
+        <a data-tab="dashboard" class="active" onclick="Admin.tab('dashboard',this)">📊 Dashboard</a>
+        <a data-tab="products" onclick="Admin.tab('products',this)">🥟 Products</a>
+        <a data-tab="bundles" onclick="Admin.tab('bundles',this)">📦 Bundles</a>
+        <a data-tab="settings" onclick="Admin.tab('settings',this)">⚙️ Settings</a>
+      </nav>
+
+      <main class="admin-main">
+
+        <!-- DASHBOARD -->
+        <section id="tab-dashboard" class="admin-section active">
+          <div class="admin-h">Dashboard</div>
+          <div class="admin-sub">A quick look at your kitchen.</div>
+          <div id="statGrid" class="stat-grid"></div>
+          <div class="quick-actions">
+            <button class="btn btn-primary" onclick="Admin.tab('products',document.querySelector('[data-tab=products]'));Admin.openNewProduct()">+ Add product</button>
+            <a class="btn btn-blue" id="exportBtn">⬇ Download all data (Excel)</a>
+            <a class="btn btn-ghost" id="exportCatBtn">⬇ Export catalogue</a>
+          </div>
+        </section>
+
+        <!-- PRODUCTS -->
+        <section id="tab-products" class="admin-section">
+          <div class="admin-row-between">
+            <div>
+              <div class="admin-h">Products</div>
+              <div class="admin-sub">Click a product to expand and edit it in place. Changes save to the live shop.</div>
+            </div>
+            <button class="btn btn-primary" onclick="Admin.openNewProduct()">+ Add product</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead><tr><th style="width:56px;"></th><th>Name</th><th>Category</th><th>Price</th><th>Visible</th><th style="width:120px;"></th></tr></thead>
+              <tbody id="productRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- BUNDLES -->
+        <section id="tab-bundles" class="admin-section">
+          <div class="admin-row-between">
+            <div>
+              <div class="admin-h">Bundles</div>
+              <div class="admin-sub">Group products into discounted boxes.</div>
+            </div>
+            <button class="btn btn-primary" onclick="Admin.openBundle()">+ Add bundle</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead><tr><th></th><th>Name</th><th>Items</th><th>Price</th><th>Visible</th><th></th></tr></thead>
+              <tbody id="bundleRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="tab-settings" class="admin-section">
+          <div class="admin-h">Settings</div>
+          <div class="admin-sub">Everything here is editable — no code needed. Changes show on the live site.</div>
+
+          <div class="settings-card">
+            <h4>Delivery rules</h4>
+            <div class="card-sub">Prices in euros. These drive checkout and the delivery info shown on the site.</div>
+            <div id="rulesErr" class="inline-err"></div>
+            <div class="field-grid">
+              <div class="field"><label>Free delivery from (€)</label><input class="form-control" id="s_free" type="number" step="0.5"></div>
+              <div class="field"><label>Standard delivery (€)</label><input class="form-control" id="s_cost" type="number" step="0.5"></div>
+              <div class="field"><label>Express delivery (€)</label><input class="form-control" id="s_exp" type="number" step="0.5"></div>
+              <div class="field"><label>Minimum order (€, 0 = none)</label><input class="form-control" id="s_min" type="number" step="0.5"></div>
+              <div class="field"><label>Orders per delivery day</label><input class="form-control" id="s_cap" type="number" step="1"></div>
+              <div class="field"><label>Delivery days (text)</label><input class="form-control" id="s_days" placeholder="Thursday & Saturday"></div>
+            </div>
+            <button class="btn btn-dark" style="margin-top:14px;" onclick="Admin.saveRules()">Save delivery rules</button>
+          </div>
+
+          <div class="settings-card">
+            <h4>Contact &amp; site details</h4>
+            <div class="card-sub">Email, phone, address, socials and office hours — these feed the contact page and footer.</div>
+            <div id="siteFields" style="display:flex;flex-direction:column;gap:12px;"></div>
+            <div class="builder-row" style="margin-top:12px;">
+              <input class="form-control" id="newKey" placeholder="new field name (e.g. whatsapp)">
+              <input class="form-control" id="newVal" placeholder="value">
+              <button class="icon-btn" onclick="Admin.addSiteField()">＋</button>
+            </div>
+            <button class="btn btn-dark" style="margin-top:14px;" onclick="Admin.saveSite()">Save contact details</button>
+          </div>
+
+          <div class="settings-card">
+            <h4>Change admin password</h4>
+            <div class="card-sub">At least 8 characters. You'll stay logged in.</div>
+            <div id="pwErr" class="inline-err"></div>
+            <div class="field-grid">
+              <div class="field"><label>Current password</label><input class="form-control" id="pwCur" type="password"></div>
+              <div class="field"><label>New password</label><input class="form-control" id="pwNew" type="password"></div>
+            </div>
+            <button class="btn btn-dark" style="margin-top:14px;" onclick="Admin.changePassword()">Update password</button>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- BUNDLE MODAL (products are edited inline; bundles keep a modal) -->
+  <div id="bundleModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="bmTitle">Add bundle</h3>
+        <button class="icon-btn" onclick="Admin.closeModal('bundleModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="bmErr" class="inline-err"></div>
+        <div class="dropzone" onclick="document.getElementById('bmPhotoFile').click()">
+          <img id="bmPhotoPreview" src="" alt="" style="display:none;">
+          <div class="dz-text" id="bmPhotoText">📷 Click to upload a photo</div>
+          <input type="file" id="bmPhotoFile" accept="image/*" style="display:none;" onchange="Admin.uploadPhoto(this,'bm')">
+        </div>
+        <input type="hidden" id="bmPhoto">
+        <div class="field-grid">
+          <div class="field"><label>Name (English)</label><input class="form-control" id="bmNameEn"></div>
+          <div class="field"><label>Name (Українська)</label><input class="form-control" id="bmNameUa"></div>
+          <div class="field"><label>Name (Nederlands)</label><input class="form-control" id="bmNameNl"></div>
+          <div class="field"><label>Size label</label><input class="form-control" id="bmSize" placeholder="Serves 4"></div>
+          <div class="field"><label>Original price (€)</label><input class="form-control" id="bmOrig" type="number" step="0.5"></div>
+          <div class="field"><label>Discount price (€)</label><input class="form-control" id="bmDisc" type="number" step="0.5"></div>
+          <div class="field"><label>Badge (optional)</label><input class="form-control" id="bmBadge" placeholder="Save €5"></div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;opacity:.7;">Items in this bundle</label>
+          <div id="bmItems" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;"></div>
+          <span class="add-link" onclick="Admin.addBundleItem()">＋ add item</span>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="Admin.closeModal('bundleModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="Admin.saveBundle()">Save bundle</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="js/admin.js"></script>
+</body>
+</html>
