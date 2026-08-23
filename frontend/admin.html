@@ -94,18 +94,17 @@
           <div class="admin-sub">Everything here is editable — no code needed. Changes show on the live site.</div>
 
           <div class="settings-card">
-            <h4>Delivery rules</h4>
-            <div class="card-sub">Prices in euros. These drive checkout and the delivery info shown on the site.</div>
+            <h4>Delivery fees</h4>
+            <div class="card-sub">Prices in euros, by delivery area. These drive both the checkout price the customer pays and the delivery info shown on the site. Pickup is always free.</div>
             <div id="rulesErr" class="inline-err"></div>
             <div class="field-grid">
-              <div class="field"><label>Free delivery from (€)</label><input class="form-control" id="s_free" type="number" step="0.5"></div>
-              <div class="field"><label>Standard delivery (€)</label><input class="form-control" id="s_cost" type="number" step="0.5"></div>
-              <div class="field"><label>Express delivery (€)</label><input class="form-control" id="s_exp" type="number" step="0.5"></div>
-              <div class="field"><label>Minimum order (€, 0 = none)</label><input class="form-control" id="s_min" type="number" step="0.5"></div>
-              <div class="field"><label>Orders per delivery day</label><input class="form-control" id="s_cap" type="number" step="1"></div>
+              <div class="field"><label>Local fee (€) — Amsterdam / Den Bosch / Den Haag</label><input class="form-control" id="s_local" type="number" step="0.5"></div>
+              <div class="field"><label>Regional fee (€) — rest of the Netherlands</label><input class="form-control" id="s_reg" type="number" step="0.5"></div>
+              <div class="field"><label>Free delivery over (€) — all areas</label><input class="form-control" id="s_free" type="number" step="1"></div>
               <div class="field"><label>Delivery days (text)</label><input class="form-control" id="s_days" placeholder="Thursday & Saturday"></div>
+              <div class="field"><label>Orders per delivery day</label><input class="form-control" id="s_cap" type="number" step="1"></div>
             </div>
-            <button class="btn btn-dark" style="margin-top:14px;" onclick="Admin.saveRules()">Save delivery rules</button>
+            <button class="btn btn-dark" style="margin-top:14px;" onclick="Admin.saveRules()">Save delivery fees</button>
           </div>
 
           <div class="settings-card">

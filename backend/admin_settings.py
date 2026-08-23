@@ -14,14 +14,17 @@ import settings_store as S
 settings_bp = Blueprint('admin_settings', __name__)
 _p = _placeholder()
 
-# Delivery rules (numeric except delivery_days which is display text)
-RULE_KEYS = ['free_delivery_at', 'delivery_cost', 'delivery_price_express',
-             'min_order', 'max_per_day', 'delivery_days']
-NUMERIC_RULES = {'free_delivery_at', 'delivery_cost', 'delivery_price_express', 'min_order', 'max_per_day'}
+# Delivery settings (area/zone model). delivery_days is display text.
+RULE_KEYS = ['fee_local', 'fee_regional', 'free_delivery_over', 'delivery_days', 'max_per_day']
+NUMERIC_RULES = {'fee_local', 'fee_regional', 'free_delivery_over', 'max_per_day'}
 
-# Never editable here / not surfaced yet
+# Never editable here
 PROTECTED = {'admin_password_hash'}
-HIDDEN_FROM_SITE = {'owner_email', 'driver_email'}   # not wired to emails yet
+# Not shown in the Contact/site section: notification emails (not wired yet) +
+# legacy delivery keys that are mirrored automatically from the fields above.
+HIDDEN_FROM_SITE = {'owner_email', 'driver_email',
+                    'delivery_cost', 'free_delivery_at', 'delivery_price_express',
+                    'delivery_capacity_default', 'delivery_weekdays', 'min_order'}
 
 
 @settings_bp.route('/api/admin/settings', methods=['GET'])
@@ -57,6 +60,11 @@ def update_settings():
         clean[key] = value
     if not clean:
         return jsonify({'error': 'No valid settings to update.'}), 400
+    # Mirror to legacy keys so the delivery-page description text stays consistent
+    if 'fee_local' in clean:
+        clean['delivery_cost'] = clean['fee_local']
+    if 'free_delivery_over' in clean:
+        clean['free_delivery_at'] = clean['free_delivery_over']
     S.set_many(clean)
     audit('settings_update', ', '.join(sorted(clean.keys())))
     return jsonify({'message': 'Settings saved.', 'updated': sorted(clean.keys())}), 200

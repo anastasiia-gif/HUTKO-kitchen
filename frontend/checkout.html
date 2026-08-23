@@ -7,124 +7,30 @@
     <title>Checkout — HUTKO</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* ── FIELD HELPERS ── */
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-            .field label {
-                font-size: 13px;
-                font-weight: 600;
-                color: var(--ink);
-            }
-
-            .field input, .field select, .field textarea {
-                padding: 10px 13px;
-                border: 1.5px solid var(--border);
-                border-radius: 10px;
-                font-size: 14px;
-                color: var(--ink);
-                background: var(--white);
-                transition: .15s;
-                width: 100%;
-                box-sizing: border-box;
-            }
-
-                .field input:focus, .field select:focus {
-                    border-color: var(--blue);
-                    outline: none;
-                }
-
-                .field input.error, .field select.error {
-                    border-color: #e84b22;
-                }
-
-            .field .hint {
-                font-size: 12px;
-                color: var(--ink-soft);
-                line-height: 1.5;
-            }
-
-                .field .hint a {
-                    color: var(--blue);
-                    font-weight: 600;
-                }
-
-        .optional {
-            font-weight: 400;
-            opacity: .5;
-            font-size: 12px;
-        }
-
-        /* ── DATE PICKER ── */
-        .slot-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill,minmax(130px,1fr));
-            gap: 8px;
-            margin-top: 4px;
-        }
-
-        .slot-btn {
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            background: var(--white);
-            padding: 10px 8px;
-            cursor: pointer;
-            text-align: center;
-            transition: .15s;
-        }
-
-            .slot-btn:hover:not(:disabled) {
-                border-color: var(--blue);
-            }
-
-            .slot-btn.selected {
-                border-color: var(--blue);
-                background: rgba(27,63,206,.06);
-            }
-
-            .slot-btn:disabled {
-                opacity: .4;
-                cursor: not-allowed;
-                background: var(--cream);
-            }
-
-        .slot-date {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--ink);
-        }
-
-        .slot-day {
-            font-size: 11px;
-            color: var(--ink-soft);
-            margin-bottom: 2px;
-        }
-
-        .slot-cap {
-            font-size: 11px;
-            color: var(--ink-soft);
-            margin-top: 3px;
-        }
-
-            .slot-cap.full {
-                color: #e84b22;
-            }
-
-        .slot-loading {
-            font-size: 13px;
-            color: var(--ink-soft);
-            padding: 12px 0;
-        }
+        .field { display: flex; flex-direction: column; gap: 5px; }
+        .field label { font-size: 13px; font-weight: 600; color: var(--ink); }
+        .field input, .field select, .field textarea { padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; color: var(--ink); background: var(--white); transition: .15s; width: 100%; box-sizing: border-box; }
+        .field input:focus, .field select:focus { border-color: var(--blue); outline: none; }
+        .field input.error, .field select.error { border-color: #e84b22; }
+        .field .hint { font-size: 12px; color: var(--ink-soft); line-height: 1.5; }
+        .field .hint a { color: var(--blue); font-weight: 600; }
+        .optional { font-weight: 400; opacity: .5; font-size: 12px; }
+        .slot-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(130px,1fr)); gap: 8px; margin-top: 4px; }
+        .slot-btn { border: 1.5px solid var(--border); border-radius: 10px; background: var(--white); padding: 10px 8px; cursor: pointer; text-align: center; transition: .15s; }
+        .slot-btn:hover:not(:disabled) { border-color: var(--blue); }
+        .slot-btn.selected { border-color: var(--blue); background: rgba(27,63,206,.06); }
+        .slot-btn:disabled { opacity: .4; cursor: not-allowed; background: var(--cream); }
+        .slot-date { font-size: 13px; font-weight: 600; color: var(--ink); }
+        .slot-day { font-size: 11px; color: var(--ink-soft); margin-bottom: 2px; }
+        .slot-cap { font-size: 11px; color: var(--ink-soft); margin-top: 3px; }
+        .slot-cap.full { color: #e84b22; }
+        .slot-loading { font-size: 13px; color: var(--ink-soft); padding: 12px 0; }
     </style>
 </head>
 <body>
     <div id="navbar-placeholder"></div>
     <div id="cart-placeholder"></div>
 
-    <!-- EMPTY CART GUARD -->
     <div id="emptyGuard" style="display:none;text-align:center;padding:5rem 2rem;">
         <div style="font-size:48px;margin-bottom:1rem;">🛒</div>
         <h2 style="font-family:var(--display);font-size:28px;color:var(--blue);margin-bottom:.75rem;" data-i18n="checkout_empty_title">Your cart is empty</h2>
@@ -132,7 +38,6 @@
         <a href="shop.html" class="btn btn-primary" data-i18n="checkout_browse">Browse products</a>
     </div>
 
-    <!-- CHECKOUT BODY -->
     <div id="checkoutBody" style="background:var(--cream);">
         <div style="max-width:var(--max-w);margin:0 auto;padding:1.5rem 2rem 0;">
             <div class="label" data-i18n="checkout_label">Almost there</div>
@@ -140,10 +45,8 @@
         </div>
         <div class="checkout-layout">
 
-            <!-- LEFT: FORMS -->
             <div class="checkout-main">
 
-                <!-- 1. CONTACT -->
                 <div class="checkout-block">
                     <div class="checkout-block-head">
                         <div class="checkout-block-num">1</div>
@@ -173,7 +76,6 @@
                     </div>
                 </div>
 
-                <!-- 2. DELIVERY — merged address + method + auto-price -->
                 <div class="checkout-block">
                     <div class="checkout-block-head">
                         <div class="checkout-block-num">2</div>
@@ -181,7 +83,6 @@
                     </div>
                     <div class="checkout-block-body">
 
-                        <!-- Address autocomplete -->
                         <div class="field">
                             <label data-i18n="checkout_street">Your delivery address</label>
                             <div id="addrAutoContainer">
@@ -191,20 +92,16 @@
                             <span class="hint" data-i18n="checkout_addr_hint">Type your address — delivery fee is set automatically.</span>
                         </div>
 
-                        <!-- Zone result banner -->
                         <div id="zoneStatus" style="display:none;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;line-height:1.5;"></div>
 
-                        <!-- Zone 3 contact note -->
                         <div id="zoneContactNote" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin:4px 0 8px;background:#FFF3CD;color:#856404;border:1px solid #FFD761;">
                             ℹ️ We deliver to your region — but please note we'll contact you within 24h to confirm the exact delivery date and time.
                         </div>
 
-                        <!-- Mini map -->
                         <div id="addrMapWrap" style="display:none;margin:8px 0;border-radius:14px;overflow:hidden;height:180px;border:1px solid var(--border);">
                             <div id="addrMap" style="width:100%;height:180px;"></div>
                         </div>
 
-                        <!-- Pickup options -->
                         <div style="margin-top:14px;">
                             <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft);margin-bottom:8px;" data-i18n="checkout_or_pickup">— or pick up for free —</div>
                             <label class="delivery-option" id="opt-pickup-ams" onclick="selectPickup('amsterdam')" style="cursor:pointer;display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;border:1.5px solid var(--border);margin-bottom:6px;transition:.15s;">
@@ -225,14 +122,12 @@
                             </label>
                         </div>
 
-                        <!-- Delivery notes -->
                         <div class="field" style="margin-top:14px;">
                             <label for="coNotes"><span data-i18n="checkout_notes">Delivery notes</span> <span class="optional" data-i18n="checkout_optional">optional</span></label>
                             <input type="text" id="coNotes" placeholder="e.g. ring bell 2nd floor">
                             <span class="hint" data-i18n="checkout_hint_notes">Apartment number, gate code, or anything useful.</span>
                         </div>
 
-                        <!-- Hidden backend fields -->
                         <input type="hidden" id="coStreet">
                         <input type="hidden" id="coPost">
                         <input type="hidden" id="coCity">
@@ -240,7 +135,6 @@
                     </div>
                 </div>
 
-                <!-- 4. DELIVERY DATE (shown for delivery only) -->
                 <div class="checkout-block" id="dateBlock">
                     <div class="checkout-block-head">
                         <div class="checkout-block-num">3</div>
@@ -258,7 +152,6 @@
                     </div>
                 </div>
 
-                <!-- 5. PAYMENT (pickup) or 5. PAYMENT (delivery) -->
                 <div class="checkout-block">
                     <div class="checkout-block-head">
                         <div class="checkout-block-num">4</div>
@@ -277,7 +170,6 @@
 
             </div>
 
-            <!-- RIGHT: ORDER SUMMARY -->
             <div class="checkout-summary">
                 <div class="summary-head"><h3 data-i18n="checkout_summary">Order summary</h3></div>
                 <div class="summary-items" id="summaryItems">
@@ -293,7 +185,6 @@
         </div>
     </div>
 
-    <!-- SUCCESS SCREEN -->
     <div id="successScreen" style="display:none;">
         <div class="checkout-success">
             <div class="checkout-success-icon">🎉</div>
@@ -327,9 +218,28 @@
         const ZONE_REGULAR = ['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
         const ZONE_CONTACT  = ['Gelderland','Overijssel','Limburg','Groningen','Friesland','Drenthe','Zeeland'];
         const DELIVERY_PRICES = { delivery_local:10, delivery_other:15, delivery_contact:15, pickup_amsterdam:0, pickup_denbosch:0, pickup:0 };
+        // Editable fees (loaded from /api/shop/settings — admin can change them)
+        let FEE_LOCAL = 10, FEE_REGIONAL = 15, FREE_OVER = 100;
         let detectedZoneType = 'regular'; // 'inner'|'regular'|'contact'|'outside'
         let selectedDelivery = 'delivery_local';
         let selectedDate = null;
+
+        async function loadDeliverySettings() {
+            try {
+                const API = (window.API_BASE) || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:5000' : 'https://hutko-kitchen.onrender.com');
+                const r = await fetch(API + '/api/shop/settings');
+                if (!r.ok) return;
+                const { settings } = await r.json();
+                if (!settings) return;
+                if (settings.fee_local)          FEE_LOCAL    = parseFloat(settings.fee_local)    || FEE_LOCAL;
+                if (settings.fee_regional)       FEE_REGIONAL = parseFloat(settings.fee_regional) || FEE_REGIONAL;
+                if (settings.free_delivery_over) FREE_OVER    = parseFloat(settings.free_delivery_over) || FREE_OVER;
+                DELIVERY_PRICES.delivery_local   = FEE_LOCAL;
+                DELIVERY_PRICES.delivery_other   = FEE_REGIONAL;
+                DELIVERY_PRICES.delivery_contact = FEE_REGIONAL;
+                if (typeof Z_INNER !== 'undefined') Z_INNER.forEach(z => z.fee = FEE_LOCAL);
+            } catch (e) { /* keep defaults */ }
+        }
 
         function toggleBlocks() {
             const isPickup = selectedDelivery && selectedDelivery.startsWith('pickup');
@@ -360,10 +270,7 @@
             return d.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' });
         }
         function isoDate(d) {
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
+            return d.toISOString().slice(0, 10);
         }
 
         async function loadSlots() {
@@ -371,7 +278,6 @@
             const mode = selectedDelivery.startsWith('pickup') ? selectedDelivery : 'delivery';
             const upcoming = getUpcomingSlots(mode);
 
-            // Fetch booked counts from backend
             let bookedMap = {};
             try {
                 const ctrl = new AbortController();
@@ -407,7 +313,6 @@
         // ── DELIVERY METHOD ─────────────────────────────────
         function selectPickup(location) {
             selectedDelivery = 'pickup_' + location;
-            // Clear address zone since pickup
             document.getElementById('zoneStatus').style.display = 'none';
             document.getElementById('zoneContactNote').style.display = 'none';
             document.getElementById('addrMapWrap').style.display = 'none';
@@ -415,14 +320,12 @@
             document.getElementById('coPost').value     = location === 'amsterdam' ? '1054 HV' : '5223 AP';
             document.getElementById('coCity').value     = location === 'amsterdam' ? 'Amsterdam' : 'Den Bosch';
             document.getElementById('coProvince').value = location === 'amsterdam' ? 'Noord-Holland' : 'Noord-Brabant';
-            // Highlight selected pickup
             ['opt-pickup-ams','opt-pickup-db'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.style.border = '1.5px solid var(--border)';
             });
             const sel = document.getElementById('opt-pickup-' + (location === 'amsterdam' ? 'ams' : 'db'));
             if(sel) sel.style.border = '2px solid var(--blue)';
-            // Reset radio for address (uncheck via hack)
             document.getElementById('radio-pickup-' + (location === 'amsterdam' ? 'ams' : 'db')).checked = true;
             toggleBlocks(); loadSlots(); renderSummary();
         }
@@ -444,7 +347,8 @@
             }
 
             const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
-            const delivery = DELIVERY_PRICES[selectedDelivery] ?? 10;
+            let delivery = DELIVERY_PRICES[selectedDelivery] ?? FEE_LOCAL;
+            if (!selectedDelivery.startsWith('pickup') && FREE_OVER > 0 && subtotal >= FREE_OVER) delivery = 0;
             const total = subtotal + delivery;
 
             si.innerHTML = items.map(i => `
@@ -467,9 +371,7 @@
         async function placeOrder() {
             const isPickup = selectedDelivery && selectedDelivery.startsWith('pickup');
 
-            // Validate contact fields always
             const contactFields = ['coFirst', 'coLast', 'coEmail', 'coPhone'];
-            // Validate address fields only for delivery
             const addressFields = isPickup ? [] : ['coStreet', 'coPost', 'coCity', 'coProvince'];
             const required = [...contactFields, ...addressFields];
             let ok = true;
@@ -491,9 +393,10 @@
             const items = Object.values(cart);
             if (!items.length) return;
 
-            // Save cart items before clearing (needed for payment API)
-            const cartItems = items.map(i => ({ name: i.name, label: i.label, qty: i.qty, price: i.price }));
-            const deliveryFee = DELIVERY_PRICES[selectedDelivery] ?? 10;
+            const cartItems = items.map(i => ({ name: i.name, qty: i.qty, price: i.price }));
+            const _subtotalPO = cartItems.reduce((s, i) => s + i.qty * i.price, 0);
+            let deliveryFee = DELIVERY_PRICES[selectedDelivery] ?? FEE_LOCAL;
+            if (!isPickup && FREE_OVER > 0 && _subtotalPO >= FREE_OVER) deliveryFee = 0;
             const customerEmail = document.getElementById('coEmail').value.trim();
 
             const btn = document.getElementById('placeOrderBtn');
@@ -524,15 +427,12 @@
                     return;
                 }
 
-                // Clear cart immediately
                 localStorage.removeItem('hutko_cart');
 
-                // Show order ref BEFORE redirecting — customer can note it down
                 const orderRefEl = document.getElementById('orderRef');
                 if (orderRefEl) orderRefEl.textContent = res.data.order_ref || '';
                 showToast('Order saved! Ref: ' + res.data.order_ref + ' — redirecting to payment…', 4000);
 
-                // Redirect straight to Stripe
                 btn.textContent = 'Redirecting to payment…';
                 try {
                     const payRes = await fetch((window.API_BASE || 'https://hutko-kitchen.onrender.com') + '/api/payment/create', {
@@ -548,16 +448,14 @@
                     const payData = await payRes.json();
                     if (payData.payment_url) {
                         window.location.href = payData.payment_url;
-                        return; // browser navigates away
+                        return;
                     } else {
-                        // Payment creation failed — show success screen with manual pay button
                         showToast(payData.error || 'Payment redirect failed. Use the button below.');
                     }
                 } catch (e) {
                     showToast('Could not reach payment service. Use the button below.');
                 }
 
-                // Fallback: show success screen with pay button
                 document.getElementById('orderRef').textContent = res.data.order_ref || '';
                 if (selectedDate) {
                     const d = new Date(selectedDate + 'T00:00:00');
@@ -608,8 +506,7 @@
         }
 
         // ── INIT ─────────────────────────────────────────────
-        document.addEventListener('DOMContentLoaded', () => {
-            // Redirect to login only if no token
+        document.addEventListener('DOMContentLoaded', async () => {
             if (typeof getToken !== 'function' || (!getToken() && !getUser())) {
                 window.location.href = 'login.html?redirect=checkout.html';
                 return;
@@ -620,14 +517,12 @@
                 document.getElementById('checkoutBody').style.display = 'none';
                 return;
             }
-            // Pre-fill from cached user — syncSession() will also update from server
             const user = getUser();
             if (user) {
                 const parts = (user.name || '').split(' ');
                 document.getElementById('coFirst').value = parts[0] || '';
                 document.getElementById('coLast').value = parts.slice(1).join(' ') || '';
                 document.getElementById('coEmail').value = user.email || '';
-                // Pre-fill saved address if available
                 if (user.addr_street) {
                     document.getElementById('coStreet').value = user.addr_street;
                     document.getElementById('coPost').value = user.addr_postcode || '';
@@ -635,6 +530,7 @@
                     if (user.addr_province) document.getElementById('coProvince').value = user.addr_province;
                 }
             }
+            await loadDeliverySettings();
             toggleBlocks();
             loadSlots();
             renderSummary();
@@ -643,18 +539,9 @@
 
     <style>
     .addr-wrap { position:relative; width:100%; }
-    .addr-input {
-      width:100%; padding:13px 16px; font-size:15px; font-family:inherit;
-      border:1.5px solid var(--border); border-radius:12px; outline:none;
-      background:#fff; box-sizing:border-box; transition:.15s;
-    }
+    .addr-input { width:100%; padding:13px 16px; font-size:15px; font-family:inherit; border:1.5px solid var(--border); border-radius:12px; outline:none; background:#fff; box-sizing:border-box; transition:.15s; }
     .addr-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(27,63,206,.1); }
-    .addr-dropdown {
-      position:absolute; top:calc(100% + 4px); left:0; right:0;
-      background:#fff; border:1.5px solid var(--border); border-radius:12px;
-      box-shadow:0 8px 24px rgba(0,0,0,.12); z-index:999;
-      display:none; max-height:260px; overflow-y:auto;
-    }
+    .addr-dropdown { position:absolute; top:calc(100% + 4px); left:0; right:0; background:#fff; border:1.5px solid var(--border); border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.12); z-index:999; display:none; max-height:260px; overflow-y:auto; }
     .addr-item { padding:12px 16px; font-size:13px; cursor:pointer; border-bottom:1px solid var(--border); line-height:1.4; }
     .addr-item:last-child { border-bottom:none; }
     .addr-item:hover { background:var(--cream); }
@@ -667,23 +554,20 @@
       var inputEl = document.getElementById(inputId);
       if (!inputEl) return;
 
-      // Load the new Places library
       var { PlaceAutocompleteElement } = await google.maps.importLibrary('places');
       var { Map, marker: { AdvancedMarkerElement } } = await Promise.all([
         google.maps.importLibrary('maps'),
         google.maps.importLibrary('marker')
       ]).then(([maps, marker]) => ({ Map: maps.Map, marker }));
 
-      // Build the autocomplete element and insert it in place of the plain input
       var container = inputEl.closest('#addrAutoContainer') || inputEl.parentNode;
       var pac = new PlaceAutocompleteElement({
         componentRestrictions: { country: 'nl' },
         types: ['address'],
       });
 
-      // Match the existing input's visual style
       pac.style.cssText = 'width:100%;display:block;';
-      inputEl.style.display = 'none';          // hide original input
+      inputEl.style.display = 'none';
       container.appendChild(pac);
 
       pac.addEventListener('gmp-select', async function(e) {
@@ -703,17 +587,14 @@
         var lat      = place.location.lat();
         var lng      = place.location.lng();
 
-        // Fill hidden fields
         document.getElementById('coStreet').value   = number ? (street + ' ' + number).trim() : street;
         document.getElementById('coPost').value     = postcode;
         document.getElementById('coCity').value     = city;
         document.getElementById('coProvince').value = state;
 
-        // Uncheck pickups
         ['radio-pickup-ams','radio-pickup-db'].forEach(function(id){var el=document.getElementById(id);if(el)el.checked=false;});
         ['opt-pickup-ams','opt-pickup-db'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.border='1.5px solid var(--border)';});
 
-        // Show mini map
         var mapWrap = document.getElementById('addrMapWrap');
         var mapDiv  = document.getElementById('addrMap');
         if (mapWrap && mapDiv) {
@@ -742,8 +623,8 @@
     function detectZone(lat,lng,prov){
       for(var i=0;i<Z_INNER.length;i++) if(_km(lat,lng,Z_INNER[i].lat,Z_INNER[i].lng)<=Z_INNER[i].km) return{type:'inner',fee:Z_INNER[i].fee,hub:Z_INNER[i].n};
       var pn=(prov||'').toLowerCase();
-      if(Z_REG.some(function(p){return pn.indexOf(p.toLowerCase())>-1})) return{type:'regular',fee:15,hub:prov};
-      if(Z_CON.some(function(p){return pn.indexOf(p.toLowerCase())>-1})) return{type:'contact',fee:15,hub:prov};
+      if(Z_REG.some(function(p){return pn.indexOf(p.toLowerCase())>-1})) return{type:'regular',fee:FEE_REGIONAL,hub:prov};
+      if(Z_CON.some(function(p){return pn.indexOf(p.toLowerCase())>-1})) return{type:'contact',fee:FEE_REGIONAL,hub:prov};
       return{type:'outside',fee:null};
     }
 
@@ -762,7 +643,7 @@
       el.innerHTML='&#10003; <strong>We deliver here!</strong> '+zone.hub+' &nbsp;&middot;&nbsp; Fee: <strong>&euro;'+zone.fee+'</strong>';
       if(note) note.style.display=(zone.type==='contact'?'block':'none');
       if(typeof detectedZoneType!=='undefined') detectedZoneType=zone.type;
-      if(typeof selectedDelivery!=='undefined') selectedDelivery=(zone.fee===10?'delivery_local':'delivery_other');
+      if(typeof selectedDelivery!=='undefined') selectedDelivery=(zone.type==='inner'?'delivery_local':'delivery_other');
       if(typeof renderSummary==='function') renderSummary();
       if(typeof toggleBlocks==='function') toggleBlocks();
       if(zone.type!=='contact'&&typeof loadSlots==='function') loadSlots();
@@ -772,7 +653,6 @@
     document.addEventListener('DOMContentLoaded', async function(){
       await initNominatim('addressSearchInput');
 
-      // Guard placeOrder
       var orig=window.placeOrder;
       if(orig) window.placeOrder=function(){
         var isPickup=typeof selectedDelivery!=='undefined'&&selectedDelivery.startsWith('pickup');

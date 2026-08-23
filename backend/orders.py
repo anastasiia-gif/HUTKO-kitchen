@@ -3,8 +3,9 @@ HUTKO — orders.py
 Token-based auth via Authorization header.
 
 v1.1:
-  • Delivery pricing / free-delivery threshold read from settings using the same
-    keys the public site displays (free_delivery_at, delivery_cost, delivery_price_express).
+  • Delivery pricing is area/zone based (fee_local / fee_regional) with free delivery
+    over free_delivery_over — the same settings the checkout page reads, so the recorded
+    fee matches what the customer is charged.
   • Fixed the admin guard on PUT /orders/<ref>/status (was a dead stub).
 """
 
@@ -21,15 +22,20 @@ from settings_store import get_float
 
 orders_bp = Blueprint('orders', __name__)
 
-FALLBACK_PRICES = {'standard': 5.0, 'express': 12.0, 'free': 0.0}
-
-
-def _delivery_prices():
-    return {
-        'standard': get_float('delivery_cost', 5.0),
-        'express':  get_float('delivery_price_express', 12.0),
-        'free':     0.0,
-    }
+def compute_delivery_cost(subtotal, method):
+    """Area/zone delivery fee, matching the checkout page.
+       local (Amsterdam/Den Bosch/Den Haag) → fee_local; other provinces → fee_regional;
+       pickup → free; free over the configured threshold (all zones)."""
+    method = (method or '').strip()
+    if method.startswith('pickup'):
+        return 0.0
+    free_over = get_float('free_delivery_over', 100.0)
+    if free_over > 0 and subtotal >= free_over:
+        return 0.0
+    if method == 'delivery_local':
+        return get_float('fee_local', 10.0)
+    # delivery_other / delivery_contact / fallback → regional
+    return get_float('fee_regional', 15.0)
 
 
 def make_ref():
@@ -51,11 +57,9 @@ def checkout():
     if not items:
         return jsonify({'error': 'Cart is empty.'}), 400
 
-    delivery_method = data.get('delivery_method', 'standard')
+    delivery_method = data.get('delivery_method', 'delivery_local')
     subtotal        = sum(i['price'] * i['qty'] for i in items)
-    free_threshold  = get_float('free_delivery_at', 60.0)
-    prices          = _delivery_prices()
-    delivery_cost   = 0.0 if subtotal >= free_threshold else prices.get(delivery_method, FALLBACK_PRICES.get(delivery_method, 5.0))
+    delivery_cost   = compute_delivery_cost(subtotal, delivery_method)
     total           = subtotal + delivery_cost
     order_ref       = make_ref()
     user_id         = g.user['id'] if g.user else None

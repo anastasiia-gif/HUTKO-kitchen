@@ -24,13 +24,17 @@ DEFAULTS = {
     "hours_saturday": "10:00 – 15:00",
     "hours_sunday":   "Closed",
 
-    # ── Delivery rules (site delivery text + checkout read these) ──
-    "free_delivery_at":        "60",   # € — free delivery at/above this subtotal
-    "delivery_cost":           "5",    # € — standard delivery
-    "delivery_price_express":  "12",   # € — express (checkout only)
-    "min_order":               "0",    # € — 0 = no minimum (display only)
-    "max_per_day":             "15",   # max orders per delivery day
-    "delivery_days":           "Thursday & Saturday",  # display text
+    # ── Delivery (area/zone model — checkout + backend read these) ──
+    "fee_local":          "10",   # € — Amsterdam / Den Bosch / Den Haag inner zone
+    "fee_regional":       "15",   # € — other NL provinces (+ contact zones)
+    "free_delivery_over": "100",  # € — free delivery at/above this subtotal (all zones)
+    "delivery_days":      "Thursday & Saturday",  # display text
+    "max_per_day":        "15",   # delivery slots per day (display)
+    # legacy mirror keys — keep the delivery-page description text consistent
+    # (i18n loadSettingsIntoPage reads delivery_cost / free_delivery_at)
+    "delivery_cost":      "10",
+    "free_delivery_at":   "100",
+    "min_order":          "0",
 
     # ── Notification recipients (wired to emails in a later increment) ──
     "owner_email":   "",
@@ -44,6 +48,7 @@ DEFAULTS = {
 PUBLIC_KEYS = [
     "email_contact", "phone", "address_street", "instagram", "facebook",
     "hours_weekday", "hours_saturday", "hours_sunday",
+    "fee_local", "fee_regional", "free_delivery_over",
     "free_delivery_at", "delivery_cost", "min_order", "max_per_day", "delivery_days",
 ]
 

@@ -9,6 +9,7 @@ const Admin = (() => {
 
   let PRODUCTS = [], BUNDLES = [];
   let _editPid = null, _editBid = null;
+  let _gallery = [];   // extra photos for the product currently open in the editor
 
   const $ = id => document.getElementById(id);
   const token = () => localStorage.getItem(TKEY) || '';
@@ -131,6 +132,12 @@ const Admin = (() => {
         <input type="file" id="pePhotoFile" accept="image/*" style="display:none;" onchange="Admin.uploadPhoto(this,'pe')">
       </div>
       <input type="hidden" id="pePhoto">
+      <div>
+        <label style="font-size:12px;font-weight:600;opacity:.7;">More photos (gallery — these scroll on the product page, after the main photo)</label>
+        <div id="peGallery" class="gallery-grid"></div>
+        <input type="file" id="peGalleryFile" accept="image/*" multiple style="display:none;" onchange="Admin.uploadGallery(this)">
+        <span class="add-link" onclick="document.getElementById('peGalleryFile').click()">＋ add photos</span>
+      </div>
       <div class="field-grid">
         <div class="field"><label>Category</label><input class="form-control" id="peCategory" placeholder="Soups"></div>
         <div class="field"><label>Base price (€)</label><input class="form-control" id="pePrice" type="number" step="0.5"></div>
@@ -167,6 +174,8 @@ const Admin = (() => {
     ['en', 'ua', 'nl'].forEach(l => { $(`pe-pane-${l}`).innerHTML = buildLangPane(l); });
     $('peVariants').innerHTML = '';
     resetPhoto('pe');
+    _gallery = (p && Array.isArray(p.gallery)) ? p.gallery.slice() : [];
+    renderGallery();
     $('peCategory').value = p?.category || '';
     $('pePrice').value = p ? (p.base_price || '') : '';
     $('peUnit').value = p?.unit || '';
@@ -211,7 +220,7 @@ const Admin = (() => {
       category: $('peCategory').value.trim(), base_price: parseFloat($('pePrice').value) || 0,
       unit: $('peUnit').value.trim(), badge: $('peBadge').value.trim(),
       dietary: $('peDietary').value.split(',').map(s => s.trim()).filter(Boolean),
-      photo: $('pePhoto').value, variants: [],
+      photo: $('pePhoto').value, gallery: _gallery.slice(), variants: [],
     };
     LANG_FIELDS.forEach(([f]) => ['en', 'ua', 'nl'].forEach(l => { payload[`${f}_${l}`] = ($(`pe_${f}_${l}`) || {}).value || ''; }));
     document.querySelectorAll('#peVariants .builder-row').forEach(r => {
@@ -321,14 +330,36 @@ const Admin = (() => {
   function setPhoto(prefix, url) { $(prefix + 'Photo').value = url; const img = $(prefix + 'PhotoPreview'); img.src = mediaUrl(url); img.style.display = 'block'; $(prefix + 'PhotoText').textContent = 'Change photo'; }
   function resetPhoto(prefix) { $(prefix + 'Photo').value = ''; const img = $(prefix + 'PhotoPreview'); img.src = ''; img.style.display = 'none'; $(prefix + 'PhotoText').textContent = '📷 Click to upload a photo (PNG/JPG)'; }
 
+  // GALLERY (extra product photos)
+  function renderGallery() {
+    const el = $('peGallery'); if (!el) return;
+    el.innerHTML = _gallery.map((url, i) => `
+      <div class="gthumb">
+        <img src="${mediaUrl(url)}" alt="" onerror="this.style.opacity=.3">
+        <button class="gthumb-x" title="Remove" onclick="Admin.removeGallery(${i})">✕</button>
+      </div>`).join('') || '<span class="hint">No extra photos yet — add up to a few.</span>';
+  }
+  async function uploadGallery(input) {
+    const files = Array.from(input.files || []); input.value = '';
+    if (!files.length) return;
+    toast('Uploading ' + files.length + ' photo' + (files.length > 1 ? 's' : '') + '…');
+    for (const f of files) {
+      const fd = new FormData(); fd.append('file', f);
+      const r = await api('POST', '/api/admin/media', fd, true);
+      if (r.ok && r.data.url) _gallery.push(r.data.url);
+      else toast(r.data.error || 'A photo failed to upload.');
+    }
+    renderGallery(); toast('Photos added ✓');
+  }
+  function removeGallery(i) { _gallery.splice(i, 1); renderGallery(); }
+
   // SETTINGS
   async function loadSettings() {
     const r = await api('GET', '/api/admin/settings'); if (!r.ok) return;
     const { rules, site } = r.data;
-    $('s_free').value = rules.free_delivery_at || '';
-    $('s_cost').value = rules.delivery_cost || '';
-    $('s_exp').value = rules.delivery_price_express || '';
-    $('s_min').value = rules.min_order || '';
+    $('s_local').value = rules.fee_local || '';
+    $('s_reg').value = rules.fee_regional || '';
+    $('s_free').value = rules.free_delivery_over || '';
     $('s_cap').value = rules.max_per_day || '';
     $('s_days').value = rules.delivery_days || '';
     renderSite(site || {});
@@ -349,13 +380,13 @@ const Admin = (() => {
   async function saveRules() {
     err('rulesErr', '');
     const updates = {
-      free_delivery_at: $('s_free').value, delivery_cost: $('s_cost').value,
-      delivery_price_express: $('s_exp').value, min_order: $('s_min').value,
+      fee_local: $('s_local').value, fee_regional: $('s_reg').value,
+      free_delivery_over: $('s_free').value,
       max_per_day: $('s_cap').value, delivery_days: $('s_days').value.trim(),
     };
     const r = await api('PUT', '/api/admin/settings', updates);
     if (!r.ok) { err('rulesErr', r.data.error || 'Could not save.'); return; }
-    toast('Delivery rules saved ✓');
+    toast('Delivery fees saved ✓');
   }
   async function saveSite() {
     const updates = {};
@@ -385,7 +416,7 @@ const Admin = (() => {
 
   return {
     login, logout, tab, toggleProduct, openNewProduct, closePanel, saveProduct, toggleActive, deleteProduct,
-    addVariant, langTab, uploadPhoto, openBundle, saveBundle, toggleBundle, deleteBundle, addBundleItem,
+    addVariant, langTab, uploadPhoto, uploadGallery, removeGallery, openBundle, saveBundle, toggleBundle, deleteBundle, addBundleItem,
     saveRules, saveSite, addSiteField, changePassword, closeModal,
   };
 })();
