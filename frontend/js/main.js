@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const API  = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? 'http://localhost:5000' : 'https://hutko-kitchen.onrender.com';
   const SITE = 'https://hutko-kitchen.com';
-  const DEFAULT_IMG = SITE + '/assets/intro_img.PNG';
+  const DEFAULT_IMG = SITE + '/assets/og-cover.jpg';
 
   // ▼▼ Paste your GA4 Measurement ID here to switch analytics on (e.g. 'G-XXXXXXXXXX'). Leave '' for off. ▼▼
   const GA4_ID = 'G-JY5LL1FPN0';
