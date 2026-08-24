@@ -6,6 +6,20 @@
     <link rel="apple-touch-icon" href="assets/logos/logo_nav.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact — HUTKO</title>
+    <!-- Social share preview (Open Graph + Twitter) — added for link previews -->
+    <meta name="description" content="Questions about your order or a collaboration? Contact HUTKO Kitchen — authentic Ukrainian frozen food delivered across the Netherlands.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="HUTKO Kitchen">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:title" content="Contact HUTKO Kitchen — Ukrainian Food, Netherlands">
+    <meta property="og:description" content="Questions about your order or a collaboration? Contact HUTKO Kitchen — authentic Ukrainian frozen food delivered across the Netherlands.">
+    <meta property="og:url" content="https://hutko-kitchen.com/contact.html">
+    <meta property="og:image" content="https://hutko-kitchen.com/assets/intro_img.PNG">
+    <meta property="og:image:alt" content="HUTKO — Ukrainian frozen food">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Contact HUTKO Kitchen — Ukrainian Food, Netherlands">
+    <meta name="twitter:description" content="Questions about your order or a collaboration? Contact HUTKO Kitchen — authentic Ukrainian frozen food delivered across the Netherlands.">
+    <meta name="twitter:image" content="https://hutko-kitchen.com/assets/intro_img.PNG">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/contact.css">
 </head>
@@ -113,9 +127,9 @@
             <div class="info-group">
                 <div class="info-group-title" data-i18n="cf_hours_title">Office hours</div>
                 <div class="hours-box">
-                    <div class="hours-row"><span data-i18n="cf_mon_fri">Monday – Friday</span><strong data-setting="hours_weekday">9:00 – 18:00</strong></div>
-                    <div class="hours-row"><span data-i18n="cf_saturday">Saturday</span><strong data-setting="hours_saturday">10:00 – 15:00</strong></div>
-                    <div class="hours-row"><span data-i18n="cf_sunday">Sunday</span><strong data-setting="hours_sunday">Closed</strong></div>
+                    <div class="hours-row"><span data-i18n="cf_mon_fri">Monday – Friday</span><strong>9:00 – 18:00</strong></div>
+                    <div class="hours-row"><span data-i18n="cf_saturday">Saturday</span><strong>10:00 – 15:00</strong></div>
+                    <div class="hours-row"><span data-i18n="cf_sunday">Sunday</span><strong data-i18n="cf_closed">Closed</strong></div>
                 </div>
             </div>
             <div class="response-note"><span data-i18n="cf_response_note">We typically respond within <strong>2 business days</strong>. For urgent order issues, WhatsApp is fastest.</span></div>
@@ -142,7 +156,9 @@
     <script src="js/components.js"></script>
     <script src="js/main.js"></script>
     <script>
+        // After i18n.js loadSettingsIntoPage runs, fix the href links too
         document.addEventListener('DOMContentLoaded', () => {
+            // Small delay to let loadSettingsIntoPage finish
             setTimeout(() => {
                 const email = document.querySelector('[data-setting="email_contact"]');
                 if (email) {
@@ -175,6 +191,7 @@
             if (em.value && !em.value.includes('@')) { em.classList.add('error'); ok = false; }
             if (!ok) { showToast('Please fill in all required fields.'); return; }
 
+            // Show loading state
             const btn = document.querySelector('.contact-submit');
             const origText = btn.innerHTML;
             btn.innerHTML = 'Sending…'; btn.disabled = true;
