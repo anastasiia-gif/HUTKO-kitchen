@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const DEFAULT_IMG = SITE + '/assets/intro_img.PNG';
 
   // ▼▼ Paste your GA4 Measurement ID here to switch analytics on (e.g. 'G-XXXXXXXXXX'). Leave '' for off. ▼▼
-  const GA4_ID = '';
+  const GA4_ID = 'G-JY5LL1FPN0';
   // ▲▲ ─────────────────────────────────────────────────────────────────── ▲▲
 
   const page = (location.pathname.split('/').pop() || 'index.html') || 'index.html';
