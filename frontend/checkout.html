@@ -92,25 +92,27 @@
                             <span class="hint" data-i18n="checkout_addr_hint">Type your address — delivery fee is set automatically.</span>
                         </div>
 
-                        <!-- Manual address fallback (works without Google autocomplete) -->
+                        <!-- Delivery address — postcode + house number auto-fill (PDOK), all editable -->
                         <div id="manualBox" style="margin-top:10px;padding:14px;border:1.5px solid var(--border);border-radius:12px;background:#fff;">
                             <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);margin-bottom:10px;">Your delivery address</div>
-                            <div class="field"><label>Street + house number</label><input id="mStreet" oninput="applyManual()" placeholder="Graafseweg 103"></div>
-                            <div style="display:flex;gap:10px;margin-top:8px;">
-                                <div class="field" style="flex:1;"><label>Postcode</label><input id="mPost" oninput="applyManual()" placeholder="5223 AP"></div>
-                                <div class="field" style="flex:1;"><label>City</label><input id="mCity" oninput="applyManual()" placeholder="Den Bosch"></div>
+                            <div style="display:flex;gap:10px;">
+                                <div class="field" style="flex:1.2;"><label>Postcode</label><input id="mPost" oninput="lookupAddress()" placeholder="5223 AP" autocomplete="postal-code"></div>
+                                <div class="field" style="flex:1;"><label>House number</label><input id="mHouse" oninput="lookupAddress()" placeholder="103" autocomplete="off"></div>
                             </div>
+                            <div id="addrLookup" style="font-size:12px;margin:6px 2px 0;min-height:15px;color:var(--ink-soft);"></div>
+                            <div class="field" style="margin-top:6px;"><label>Street</label><input id="mStreet" oninput="applyManual()" placeholder="Auto-filled from postcode"></div>
                             <div style="display:flex;gap:10px;margin-top:8px;">
-                                <div class="field" style="flex:1;"><label>Province</label><input id="mProvince" oninput="applyManual()" placeholder="Noord-Brabant"></div>
-                                <div class="field" style="flex:1;"><label>Delivery area</label>
-                                    <select id="mArea" onchange="applyManual()">
-                                        <option value="">Select…</option>
-                                        <option value="delivery_local">Amsterdam / Den Bosch / Den Haag — €10</option>
-                                        <option value="delivery_other">Rest of the Netherlands — €15</option>
-                                    </select>
-                                </div>
+                                <div class="field" style="flex:1;"><label>City</label><input id="mCity" oninput="applyManual()" placeholder="Auto-filled"></div>
+                                <div class="field" style="flex:1;"><label>Province</label><input id="mProvince" oninput="applyManual()" placeholder="Auto-filled"></div>
                             </div>
-                            <div class="hint" style="margin-top:6px;">Free delivery on orders over €100.</div>
+                            <div class="field" style="margin-top:8px;"><label>Delivery area</label>
+                                <select id="mArea" onchange="applyManual()">
+                                    <option value="">Select…</option>
+                                    <option value="delivery_local">Amsterdam / Den Bosch / Den Haag — €10</option>
+                                    <option value="delivery_other">Rest of the Netherlands — €15</option>
+                                </select>
+                            </div>
+                            <div class="hint" style="margin-top:6px;">Enter postcode + house number — we fill the rest (you can edit anything). Free delivery over €100.</div>
                         </div>
 
                         <div id="zoneStatus" style="display:none;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;line-height:1.5;"></div>
@@ -359,7 +361,9 @@
 
         // ── MANUAL ADDRESS (fallback when Google autocomplete is unavailable) ──
         function applyManual() {
-            const street = document.getElementById('mStreet').value.trim();
+            const streetName = document.getElementById('mStreet').value.trim();
+            const house = (document.getElementById('mHouse')?.value || '').trim();
+            const street = (streetName + ' ' + house).trim();
             const post   = document.getElementById('mPost').value.trim();
             const city   = document.getElementById('mCity').value.trim();
             const prov   = document.getElementById('mProvince').value.trim();
@@ -379,6 +383,49 @@
             renderSummary();
         }
         window.applyManual = applyManual;
+
+        // ── POSTCODE AUTO-FILL (free Dutch PDOK Locatieserver; fields stay editable) ──
+        let _addrTimer = null;
+        function lookupAddress() {
+            applyManual(); // keep the order in sync as the user types
+            const post  = (document.getElementById('mPost').value || '').replace(/\s+/g, '').trim();
+            const house = (document.getElementById('mHouse')?.value || '').trim();
+            const status = document.getElementById('addrLookup');
+            if (!/^[0-9]{4}[A-Za-z]{2}$/.test(post) || !house) { if (status) status.textContent = ''; return; }
+            if (status) { status.textContent = 'Looking up address…'; status.style.color = 'var(--ink-soft)'; }
+            clearTimeout(_addrTimer);
+            _addrTimer = setTimeout(async () => {
+                try {
+                    const q = encodeURIComponent(post + ' ' + house);
+                    const r = await fetch('https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?fq=type:adres&rows=1&q=' + q);
+                    const data = await r.json();
+                    const doc = data && data.response && data.response.docs && data.response.docs[0];
+                    if (!doc) { if (status) { status.textContent = 'Address not found — type your street & city below.'; status.style.color = '#A32D2D'; } return; }
+                    if (doc.straatnaam)     document.getElementById('mStreet').value   = doc.straatnaam;
+                    if (doc.woonplaatsnaam) document.getElementById('mCity').value     = doc.woonplaatsnaam;
+                    if (doc.provincienaam)  document.getElementById('mProvince').value = doc.provincienaam;
+                    let lat = null, lng = null;
+                    const m = /POINT\(([-0-9.]+)\s+([-0-9.]+)\)/.exec(doc.centroide_ll || '');
+                    if (m) { lng = parseFloat(m[1]); lat = parseFloat(m[2]); }
+                    let feeTxt = '';
+                    if (lat != null && typeof detectZone === 'function') {
+                        const zone = detectZone(lat, lng, doc.provincienaam || '');
+                        if (zone.type === 'outside') {
+                            document.getElementById('mArea').value = '';
+                            if (status) { status.textContent = "✗ Sorry, we don't deliver to this area yet."; status.style.color = '#A32D2D'; }
+                            applyManual(); return;
+                        }
+                        document.getElementById('mArea').value = (zone.type === 'inner') ? 'delivery_local' : 'delivery_other';
+                        feeTxt = ' · delivery €' + zone.fee;
+                    }
+                    if (status) { status.textContent = '✓ ' + (doc.straatnaam || '') + ' ' + house + ', ' + (doc.woonplaatsnaam || '') + feeTxt; status.style.color = '#3B6D11'; }
+                    applyManual();
+                } catch (e) {
+                    if (status) { status.textContent = 'Could not look up automatically — type your street & city below.'; status.style.color = 'var(--ink-soft)'; }
+                }
+            }, 500);
+        }
+        window.lookupAddress = lookupAddress;
 
         // ── SUMMARY ─────────────────────────────────────────
         function renderSummary() {
@@ -434,22 +481,22 @@
                 return;
             }
 
-            // Delivery address — the visible fields below fill the order (works without Google autocomplete).
+            // Delivery address — postcode + house number fill the rest (all editable, no Google needed).
             if (!isPickup) {
                 const gv = id => (document.getElementById(id)?.value || '').trim();
-                if (gv('mStreet')) {
-                    document.getElementById('coStreet').value   = gv('mStreet');
-                    document.getElementById('coPost').value     = gv('mPost');
-                    document.getElementById('coCity').value     = gv('mCity');
-                    document.getElementById('coProvince').value = gv('mProvince') || (document.getElementById('mArea').value === 'delivery_local' ? 'Noord-Holland' : 'Netherlands');
-                    if (document.getElementById('mArea').value) { selectedDelivery = document.getElementById('mArea').value; detectedZoneType = 'regular'; }
-                }
-                const areaMissing = gv('mStreet') && !document.getElementById('mArea').value;
-                if (!gv('coStreet') || !gv('coPost') || !gv('coCity') || areaMissing) {
-                    ['mStreet', 'mPost', 'mCity'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('error', !el.value.trim()); });
-                    const _a = document.getElementById('mArea'); if (_a) _a.classList.toggle('error', !_a.value);
+                const streetName = gv('mStreet'), house = gv('mHouse');
+                document.getElementById('coStreet').value   = (streetName + ' ' + house).trim();
+                document.getElementById('coPost').value     = gv('mPost');
+                document.getElementById('coCity').value     = gv('mCity');
+                document.getElementById('coProvince').value = gv('mProvince') || (document.getElementById('mArea').value === 'delivery_local' ? 'Noord-Holland' : 'Netherlands');
+                if (document.getElementById('mArea').value) { selectedDelivery = document.getElementById('mArea').value; detectedZoneType = 'regular'; }
+                const need = { mPost: gv('mPost'), mHouse: house, mStreet: streetName, mCity: gv('mCity') };
+                let addrOk = true;
+                Object.keys(need).forEach(id => { const el = document.getElementById(id); if (el) { el.classList.toggle('error', !need[id]); if (!need[id]) addrOk = false; } });
+                const _a = document.getElementById('mArea'); if (_a) { _a.classList.toggle('error', !_a.value); if (!_a.value) addrOk = false; }
+                if (!addrOk) {
                     const box = document.getElementById('manualBox'); if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    showToast('Please fill in your delivery address — street, postcode, city and area — or choose pick-up below.');
+                    showToast('Please fill in your postcode, house number, street, city and area — or choose pick-up below.');
                     return;
                 }
             }

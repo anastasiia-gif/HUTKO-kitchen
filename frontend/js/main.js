@@ -81,8 +81,17 @@ function updateCartUI() {
 }
 
 function toggleCart() {
-  document.getElementById('cartPanel')?.classList.toggle('open');
+  const panel = document.getElementById('cartPanel');
+  const opening = panel && !panel.classList.contains('open');
+  panel?.classList.toggle('open');
   document.getElementById('cartOverlay')?.classList.toggle('open');
+  if (opening && window.gtag) {
+    const items = Object.values(getCart());
+    window.gtag('event', 'view_cart', {
+      currency: 'EUR', value: items.reduce((s, i) => s + i.qty * i.price, 0),
+      items: items.map(i => ({ item_id: i.id, item_name: i.name, price: i.price, quantity: i.qty }))
+    });
+  }
 }
 
 window.toggleCart   = toggleCart;
@@ -228,6 +237,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const price = (p.variants && p.variants[0] && p.variants[0].price != null) ? p.variants[0].price : (p.base_price || 0);
       const img   = absUrl(p.photo);
       const pdesc = p.desc_en || (name + ' — authentic Ukrainian frozen food, delivered across the Netherlands.');
+
+      if (window.gtag) window.gtag('event', 'view_item', {
+        currency: 'EUR', value: Number(price) || 0,
+        items: [{ item_id: p.id, item_name: name, price: Number(price) || 0 }]
+      });
 
       document.title = name + ' — Ukrainian Frozen Food | HUTKO Kitchen';
       setMeta('description', pdesc);
