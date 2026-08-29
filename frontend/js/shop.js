@@ -44,15 +44,15 @@ function productCard(p) {
     const dietary = (p.dietary || []).map(t => DIETARY_ICONS[t] ? `<span class="dietary-tag" title="${t}">${DIETARY_ICONS[t]}</span>` : '').join('');
 
     const variants = hasVar
-        ? `<select class="variant-select" id="var-${p.id}" onchange="updatePrice('${p.id}',this)">
+        ? `<select class="variant-select" id="var-${p.id}" onclick="event.stopPropagation()" onchange="updatePrice('${p.id}',this)">
         ${p.variants.map(v => `<option value="${v.price}" data-l="${v.label}">${v.label} — €${v.price}</option>`).join('')}
        </select>`
         : '';
 
-    return `<div class="prod-card reveal" data-cat="${p.category}">
+    return `<div class="prod-card reveal" data-cat="${p.category}" style="cursor:pointer;" onclick="location.href='product.html?id=${p.id}'">
     ${p.badge ? `<span class="prod-badge">${p.badge}</span>` : ''}
     <div class="prod-img-wrap">
-      <img src="${p.photo}" alt="${pName(p)}" loading="lazy" onerror="this.onerror=null;this.src='assets/products/syrnyky.jpeg'">
+      <img src="${p.photo}" alt="${pName(p)}" loading="lazy" onerror="this.onerror=null;this.src='assets/products/syrnyky.png'">
     </div>
     <div class="prod-body">
       <div class="prod-cat">${p.category}</div>
@@ -62,7 +62,7 @@ function productCard(p) {
       <div class="prod-price">${t('shop_from')} <strong id="price-${p.id}">€${price}</strong> <span id="unit-${p.id}">/ ${p.unit}</span></div>
       ${variants}
     </div>
-    <div class="prod-footer">
+    <div class="prod-footer" onclick="event.stopPropagation()">
       <button class="btn-view-product" onclick="location.href='product.html?id=${p.id}'">${t('btn_details')}</button>
       <button class="btn btn-dark" style="flex:2;justify-content:center;font-size:12px;"
         onclick="shopAddToCart('${p.id}')">${t('btn_add_cart')}</button>
@@ -101,10 +101,11 @@ function bundleCard(b) {
     }).join('');
     const oldPriceHtml = b.original_price !== b.discount_price
         ? `<span class="pack-price-old">€${b.original_price}</span>` : '';
+    const portions = b.items.reduce((s, i) => s + i.qty, 0);
 
     return `<div class="pack-card ${featured ? 'featured' : ''} reveal">
     <div class="pack-img-wrap" onclick="openPackLightbox('${b.photo}','${bName(b).replace(/'/g,"\\'")}')">
-      <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="this.onerror=null;this.src='assets/Bundles/packM_72euro.png'">
+      <img src="${b.photo}" alt="${bName(b)}" loading="lazy" onerror="this.onerror=null;this.src='assets/Bundles/s_pack_orange.png'">
     </div>
     <div class="pack-body">
       <div class="pack-size-badge">${b.size_label}${b.badge ? ' · ' + b.badge : ''}</div>
@@ -112,6 +113,7 @@ function bundleCard(b) {
       <div class="pack-items">${items}</div>
       ${buildChoiceDropdown(b)}
       <div class="pack-price-row">${oldPriceHtml}<span class="pack-price-new">€${b.discount_price}</span></div>
+      ${portions ? `<div class="pack-per">~€${(b.discount_price / portions).toFixed(1)} per portion</div>` : ''}
     </div>
     <div class="pack-footer">
       <button class="btn ${featured ? 'btn-primary' : 'btn-blue'}" style="width:100%;justify-content:center;"

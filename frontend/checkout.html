@@ -557,6 +557,22 @@
                     items: cartItems.map(i => ({ item_name: i.name, price: i.price, quantity: i.qty }))
                 });
 
+                // Remember this customer's address + phone for next time
+                try {
+                    if (window.Api && typeof getToken === 'function' && getToken()) {
+                        Api.Auth.saveAddress(
+                            document.getElementById('coStreet').value.trim(),
+                            document.getElementById('coPost').value.trim(),
+                            document.getElementById('coCity').value.trim(),
+                            document.getElementById('coProvince').value.trim()
+                        );
+                        Api.Auth.updateProfile(
+                            (document.getElementById('coFirst').value.trim() + ' ' + document.getElementById('coLast').value.trim()).trim(),
+                            document.getElementById('coPhone').value.trim()
+                        );
+                    }
+                } catch (e) {}
+
                 const orderRefEl = document.getElementById('orderRef');
                 if (orderRefEl) orderRefEl.textContent = res.data.order_ref || '';
                 showToast('Order saved! Ref: ' + res.data.order_ref + ' — redirecting to payment…', 4000);
@@ -651,17 +667,32 @@
                 document.getElementById('coFirst').value = parts[0] || '';
                 document.getElementById('coLast').value = parts.slice(1).join(' ') || '';
                 document.getElementById('coEmail').value = user.email || '';
+                if (user.phone) document.getElementById('coPhone').value = user.phone;
                 if (user.addr_street) {
                     document.getElementById('coStreet').value = user.addr_street;
                     document.getElementById('coPost').value = user.addr_postcode || '';
                     document.getElementById('coCity').value = user.addr_city || '';
                     if (user.addr_province) document.getElementById('coProvince').value = user.addr_province;
+                    // Prefill the visible address box (split "Street 10" → street name + house number)
+                    const _m = /^(.*?)[\s,]+(\d+\s*[A-Za-z]?)$/.exec((user.addr_street || '').trim());
+                    const _setV = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+                    _setV('mStreet', _m ? _m[1].trim() : (user.addr_street || ''));
+                    _setV('mHouse', _m ? _m[2].trim() : '');
+                    _setV('mPost', user.addr_postcode);
+                    _setV('mCity', user.addr_city);
+                    _setV('mProvince', user.addr_province);
                 }
             }
             await loadDeliverySettings();
             toggleBlocks();
             loadSlots();
             renderSummary();
+
+            // Returning customer: sync the prefilled address + auto-detect area/fee
+            try {
+                applyManual();
+                if (document.getElementById('mPost').value && document.getElementById('mHouse').value) lookupAddress();
+            } catch (e) {}
 
             // GA4 — begin_checkout (reached the checkout page with items)
             try {

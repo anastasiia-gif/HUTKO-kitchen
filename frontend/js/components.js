@@ -53,10 +53,10 @@ function renderNavbar() {
 
     document.getElementById('navbar-placeholder').innerHTML = `
   <style>
-    /* Mobile: keep the cart button (icon + count) visible in the top bar */
+    /* Dedicated mobile cart button (icon + live count) next to the menu button */
+    .nav-cart-mobile{ display:none; }
     @media (max-width: 768px){
-      .nav-cart-btn{ display:inline-flex !important; padding:9px 12px !important; }
-      .nav-cart-btn span[data-i18n="nav_cart"]{ display:none; }
+      .nav-cart-mobile{ display:inline-flex; align-items:center; gap:6px; background:var(--ink); color:var(--cream); border:none; border-radius:10px; padding:8px 11px; cursor:pointer; position:relative; }
       .navbar-inner .nav-right{ gap:8px; }
     }
   </style>
@@ -74,6 +74,10 @@ function renderNavbar() {
         <button class="btn btn-dark nav-cart-btn" style="padding:9px 16px;gap:8px;font-size:13px;" onclick="toggleCart()">
           ${CART_SVG} <span data-i18n="nav_cart">${tr('nav_cart')}</span>
           <span class="cart-count" style="background:#E84B22;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:700;">0</span>
+        </button>
+        <button class="nav-cart-mobile" onclick="toggleCart()" aria-label="Cart">
+          ${CART_SVG}
+          <span class="cart-count" style="background:#E84B22;color:#fff;border-radius:50%;min-width:18px;height:18px;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:700;padding:0 4px;">0</span>
         </button>
         <button class="nav-hamburger" id="navHamburger" aria-label="Menu"><span></span><span></span><span></span></button>
       </div>

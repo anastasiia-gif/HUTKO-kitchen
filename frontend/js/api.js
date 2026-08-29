@@ -147,13 +147,15 @@ async function syncSession() {
             id: user.id,
             name: user.name,
             email: user.email,
+            phone: user.phone || '',
             addr_street: user.addr_street || '',
             addr_postcode: user.addr_postcode || '',
             addr_city: user.addr_city || '',
             addr_province: user.addr_province || '',
         }));
+        const fill = (id, val) => { const el = document.getElementById(id); if (el && !el.value) el.value = val || ''; };
+        fill('coPhone', user.phone);
         if (user.addr_street) {
-            const fill = (id, val) => { const el = document.getElementById(id); if (el && !el.value) el.value = val || ''; };
             fill('coStreet', user.addr_street);
             fill('coPost', user.addr_postcode);
             fill('coCity', user.addr_city);
