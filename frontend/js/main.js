@@ -27,6 +27,10 @@ function addToCart(id, name, emoji, price, label) {
   const key  = `${id}_${label}`;
   if (cart[key]) { cart[key].qty++; } else { cart[key] = { id, name, emoji, price, label, qty:1 }; }
   saveCart(cart);
+  if (window.gtag) window.gtag('event', 'add_to_cart', {
+    currency: 'EUR', value: Number(price) || 0,
+    items: [{ item_id: id, item_name: name, item_variant: label, price: Number(price) || 0, quantity: 1 }]
+  });
   const tr = (typeof window.t === 'function') ? window.t : (k) => k;
   showToast(`✓ ${name} ${tr('shop_added') || 'added'}`);
 }

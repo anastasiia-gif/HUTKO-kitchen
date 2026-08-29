@@ -83,7 +83,7 @@
                     </div>
                     <div class="checkout-block-body">
 
-                        <div class="field">
+                        <div class="field" style="display:none;">
                             <label data-i18n="checkout_street">Your delivery address</label>
                             <div id="addrAutoContainer">
                                 <input class="addr-input" id="addressSearchInput" type="text" autocomplete="off"
@@ -94,7 +94,7 @@
 
                         <!-- Manual address fallback (works without Google autocomplete) -->
                         <div id="manualBox" style="margin-top:10px;padding:14px;border:1.5px solid var(--border);border-radius:12px;background:#fff;">
-                            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);margin-bottom:10px;">Or enter your address manually</div>
+                            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);margin-bottom:10px;">Your delivery address</div>
                             <div class="field"><label>Street + house number</label><input id="mStreet" oninput="applyManual()" placeholder="Graafseweg 103"></div>
                             <div style="display:flex;gap:10px;margin-top:8px;">
                                 <div class="field" style="flex:1;"><label>Postcode</label><input id="mPost" oninput="applyManual()" placeholder="5223 AP"></div>
@@ -421,22 +421,37 @@
             const isPickup = selectedDelivery && selectedDelivery.startsWith('pickup');
 
             const contactFields = ['coFirst', 'coLast', 'coEmail', 'coPhone'];
-            const addressFields = isPickup ? [] : ['coStreet', 'coPost', 'coCity', 'coProvince'];
-            const required = [...contactFields, ...addressFields];
             let ok = true;
-            required.forEach(id => {
+            contactFields.forEach(id => {
                 const el = document.getElementById(id);
                 el.classList.remove('error');
                 if (!el.value.trim()) { el.classList.add('error'); ok = false; }
             });
-            if (!ok) { showToast('Please fill in all required fields.'); return; }
-
-            // If the address was typed manually, require a delivery area so the fee is correct
-            const _mStreet = document.getElementById('mStreet');
-            const _mArea = document.getElementById('mArea');
-            if (!isPickup && _mStreet && _mStreet.value.trim() && _mArea && !_mArea.value) {
-                showToast('Please choose your delivery area.');
+            if (!ok) {
+                showToast('Please fill in your name, email and phone number.');
+                const firstBad = contactFields.find(id => !document.getElementById(id).value.trim());
+                if (firstBad) document.getElementById(firstBad).scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
+            }
+
+            // Delivery address — the visible fields below fill the order (works without Google autocomplete).
+            if (!isPickup) {
+                const gv = id => (document.getElementById(id)?.value || '').trim();
+                if (gv('mStreet')) {
+                    document.getElementById('coStreet').value   = gv('mStreet');
+                    document.getElementById('coPost').value     = gv('mPost');
+                    document.getElementById('coCity').value     = gv('mCity');
+                    document.getElementById('coProvince').value = gv('mProvince') || (document.getElementById('mArea').value === 'delivery_local' ? 'Noord-Holland' : 'Netherlands');
+                    if (document.getElementById('mArea').value) { selectedDelivery = document.getElementById('mArea').value; detectedZoneType = 'regular'; }
+                }
+                const areaMissing = gv('mStreet') && !document.getElementById('mArea').value;
+                if (!gv('coStreet') || !gv('coPost') || !gv('coCity') || areaMissing) {
+                    ['mStreet', 'mPost', 'mCity'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('error', !el.value.trim()); });
+                    const _a = document.getElementById('mArea'); if (_a) _a.classList.toggle('error', !_a.value);
+                    const box = document.getElementById('manualBox'); if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    showToast('Please fill in your delivery address — street, postcode, city and area — or choose pick-up below.');
+                    return;
+                }
             }
 
             if (!isPickup && !selectedDate) {
@@ -485,6 +500,15 @@
                 }
 
                 localStorage.removeItem('hutko_cart');
+
+                // GA4 — purchase (order placed)
+                if (window.gtag) window.gtag('event', 'purchase', {
+                    transaction_id: res.data.order_ref || '',
+                    currency: 'EUR',
+                    value: _subtotalPO + deliveryFee,
+                    shipping: deliveryFee,
+                    items: cartItems.map(i => ({ item_name: i.name, price: i.price, quantity: i.qty }))
+                });
 
                 const orderRefEl = document.getElementById('orderRef');
                 if (orderRefEl) orderRefEl.textContent = res.data.order_ref || '';
@@ -591,6 +615,16 @@
             toggleBlocks();
             loadSlots();
             renderSummary();
+
+            // GA4 — begin_checkout (reached the checkout page with items)
+            try {
+                const _c = Object.values(getCart());
+                if (window.gtag && _c.length) window.gtag('event', 'begin_checkout', {
+                    currency: 'EUR',
+                    value: _c.reduce((s, i) => s + i.qty * i.price, 0),
+                    items: _c.map(i => ({ item_name: i.name, price: i.price, quantity: i.qty }))
+                });
+            } catch (e) {}
         });
     </script>
 
