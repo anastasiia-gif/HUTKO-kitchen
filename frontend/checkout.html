@@ -312,7 +312,12 @@
             return d.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' });
         }
         function isoDate(d) {
-            return d.toISOString().slice(0, 10);
+            // Use LOCAL date parts — NOT toISOString() (UTC) — so a Tue/Thu slot isn't
+            // saved as Mon/Wed for customers in the Netherlands (UTC+1/+2).
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
         }
 
         async function loadSlots() {
