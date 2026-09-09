@@ -165,7 +165,7 @@
                     </div>
                     <div class="checkout-block-body">
                         <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;" data-i18n="checkout_date_sub">
-                            <span id="dateBlockSub">We deliver on <strong>Thursdays and Saturdays</strong>, 16:00–20:00. Pick-up available any day 10:00–22:00.</span>
+                            <span id="dateBlockSub">We deliver on <strong>Tuesdays and Thursdays</strong>, 16:00–20:00. Pick-up available any day 10:00–22:00.</span>
                             Each day has a maximum of 15 orders.
                         </p>
                         <div id="slotGrid" class="slot-grid">
@@ -235,6 +235,20 @@
     <script src="js/search.js"></script>
     <script src="js/components.js"></script>
     <script src="js/main.js"></script>
+    <!-- Delivery-day text fix: Tuesday & Thursday (corrects legacy "Thursday & Saturday" copy on checkout, all languages) -->
+    <script>
+      (function () {
+        try {
+          if (typeof TRANSLATIONS === 'undefined') return;
+          var f = {
+            en: 'We deliver on Tuesdays and Thursdays, between 16:00 and 20:00.',
+            ua: 'Доставляємо по вівторках і четвергах, між 16:00 і 20:00.',
+            nl: 'We bezorgen op dinsdagen en donderdagen, tussen 16:00 en 20:00.'
+          };
+          for (var k in f) { if (TRANSLATIONS[k]) TRANSLATIONS[k].checkout_date_sub = f[k]; }
+        } catch (e) {}
+      })();
+    </script>
     <script>
         // Zone config
         const ZONE_INNER = [{name:'Amsterdam',lat:52.3676,lng:4.9041,km:10},{name:'Den Bosch',lat:51.6978,lng:5.3037,km:10}];
@@ -289,7 +303,7 @@
                 const dow = date.getDay();
                 if (mode === 'pickup_amsterdam' && date >= cutoff) { slots.push(date); }
                 else if (mode === 'pickup_denbosch' && dow >= 1 && dow <= 5 && date >= cutoff) { slots.push(date); }
-                else if (mode === 'delivery' && (dow === 4 || dow === 6) && date >= cutoff) { slots.push(date); }
+                else if (mode === 'delivery' && (dow === 2 || dow === 4) && date >= cutoff) { slots.push(date); }
             }
             return mode === 'delivery' ? slots.slice(0,10) : slots.slice(0,14);
         }

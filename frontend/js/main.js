@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'about.html':    { title: 'About HUTKO — Ukrainian Home Cooking in the Netherlands',
                        desc:  'A small Ukrainian kitchen bringing authentic home cooking to the Netherlands — real recipes, small batches, frozen fresh. Our story.' },
     'delivery.html': { title: 'Delivery & Pickup — Ukrainian Food Across the Netherlands | HUTKO',
-                       desc:  'HUTKO delivers Thursday & Saturday across the Netherlands — insulated and frozen. See delivery zones, fees, free delivery over €100, and pickup.' },
+                       desc:  'HUTKO delivers Tuesday & Thursday across the Netherlands — insulated and frozen. See delivery zones, fees, free delivery over €100, and pickup.' },
     'contact.html':  { title: 'Contact HUTKO Kitchen — Ukrainian Food, Netherlands',
                        desc:  'Questions about your order or a collaboration? Contact HUTKO Kitchen — authentic Ukrainian frozen food delivered across the Netherlands.' }
   };
