@@ -47,8 +47,13 @@ def make_ref():
 @optional_token
 def checkout():
     data = request.get_json()
-    required = ['first_name', 'last_name', 'email', 'phone',
-                'street', 'postcode', 'city', 'province', 'items']
+    delivery_method = data.get('delivery_method', 'delivery_local')
+    is_pickup = (delivery_method or '').strip().startswith('pickup')
+
+    # Address is required for DELIVERY only — pick-up orders have no delivery address.
+    required = ['first_name', 'last_name', 'email', 'phone', 'items']
+    if not is_pickup:
+        required += ['street', 'postcode', 'city', 'province']
     for field in required:
         if not data.get(field):
             return jsonify({'error': f'Missing required field: {field}'}), 400
@@ -57,7 +62,6 @@ def checkout():
     if not items:
         return jsonify({'error': 'Cart is empty.'}), 400
 
-    delivery_method = data.get('delivery_method', 'delivery_local')
     subtotal        = sum(i['price'] * i['qty'] for i in items)
     delivery_cost   = compute_delivery_cost(subtotal, delivery_method)
     total           = subtotal + delivery_cost
@@ -81,7 +85,8 @@ def checkout():
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending_payment')
     """, (
         order_ref, user_id, f"{data['first_name']} {data['last_name']}",
-        data['email'], data['phone'], data['street'], data['postcode'], data['city'], data['province'],
+        data['email'], data['phone'], data.get('street', ''), data.get('postcode', ''),
+        data.get('city', ''), data.get('province', ''),
         data.get('notes', ''), delivery_method, delivery_date,
         json.dumps(items), subtotal, delivery_cost, total))
     conn.commit()

@@ -8,6 +8,7 @@ import os
 import math
 import requests
 from datetime import datetime, timedelta
+from database import get_db
 
 TRELLO_API_KEY = os.environ.get('TRELLO_API_KEY', '')
 TRELLO_TOKEN   = os.environ.get('TRELLO_TOKEN', '')
@@ -148,6 +149,19 @@ def _get_delivery_day(order_date: datetime = None) -> str:
     return delivery.strftime('%A, %d %B %Y')
 
 
+def _order_delivery_date(order_ref: str) -> str:
+    """Return the delivery date the customer actually picked (stored on the order), or ''."""
+    try:
+        conn = get_db()
+        row = conn.execute("SELECT delivery_date FROM orders WHERE order_ref=?", (order_ref,)).fetchone()
+        conn.close()
+        if row:
+            return (row['delivery_date'] or '').strip()
+    except Exception as e:
+        print(f"[TRELLO] delivery-date lookup failed: {e}")
+    return ''
+
+
 def create_order_card(order_ref: str, name: str, email: str, phone: str,
                       items: list, subtotal: float, delivery_cost: float,
                       total: float, address: str, delivery_method: str,
@@ -162,7 +176,20 @@ def create_order_card(order_ref: str, name: str, email: str, phone: str,
 
     cook_minutes = _calculate_cook_time(items)
     cook_time    = _format_cook_time(cook_minutes)
-    delivery_day = _get_delivery_day()
+
+    # Show the delivery date the CUSTOMER picked (stored on the order); only fall
+    # back to a computed next delivery day when there isn't one (e.g. pick-up).
+    _picked = _order_delivery_date(order_ref)
+    due = None
+    if _picked:
+        try:
+            _d = datetime.strptime(_picked[:10], '%Y-%m-%d')
+            delivery_day = _d.strftime('%A, %d %B %Y')
+            due = _d.strftime('%Y-%m-%dT12:00:00.000Z')
+        except Exception:
+            delivery_day = _picked
+    else:
+        delivery_day = _get_delivery_day()
 
     items_text = '\n'.join([
         f"- {i['name']}{(' — ' + i['label']) if i.get('label') else ''} ×{i['qty']} — €{int(i['qty']) * float(i['price']):.2f}"
@@ -203,13 +230,11 @@ Delivery: {'Free' if delivery_cost == 0 else f'€{delivery_cost}'}
 *Card created automatically by HUTKO Kitchen system*
 """
 
-    # Card due date = expected delivery day
-    delivery_date_obj = datetime.now()
-    weekday = delivery_date_obj.weekday()
-    days_to_thu = (3 - weekday) % 7 or 7
-    days_to_sat = (5 - weekday) % 7 or 7
-    days_ahead = min(days_to_thu, days_to_sat)
-    due = (delivery_date_obj + timedelta(days=days_ahead)).strftime('%Y-%m-%dT12:00:00.000Z')
+    # Fallback due date only if the order had no valid picked date (e.g. pick-up)
+    if not due:
+        _dt = datetime.now(); _wd = _dt.weekday()
+        _ahead = min((3 - _wd) % 7 or 7, (5 - _wd) % 7 or 7)
+        due = (_dt + timedelta(days=_ahead)).strftime('%Y-%m-%dT12:00:00.000Z')
 
     try:
         res = requests.post(

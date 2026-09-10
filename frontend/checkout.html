@@ -466,13 +466,21 @@
             if (!selectedDelivery.startsWith('pickup') && FREE_OVER > 0 && subtotal >= FREE_OVER) delivery = 0;
             const total = subtotal + delivery;
 
-            si.innerHTML = items.map(i => `
+            si.innerHTML = items.map(i => {
+              // Show the customer's pack choice / product size under the name
+              const extra = (i.label && i.label !== i.name)
+                ? (i.label.indexOf(' · ') !== -1 ? i.label.split(' · ').slice(1).join(' · ').trim() : i.label.trim())
+                : '';
+              const choiceLine = (extra && i.name.indexOf(extra) === -1)
+                ? `<span style="display:block;font-size:11px;color:#8a8a8a;font-weight:400;margin-top:2px;">↳ ${extra}</span>` : '';
+              return `
             <div class="summary-item">
               <span class="summary-item-emoji">${i.emoji || '🍽️'}</span>
-              <span class="summary-item-name">${i.name}</span>
+              <span class="summary-item-name">${i.name}${choiceLine}</span>
               <span class="summary-item-qty">×${i.qty}</span>
               <span class="summary-item-price">€${(i.qty * i.price).toFixed(2)}</span>
-            </div>`).join('');
+            </div>`;
+            }).join('');
 
             st.innerHTML = `
             <div class="summary-row"><span>${t('checkout_subtotal')}</span><span>€${subtotal.toFixed(2)}</span></div>

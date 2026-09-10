@@ -5,8 +5,15 @@ Sends via Resend. Silently skips if RESEND_API_KEY not set.
 """
 
 import os
+import html as _htmlmod
 import resend
 from datetime import datetime
+
+
+def esc(s):
+    """HTML-escape user-supplied text before placing it inside an email."""
+    return _htmlmod.escape(str(s if s is not None else ''))
+
 
 BRAND_BLUE   = '#1B3FCE'
 BRAND_ORANGE = '#E84B22'
@@ -76,21 +83,25 @@ def _base_template(content: str, preview: str = '') -> str:
 </html>"""
 
 
-def send_email(to: str, subject: str, html: str):
-    """Send email via Resend. Silently skips if API key not configured."""
+def send_email(to: str, subject: str, html: str, attachments: list = None):
+    """Send email via Resend. Silently skips if API key not configured.
+       attachments: optional list of {'filename', 'content' (base64 str), 'type'}."""
     api_key = os.environ.get('RESEND_API_KEY')
     if not api_key:
         print(f"[EMAIL SKIPPED — no RESEND_API_KEY] To: {to} | Subject: {subject}")
         return
     resend.api_key = api_key
     sender = os.environ.get('EMAIL_FROM', 'HUTKO Kitchen <noreply@hutko-kitchen.com>')
+    params = {
+        "from":    sender,
+        "to":      [to],
+        "subject": subject,
+        "html":    html,
+    }
+    if attachments:
+        params["attachments"] = attachments
     try:
-        resend.Emails.send({
-            "from":    sender,
-            "to":      [to],
-            "subject": subject,
-            "html":    html,
-        })
+        resend.Emails.send(params)
         print(f"[EMAIL SENT] To: {to} | Subject: {subject}")
     except Exception as e:
         print(f"[EMAIL ERROR] {e}")
@@ -267,7 +278,7 @@ def send_order_notification(order_ref: str, name: str, email: str,
           <td width="50%" style="padding:0 12px 0 0;vertical-align:top;">
             <div style="background:{BRAND_CREAM};border-radius:12px;padding:18px 20px;">
               <p style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#666;">Customer</p>
-              <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#111;">{name}</p>
+              <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#111;">{esc(name)}</p>
               <p style="margin:0 0 4px;font-size:13px;color:#666;">{email}</p>
               <p style="margin:0;font-size:13px;color:#666;">{phone}</p>
             </div>
@@ -278,7 +289,7 @@ def send_order_notification(order_ref: str, name: str, email: str,
               <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#111;">{address}</p>
               <p style="margin:0 0 4px;font-size:13px;color:#666;">{delivery_method}</p>
               {f'<p style="margin:4px 0 0;font-size:14px;font-weight:700;color:{BRAND_BLUE};">📅 {delivery_date}</p>' if delivery_date else ''}
-              {'<p style="margin:6px 0 0;font-size:13px;color:#888;font-style:italic;">Note: ' + notes + '</p>' if notes else ''}
+              {'<p style="margin:6px 0 0;font-size:13px;color:#888;font-style:italic;">Note: ' + esc(notes) + '</p>' if notes else ''}
             </div>
           </td>
         </tr>
@@ -448,7 +459,7 @@ def send_contact_reply(name: str, email: str, topic: str, body: str):
         </p>
         <p style="margin:0 0 6px;font-size:13px;color:#888;">Topic: <strong style="color:#333;">{topic}</strong></p>
         <p style="margin:0;font-size:14px;color:#444;line-height:1.6;font-style:italic;">
-          "{body[:300]}{'...' if len(body) > 300 else ''}"
+          "{esc(body[:300])}{'...' if len(body) > 300 else ''}"
         </p>
       </div>
 
@@ -478,14 +489,14 @@ def send_contact_notification(name: str, email: str, phone: str,
     content = f"""
       <div style="background:{BRAND_BLUE};border-radius:12px;padding:16px 24px;margin:0 0 24px;">
         <p style="margin:0;font-size:18px;font-weight:900;color:#fff;">
-          📬 New message: <strong>{title}</strong>
+          📬 New message: <strong>{esc(title)}</strong>
         </p>
-        <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.7);">Topic: {topic}</p>
+        <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.7);">Topic: {esc(topic)}</p>
       </div>
 
       <div style="background:{BRAND_CREAM};border-radius:12px;padding:18px 24px;margin:0 0 20px;">
         <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#666;">From</p>
-        <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#111;">{name}</p>
+        <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#111;">{esc(name)}</p>
         <p style="margin:0 0 4px;font-size:13px;color:#666;">
           <a href="mailto:{email}" style="color:{BRAND_BLUE};">{email}</a>
         </p>
@@ -494,7 +505,7 @@ def send_contact_notification(name: str, email: str, phone: str,
 
       <div style="border:1px solid #e8e2d5;border-radius:12px;padding:18px 24px;margin:0 0 24px;">
         <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#666;">Message</p>
-        <p style="margin:0;font-size:14px;color:#333;line-height:1.7;">{body}</p>
+        <p style="margin:0;font-size:14px;color:#333;line-height:1.7;">{esc(body)}</p>
       </div>
 
       <table cellpadding="0" cellspacing="0" width="100%">
