@@ -531,7 +531,18 @@
             const items = Object.values(cart);
             if (!items.length) return;
 
-            const cartItems = items.map(i => ({ name: i.name, qty: i.qty, price: i.price }));
+            const cartItems = items.map(i => {
+                // Keep the customer's pack choice / product size (stored in the cart "label")
+                // in the item name, so it appears on the order, Trello card, emails and export.
+                let nm = i.name;
+                if (i.label && i.label !== i.name) {
+                    const extra = i.label.indexOf(' · ') !== -1
+                        ? i.label.split(' · ').slice(1).join(' · ').trim()   // bundle: the chosen option
+                        : i.label.trim();                                    // product: the size / variant
+                    if (extra && nm.indexOf(extra) === -1) nm = nm + ' — ' + extra;
+                }
+                return { name: nm, qty: i.qty, price: i.price };
+            });
             const _subtotalPO = cartItems.reduce((s, i) => s + i.qty * i.price, 0);
             let deliveryFee = DELIVERY_PRICES[selectedDelivery] ?? FEE_LOCAL;
             if (!isPickup && FREE_OVER > 0 && _subtotalPO >= FREE_OVER) deliveryFee = 0;
