@@ -28,6 +28,9 @@ from database import get_db, _placeholder
 admin_bp = Blueprint('admin', __name__)
 _p = _placeholder()
 TOKEN_TTL_HOURS = int(os.environ.get('ADMIN_TOKEN_TTL_HOURS', '12'))
+# Backstop on top of the 12h idle window: an admin session cannot outlive this
+# no matter how continuously it is used.
+TOKEN_MAX_DAYS = int(os.environ.get('ADMIN_TOKEN_MAX_DAYS', '7'))
 
 _LOCK_MAX_FAILS = 6
 _LOCK_WINDOW = 15 * 60
@@ -78,7 +81,9 @@ def _admin_token_valid(token):
         return False
     conn = get_db()
     row = conn.execute(
-        f"SELECT token FROM admin_tokens WHERE token={_p} AND (expires_at IS NULL OR expires_at > datetime('now'))",
+        f"SELECT token FROM admin_tokens WHERE token={_p} "
+        f"AND (expires_at IS NULL OR expires_at > datetime('now')) "
+        f"AND (created_at IS NULL OR created_at > datetime('now', '-{TOKEN_MAX_DAYS} days'))",
         (token,)).fetchone()
     if row is not None:
         # Sliding expiry: 12h of inactivity, not 12h from login. Someone editing
@@ -89,7 +94,9 @@ def _admin_token_valid(token):
         conn.commit()
     # Housekeeping roughly 1 request in 50 instead of every single one.
     if random.random() < 0.02:
-        conn.execute("DELETE FROM admin_tokens WHERE expires_at IS NOT NULL AND expires_at <= datetime('now')")
+        conn.execute("DELETE FROM admin_tokens WHERE (expires_at IS NOT NULL AND "
+                     "expires_at <= datetime('now')) OR (created_at IS NOT NULL AND "
+                     f"created_at <= datetime('now', '-{TOKEN_MAX_DAYS} days'))")
         conn.commit()
     conn.close()
     return row is not None

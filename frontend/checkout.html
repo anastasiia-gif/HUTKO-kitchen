@@ -94,16 +94,16 @@
 
                         <!-- Delivery address — postcode + house number auto-fill (PDOK), all editable -->
                         <div id="manualBox" style="margin-top:10px;padding:14px;border:1.5px solid var(--border);border-radius:12px;background:#fff;">
-                            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);margin-bottom:10px;">Your delivery address</div>
+                            <div id="abTitle" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);margin-bottom:10px;">Your delivery address</div>
                             <div style="display:flex;gap:10px;">
-                                <div class="field" style="flex:1.2;"><label>Postcode</label><input id="mPost" oninput="lookupAddress()" placeholder="5223 AP" autocomplete="postal-code"></div>
-                                <div class="field" style="flex:1;"><label>House number</label><input id="mHouse" oninput="lookupAddress()" placeholder="103" autocomplete="off"></div>
+                                <div class="field" style="flex:1.2;"><label id="abPost">Postcode</label><input id="mPost" oninput="lookupAddress()" placeholder="5223 AP" autocomplete="postal-code"></div>
+                                <div class="field" style="flex:1;"><label id="abHouse">House number</label><input id="mHouse" oninput="lookupAddress()" placeholder="103" autocomplete="off"></div>
                             </div>
                             <div id="addrLookup" style="font-size:12px;margin:6px 2px 0;min-height:15px;color:var(--ink-soft);"></div>
-                            <div class="field" style="margin-top:6px;"><label>Street</label><input id="mStreet" oninput="applyManual()" placeholder="Auto-filled from postcode"></div>
+                            <div class="field" style="margin-top:6px;"><label id="abStreet">Street</label><input id="mStreet" oninput="applyManual()" placeholder="Auto-filled from postcode"></div>
                             <div style="display:flex;gap:10px;margin-top:8px;">
-                                <div class="field" style="flex:1;"><label>City</label><input id="mCity" oninput="applyManual()" placeholder="Auto-filled"></div>
-                                <div class="field" style="flex:1;"><label>Province</label>
+                                <div class="field" style="flex:1;"><label id="abCity">City</label><input id="mCity" oninput="applyManual()" placeholder="Auto-filled"></div>
+                                <div class="field" style="flex:1;"><label id="abProv">Province</label>
                                     <select id="mProvince" onchange="applyManual()">
                                         <option value="">Auto-filled…</option>
                                         <option>Drenthe</option><option>Flevoland</option>
@@ -114,14 +114,11 @@
                                         <option>Zeeland</option><option>Zuid-Holland</option>
                                     </select></div>
                             </div>
-                            <div class="field" style="margin-top:8px;"><label>Delivery area</label>
-                                <select id="mArea" onchange="applyManual()">
-                                    <option value="">Select…</option>
-                                    <option value="delivery_local">Amsterdam / Den Bosch / Den Haag — €10</option>
-                                    <option value="delivery_other">Rest of the Netherlands — €15</option>
-                                </select>
-                            </div>
-                            <div class="hint" style="margin-top:6px;">Enter postcode + house number — we fill the rest (you can edit anything). Free delivery over €100.</div>
+                            <!-- The delivery area used to be a dropdown the customer had to pick.
+                                 It is worked out from the postcode, so asking was only a chance
+                                 to get it wrong. Shown here, not chosen. -->
+                            <div id="areaDetected" style="display:none;margin-top:10px;font-size:13px;font-weight:600;"></div>
+                            <div class="hint" id="abHint" style="margin-top:6px;"></div>
                         </div>
 
                         <div id="zoneStatus" style="display:none;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;line-height:1.5;"></div>
@@ -287,11 +284,7 @@
                 DELIVERY_PRICES.delivery_other   = FEE_REGIONAL;
                 DELIVERY_PRICES.delivery_contact = FEE_REGIONAL;
                 if (typeof Z_INNER !== 'undefined') Z_INNER.forEach(z => z.fee = FEE_LOCAL);
-                const _ma = document.getElementById('mArea');
-                if (_ma) {
-                    _ma.options[1].text = `Amsterdam / Den Bosch / Den Haag — €${FEE_LOCAL}`;
-                    _ma.options[2].text = `Rest of the Netherlands — €${FEE_REGIONAL}`;
-                }
+                localiseAddressBox();       // the hint quotes the free-delivery amount
             } catch (e) { /* keep defaults */ }
         }
 
@@ -372,24 +365,85 @@
         function applyManual() {
             const streetName = document.getElementById('mStreet').value.trim();
             const house = (document.getElementById('mHouse')?.value || '').trim();
-            const street = (streetName + ' ' + house).trim();
             const post   = document.getElementById('mPost').value.trim();
             const city   = document.getElementById('mCity').value.trim();
             const prov   = document.getElementById('mProvince').value.trim();
-            const area   = document.getElementById('mArea').value;
-            document.getElementById('coStreet').value   = street;
+            document.getElementById('coStreet').value   = (streetName + ' ' + house).trim();
             document.getElementById('coPost').value     = post;
             document.getElementById('coCity').value     = city;
-            document.getElementById('coProvince').value = prov || (area === 'delivery_local' ? 'Noord-Holland' : (area ? 'Netherlands' : ''));
-            if (area) {
-                selectedDelivery = area;                 // delivery_local | delivery_other
-                detectedZoneType = 'regular';
-                const z = document.getElementById('zoneStatus'); if (z) z.dataset.zoneOk = '1';
-                toggleBlocks();
-            }
+            document.getElementById('coProvince').value = prov;
+            // No coordinates yet (the lookup has not run, or could not reach
+            // PDOK) — the province is enough to know the fee band.
+            if (prov && !zoneFromCoords) zoneFromProvince(prov);
             renderSummary();
         }
         window.applyManual = applyManual;
+
+        // ── THE ADDRESS BOX, IN THREE LANGUAGES ─────────────
+        // This box was added as an emergency fallback when Google autocomplete
+        // started returning 403, and its labels were never translated — a
+        // Ukrainian customer got the whole page in Ukrainian except the part
+        // where they type their address. Kept here rather than in i18n.js so
+        // the box stays self-contained.
+        function addrLang() { try { return localStorage.getItem('hutko_lang') || 'en'; } catch (e) { return 'en'; } }
+
+        const ADDR_TEXT = {
+            en: { title:'Your delivery address', post:'Postcode', house:'House number',
+                  street:'Street', city:'City', prov:'Province',
+                  hint:'Enter your postcode and house number — we fill in the rest.',
+                  freeOver:'Free delivery over €{n}.', areaLabel:'Delivery',
+                  autoPost:'Auto-filled from postcode', auto:'Auto-filled', autoProv:'Auto-filled…' },
+            ua: { title:'Ваша адреса доставки', post:'Поштовий індекс', house:'Номер будинку',
+                  street:'Вулиця', city:'Місто', prov:'Провінція',
+                  hint:'Введіть індекс і номер будинку — решту заповнимо ми.',
+                  freeOver:'Безкоштовна доставка від €{n}.', areaLabel:'Доставка',
+                  autoPost:'Заповниться за індексом', auto:'Заповниться автоматично', autoProv:'Заповниться…' },
+            nl: { title:'Uw bezorgadres', post:'Postcode', house:'Huisnummer',
+                  street:'Straat', city:'Plaats', prov:'Provincie',
+                  hint:'Vul uw postcode en huisnummer in — de rest vullen wij aan.',
+                  freeOver:'Gratis bezorging vanaf €{n}.', areaLabel:'Bezorging',
+                  autoPost:'Wordt automatisch ingevuld', auto:'Wordt automatisch ingevuld', autoProv:'Wordt ingevuld…' },
+        };
+
+        function localiseAddressBox() {
+            const L = ADDR_TEXT[addrLang()] || ADDR_TEXT.en;
+            const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+            set('abTitle', L.title); set('abPost', L.post); set('abHouse', L.house);
+            set('abStreet', L.street); set('abCity', L.city); set('abProv', L.prov);
+            const ph = (id, txt) => { const el = document.getElementById(id); if (el) el.placeholder = txt; };
+            ph('mStreet', L.autoPost); ph('mCity', L.auto);
+            const provSel = document.getElementById('mProvince');
+            if (provSel && provSel.options.length) provSel.options[0].text = L.autoProv;
+            const hint = document.getElementById('abHint');
+            if (hint) {
+                hint.textContent = L.hint + (FREE_OVER > 0 ? ' ' + L.freeOver.replace('{n}', FREE_OVER) : '');
+            }
+        }
+
+        // ── DELIVERY AREA — worked out, never asked ──────────
+        let zoneFromCoords = false;   // true once PDOK has given us a location
+
+        function zoneFromProvince(prov) {
+            const pn = (prov || '').toLowerCase();
+            if (!pn) return;
+            if (Z_REG.some(p => pn.indexOf(p.toLowerCase()) > -1)) {
+                applyZone({ type: 'regular', fee: FEE_REGIONAL, hub: prov });
+            } else if (Z_CON.some(p => pn.indexOf(p.toLowerCase()) > -1)) {
+                applyZone({ type: 'contact', fee: FEE_REGIONAL, hub: prov });
+            }
+        }
+
+        function showDetectedArea(zone) {
+            const el = document.getElementById('areaDetected');
+            if (!el) return;
+            if (!zone || zone.type === 'outside') { el.style.display = 'none'; return; }
+            // The hint underneath already states the free-delivery threshold;
+            // saying it twice reads as a mistake.
+            const L = ADDR_TEXT[addrLang()] || ADDR_TEXT.en;
+            el.style.display = 'block';
+            el.style.color = 'var(--blue)';
+            el.textContent = `${L.areaLabel}: ${zone.hub} — €${zone.fee}`;
+        }
 
         // ── POSTCODE AUTO-FILL (free Dutch PDOK Locatieserver; fields stay editable) ──
         let _addrTimer = null;
@@ -417,12 +471,13 @@
                     let feeTxt = '';
                     if (lat != null && typeof detectZone === 'function') {
                         const zone = detectZone(lat, lng, doc.provincienaam || '');
+                        zoneFromCoords = true;
                         if (zone.type === 'outside') {
-                            document.getElementById('mArea').value = '';
+                            applyZone(zone);
                             if (status) { status.textContent = "✗ Sorry, we don't deliver to this area yet."; status.style.color = '#A32D2D'; }
-                            applyManual(); return;
+                            return;
                         }
-                        document.getElementById('mArea').value = (zone.type === 'inner') ? 'delivery_local' : 'delivery_other';
+                        applyZone(zone);            // sets the fee band and shows it
                         feeTxt = ' · delivery €' + zone.fee;
                     }
                     if (status) { status.textContent = '✓ ' + (doc.straatnaam || '') + ' ' + house + ', ' + (doc.woonplaatsnaam || '') + feeTxt; status.style.color = '#3B6D11'; }
@@ -715,11 +770,6 @@
                 el.classList.toggle('error', !!e);
                 if (e && !firstBadEl) { firstBadEl = el; firstBadMsg = e; }
             });
-            const areaEl = document.getElementById('mArea');
-            if (areaEl && !areaEl.value) {
-                areaEl.classList.add('error');
-                if (!firstBadEl) { firstBadEl = areaEl; firstBadMsg = 'Please choose your delivery area.'; }
-            } else if (areaEl) { areaEl.classList.remove('error'); }
             if (firstBadEl) {
                 firstBadEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 showToast(firstBadMsg, 5000);
@@ -730,7 +780,9 @@
             document.getElementById('coPost').value     = gv('mPost');
             document.getElementById('coCity').value     = gv('mCity');
             document.getElementById('coProvince').value = gv('mProvince');
-            if (areaEl && areaEl.value) { selectedDelivery = areaEl.value; detectedZoneType = 'regular'; }
+            // Last resort: if the lookup never ran, the province still tells us
+            // the band. Never leave it unset.
+            if (!zoneFromCoords) zoneFromProvince(gv('mProvince'));
 
             const notesErr = checkNotes(document.getElementById('coNotes').value);
             if (notesErr) {
@@ -946,6 +998,7 @@
                 }
             }
             wireContactChecks();
+            localiseAddressBox();
             await loadDeliverySettings();
             toggleBlocks();
             loadSlots();
@@ -956,6 +1009,12 @@
                 applyManual();
                 if (document.getElementById('mPost').value && document.getElementById('mHouse').value) lookupAddress();
             } catch (e) {}
+
+            // Re-label the address box when the customer switches language.
+            const _origSetLang = window.setLang;
+            if (typeof _origSetLang === 'function') {
+                window.setLang = function (l) { _origSetLang(l); localiseAddressBox(); };
+            }
 
             // GA4 — begin_checkout (reached the checkout page with items)
             try {
@@ -1066,6 +1125,7 @@
         el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#FCEBEB;color:#A32D2D;border:1.5px solid #F09595';
         el.innerHTML='&#10007; <strong>We don&#39;t deliver here yet.</strong> <a href="contact.html" style="color:#A32D2D;font-weight:600">Contact us &#8594;</a>';
         if(note) note.style.display='none';
+        if(typeof showDetectedArea==='function') showDetectedArea(zone);
         var btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=true;btn.style.opacity='.45';}
         return;
       }
@@ -1074,6 +1134,7 @@
       if(note) note.style.display=(zone.type==='contact'?'block':'none');
       if(typeof detectedZoneType!=='undefined') detectedZoneType=zone.type;
       if(typeof selectedDelivery!=='undefined') selectedDelivery=(zone.type==='inner'?'delivery_local':'delivery_other');
+      if(typeof showDetectedArea==='function') showDetectedArea(zone);
       if(typeof renderSummary==='function') renderSummary();
       if(typeof toggleBlocks==='function') toggleBlocks();
       if(zone.type!=='contact'&&typeof loadSlots==='function') loadSlots();

@@ -33,6 +33,13 @@ auth_bp = Blueprint('auth', __name__)
 
 TOKEN_TTL_DAYS = int(os.environ.get('AUTH_TOKEN_TTL_DAYS', '30'))
 
+# Idle timeout alone means a session that keeps being used NEVER dies — the
+# expiry is pushed forward on every request, so a token on a shared laptop
+# stays alive as long as someone keeps browsing. The absolute cap is the
+# backstop: however active you are, a login is dead this many days after it
+# was created, and you sign in again.
+TOKEN_MAX_DAYS = int(os.environ.get('AUTH_TOKEN_MAX_DAYS', '180'))
+
 
 def _exec(conn, sql, params=()):
     """Execute a query on either SQLite or Postgres connection."""
@@ -59,6 +66,13 @@ def _now_sql():
     return "NOW()" if _use_postgres() else "datetime('now')"
 
 
+def _max_age_sql():
+    """Rows older than this are dead no matter how recently they were used."""
+    if _use_postgres():
+        return f"(NOW() - INTERVAL '{TOKEN_MAX_DAYS} days')"
+    return f"datetime('now', '-{TOKEN_MAX_DAYS} days')"
+
+
 def hash_password(plain: str) -> str:
     return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
 
@@ -77,8 +91,9 @@ def make_token(user_id: int) -> str:
     # Housekeeping, occasionally — not on every login, and never on every
     # request: this table is written by every visitor.
     if random.random() < 0.05:
-        _exec(conn, f"DELETE FROM auth_tokens WHERE expires_at IS NOT NULL "
-                    f"AND expires_at <= {_now_sql()}")
+        _exec(conn, f"DELETE FROM auth_tokens WHERE (expires_at IS NOT NULL "
+                    f"AND expires_at <= {_now_sql()}) "
+                    f"OR (created_at IS NOT NULL AND created_at <= {_max_age_sql()})")
     conn.commit()
     conn.close()
     return token
@@ -91,7 +106,8 @@ def get_user_from_token(token: str):
     row = _exec(conn,
         f"SELECT u.* FROM users u JOIN auth_tokens t ON t.user_id = u.id "
         f"WHERE t.token = {_p()} "
-        f"AND (t.expires_at IS NULL OR t.expires_at > {_now_sql()})",
+        f"AND (t.expires_at IS NULL OR t.expires_at > {_now_sql()}) "
+        f"AND (t.created_at IS NULL OR t.created_at > {_max_age_sql()})",
         (token,)
     ).fetchone()
     if row is not None:
