@@ -27,6 +27,7 @@ from flask import Blueprint, request, jsonify, g
 from database import get_db, _placeholder, _use_postgres
 from functools import wraps
 from emails import send_welcome
+from validators import validate_email, validate_phone
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -159,6 +160,16 @@ def register():
         return jsonify({'error': 'Name, email and password are required.'}), 400
     if len(password) < 6:
         return jsonify({'error': 'Password must be at least 6 characters.'}), 400
+
+    # A junk address here means the welcome email, every order confirmation and
+    # every delivery notice silently go nowhere.
+    email, email_err = validate_email(email)
+    if email_err:
+        return jsonify({'error': email_err}), 400
+    if phone:                      # optional at registration, checked if given
+        phone, phone_err = validate_phone(phone)
+        if phone_err:
+            return jsonify({'error': phone_err}), 400
 
     conn = get_db()
     if _exec(conn, f"SELECT id FROM users WHERE email = {_p()}", (email,)).fetchone():

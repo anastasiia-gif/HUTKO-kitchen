@@ -103,7 +103,16 @@
                             <div class="field" style="margin-top:6px;"><label>Street</label><input id="mStreet" oninput="applyManual()" placeholder="Auto-filled from postcode"></div>
                             <div style="display:flex;gap:10px;margin-top:8px;">
                                 <div class="field" style="flex:1;"><label>City</label><input id="mCity" oninput="applyManual()" placeholder="Auto-filled"></div>
-                                <div class="field" style="flex:1;"><label>Province</label><input id="mProvince" oninput="applyManual()" placeholder="Auto-filled"></div>
+                                <div class="field" style="flex:1;"><label>Province</label>
+                                    <select id="mProvince" onchange="applyManual()">
+                                        <option value="">Auto-filled…</option>
+                                        <option>Drenthe</option><option>Flevoland</option>
+                                        <option>Friesland</option><option>Gelderland</option>
+                                        <option>Groningen</option><option>Limburg</option>
+                                        <option>Noord-Brabant</option><option>Noord-Holland</option>
+                                        <option>Overijssel</option><option>Utrecht</option>
+                                        <option>Zeeland</option><option>Zuid-Holland</option>
+                                    </select></div>
                             </div>
                             <div class="field" style="margin-top:8px;"><label>Delivery area</label>
                                 <select id="mArea" onchange="applyManual()">
@@ -125,26 +134,6 @@
                             <div id="addrMap" style="width:100%;height:180px;"></div>
                         </div>
 
-                        <div style="margin-top:14px;">
-                            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft);margin-bottom:8px;" data-i18n="checkout_or_pickup">— or pick up for free —</div>
-                            <label class="delivery-option" id="opt-pickup-ams" onclick="selectPickup('amsterdam')" style="cursor:pointer;display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;border:1.5px solid var(--border);margin-bottom:6px;transition:.15s;">
-                                <input type="radio" name="delivery" value="pickup_amsterdam" id="radio-pickup-ams">
-                                <div style="flex:1;">
-                                    <div style="font-size:13px;font-weight:600;">📍 Amsterdam — Overtoom 239</div>
-                                    <div style="font-size:12px;color:var(--ink-soft);" data-i18n="checkout_pickup_ams_desc">Daily 10:00–22:00 · Reservation required</div>
-                                </div>
-                                <div style="font-weight:700;color:var(--blue);" data-i18n="checkout_free_label">Free</div>
-                            </label>
-                            <label class="delivery-option" id="opt-pickup-db" onclick="selectPickup('denbosch')" style="cursor:pointer;display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;border:1.5px solid var(--border);transition:.15s;">
-                                <input type="radio" name="delivery" value="pickup_denbosch" id="radio-pickup-db">
-                                <div style="flex:1;">
-                                    <div style="font-size:13px;font-weight:600;">📍 Den Bosch — Graafseweg 194B</div>
-                                    <div style="font-size:12px;color:var(--ink-soft);" data-i18n="checkout_pickup_desc">Mon–Fri during working hours · Free</div>
-                                </div>
-                                <div style="font-weight:700;color:var(--blue);" data-i18n="checkout_free_label">Free</div>
-                            </label>
-                        </div>
-
                         <div class="field" style="margin-top:14px;">
                             <label for="coNotes"><span data-i18n="checkout_notes">Delivery notes</span> <span class="optional" data-i18n="checkout_optional">optional</span></label>
                             <input type="text" id="coNotes" placeholder="e.g. ring bell 2nd floor">
@@ -161,7 +150,7 @@
                 <div class="checkout-block" id="dateBlock">
                     <div class="checkout-block-head">
                         <div class="checkout-block-num">3</div>
-                        <h3 id="dateBlockTitle" data-i18n="checkout_date_title">Choose delivery date</h3>
+                        <h3 data-i18n="checkout_date_title">Choose delivery date</h3>
                     </div>
                     <div class="checkout-block-body">
                         <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;" data-i18n="checkout_date_sub">
@@ -258,34 +247,31 @@
               a "·" — and the mlyntsi/zrazy option names contain one in the
               opposite order, so the FLAVOUR was the half that got thrown away.
               Nothing is parsed out of a display string any more.
-           2. Pick-up keeps its real location. pickup_amsterdam and
-              pickup_denbosch both used to collapse to "pickup" with the Den
-              Bosch address hardcoded, so an Amsterdam collection was recorded
-              as Den Bosch.
-           3. Pick-up customers are now asked WHICH DAY they are collecting.
-              The date block was hidden for pick-up entirely, so those orders
-              reached the kitchen with no date at all.
-           4. The phone field is checked for actual digits. A real order came in
-              with an email address typed into it, leaving no way to call.
+           2. Collection in person was withdrawn (2026-09-12). Every order is a
+              delivery, so the address is always required and always checked.
+           3. EVERY field is validated, on the page and again on the server:
+              names, email, phone, postcode, house number, street, city,
+              province and the delivery note. Before this, all of them were
+              checked only for "is it non-empty" — which is how an order
+              arrived with an email address in the phone column.
            ------------------------------------------------------------------ */
 
         // Zone config
         const ZONE_INNER = [{name:'Amsterdam',lat:52.3676,lng:4.9041,km:10},{name:'Den Bosch',lat:51.6978,lng:5.3037,km:10}];
         const ZONE_REGULAR = ['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
         const ZONE_CONTACT  = ['Gelderland','Overijssel','Limburg','Groningen','Friesland','Drenthe','Zeeland'];
-        const DELIVERY_PRICES = { delivery_local:10, delivery_other:15, delivery_contact:15, pickup_amsterdam:0, pickup_denbosch:0, pickup:0 };
+        const DELIVERY_PRICES = { delivery_local:10, delivery_other:15, delivery_contact:15 };
         // Editable fees (loaded from /api/shop/settings — admin can change them)
         let FEE_LOCAL = 10, FEE_REGIONAL = 15, FREE_OVER = 100;
         let detectedZoneType = 'regular'; // 'inner'|'regular'|'contact'|'outside'
         let selectedDelivery = 'delivery_local';
         let selectedDate = null;
 
-        // The two collection points, in one place. Previously the Den Bosch
-        // address was hardcoded into the payload for BOTH of them.
-        const PICKUP_POINTS = {
-            pickup_amsterdam: { street: 'PICKUP: Overtoom 239',    post: '1054 HV', city: 'Amsterdam',          province: 'Noord-Holland'  },
-            pickup_denbosch:  { street: 'PICKUP: Graafseweg 194B', post: '5223 AP', city: "'s-Hertogenbosch",   province: 'Noord-Brabant' },
-        };
+        // Collection in person was withdrawn on 2026-09-12. Every order is now a
+        // delivery, so the address is always required. The server refuses a
+        // pick-up method too, in case an old cached copy of this page still
+        // offers one. To bring it back: restore the two options above the notes
+        // field and set PICKUP_ENABLED=1 on Render.
 
         async function loadDeliverySettings() {
             try {
@@ -309,45 +295,27 @@
             } catch (e) { /* keep defaults */ }
         }
 
-        function isPickupMode() {
-            return !!(selectedDelivery && selectedDelivery.startsWith('pickup'));
-        }
-
         function toggleBlocks() {
-            const isPickup = isPickupMode();
             const isContact = detectedZoneType === 'contact';
             const db = document.getElementById('dateBlock');
-            // Pick-up customers now choose a collection day too. Hiding this block
-            // for pick-up is why those orders arrived with no date on them.
             if (db) db.style.display = isContact ? 'none' : 'block';
-            const title = document.getElementById('dateBlockTitle');
-            if (title) title.textContent = isPickup ? 'Choose collection date' : (t('checkout_date_title') || 'Choose delivery date');
             const sub = document.getElementById('dateBlockSub');
-            if (sub) {
-                sub.innerHTML = isPickup
-                    ? (selectedDelivery === 'pickup_amsterdam'
-                        ? 'Collect from <strong>Amsterdam — Overtoom 239</strong>, daily 10:00–22:00.'
-                        : 'Collect from <strong>Den Bosch — Graafseweg 194B</strong>, Mon–Fri during working hours.')
-                    : 'We deliver on <strong>Tuesdays and Thursdays</strong>, 16:00–20:00.';
-            }
+            if (sub) sub.innerHTML = 'We deliver on <strong>Tuesdays and Thursdays</strong>, 16:00–20:00.';
         }
 
         // ── DELIVERY DATE SLOTS ─────────────────────────────
         const MAX_PER_DAY = 15;
 
-        function getUpcomingSlots(mode = 'delivery') {
+        function getUpcomingSlots() {
             const slots = [];
             const today = new Date(); today.setHours(0,0,0,0);
             const cutoff = new Date(today); cutoff.setDate(today.getDate() + 1);
-            const days = mode === 'pickup_amsterdam' ? 21 : mode === 'pickup_denbosch' ? 21 : 28;
-            for (let d = 1; d <= days; d++) {
+            for (let d = 1; d <= 28; d++) {
                 const date = new Date(today); date.setDate(today.getDate() + d);
                 const dow = date.getDay();
-                if (mode === 'pickup_amsterdam' && date >= cutoff) { slots.push(date); }
-                else if (mode === 'pickup_denbosch' && dow >= 1 && dow <= 5 && date >= cutoff) { slots.push(date); }
-                else if (mode === 'delivery' && (dow === 2 || dow === 4) && date >= cutoff) { slots.push(date); }
+                if ((dow === 2 || dow === 4) && date >= cutoff) slots.push(date);
             }
-            return mode === 'delivery' ? slots.slice(0,10) : slots.slice(0,14);
+            return slots.slice(0, 10);
         }
 
         function formatDate(d) {
@@ -364,8 +332,7 @@
 
         async function loadSlots() {
             const grid = document.getElementById('slotGrid');
-            const mode = isPickupMode() ? selectedDelivery : 'delivery';
-            const upcoming = getUpcomingSlots(mode);
+            const upcoming = getUpcomingSlots();
             selectedDate = null;   // the day list just changed — force a fresh pick
 
             let bookedMap = {};
@@ -401,28 +368,6 @@
         }
         window.selectSlot = selectSlot;
 
-        // ── DELIVERY METHOD ─────────────────────────────────
-        function selectPickup(location) {
-            selectedDelivery = 'pickup_' + location;
-            const pt = PICKUP_POINTS[selectedDelivery];
-            document.getElementById('zoneStatus').style.display = 'none';
-            document.getElementById('zoneContactNote').style.display = 'none';
-            document.getElementById('addrMapWrap').style.display = 'none';
-            document.getElementById('coStreet').value   = pt.street;
-            document.getElementById('coPost').value     = pt.post;
-            document.getElementById('coCity').value     = pt.city;
-            document.getElementById('coProvince').value = pt.province;
-            ['opt-pickup-ams','opt-pickup-db'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.style.border = '1.5px solid var(--border)';
-            });
-            const sel = document.getElementById('opt-pickup-' + (location === 'amsterdam' ? 'ams' : 'db'));
-            if(sel) sel.style.border = '2px solid var(--blue)';
-            document.getElementById('radio-pickup-' + (location === 'amsterdam' ? 'ams' : 'db')).checked = true;
-            toggleBlocks(); loadSlots(); renderSummary();
-        }
-        window.selectPickup = selectPickup;
-
         // ── MANUAL ADDRESS (fallback when Google autocomplete is unavailable) ──
         function applyManual() {
             const streetName = document.getElementById('mStreet').value.trim();
@@ -437,14 +382,10 @@
             document.getElementById('coCity').value     = city;
             document.getElementById('coProvince').value = prov || (area === 'delivery_local' ? 'Noord-Holland' : (area ? 'Netherlands' : ''));
             if (area) {
-                const wasPickup = isPickupMode();
                 selectedDelivery = area;                 // delivery_local | delivery_other
                 detectedZoneType = 'regular';
-                ['radio-pickup-ams', 'radio-pickup-db'].forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
-                ['opt-pickup-ams', 'opt-pickup-db'].forEach(id => { const el = document.getElementById(id); if (el) el.style.border = '1.5px solid var(--border)'; });
                 const z = document.getElementById('zoneStatus'); if (z) z.dataset.zoneOk = '1';
                 toggleBlocks();
-                if (wasPickup) loadSlots();   // pick-up days differ from delivery days
             }
             renderSummary();
         }
@@ -510,7 +451,7 @@
 
             const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
             let delivery = DELIVERY_PRICES[selectedDelivery] ?? FEE_LOCAL;
-            if (!isPickupMode() && FREE_OVER > 0 && subtotal >= FREE_OVER) delivery = 0;
+            if (FREE_OVER > 0 && subtotal >= FREE_OVER) delivery = 0;
             const total = subtotal + delivery;
 
             // The chosen option is its own field now — no splitting, no guessing.
@@ -541,9 +482,182 @@
                 .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
+        // ── CONTACT DETAILS ─────────────────────────────────
+        // Mirrors backend/validators.py. Neither proves an address or number is
+        // real — only sending something to it does — but both reject what
+        // cannot possibly be right.
+        const EMAIL_RE = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+
+        function checkEmail(raw) {
+            const email = String(raw || '').trim().toLowerCase();
+            if (!email) return 'Please enter your email address.';
+            if (email.length > 254) return 'That email address is too long.';
+            if (/\s/.test(email)) return 'An email address cannot contain spaces.';
+            if ((email.match(/@/g) || []).length !== 1)
+                return 'That does not look like an email address — it needs exactly one @ (for example anna@email.com).';
+            const at = email.indexOf('@');
+            const local = email.slice(0, at), domain = email.slice(at + 1);
+            if (!local || !domain) return 'That does not look like an email address (for example anna@email.com).';
+            if (domain.indexOf('.') === -1) return 'The part after the @ needs a dot in it, like gmail.com.';
+            if (email.indexOf('..') !== -1 || local.startsWith('.') || local.endsWith('.')
+                || domain.startsWith('.') || domain.endsWith('.') || domain.startsWith('-'))
+                return 'That email address has a dot or dash in a place it cannot be.';
+            if (!EMAIL_RE.test(email)) return 'That does not look like a valid email address.';
+            return null;
+        }
+
+        function checkPhone(raw) {
+            const phone = String(raw || '').trim();
+            if (!phone) return 'Please enter your phone number.';
+            if (phone.indexOf('@') !== -1)
+                return 'That looks like an email address. Please enter a phone number we can call.';
+            const digits = phone.replace(/\D/g, '');
+            if (digits.length < 8) return 'That phone number is too short — we need at least 8 digits.';
+            if (digits.length > 15) return 'That phone number is too long.';
+            if (/[^0-9+()\-.\s/]/.test(phone))
+                return 'A phone number can only contain digits, spaces and + ( ) - characters.';
+            if ((phone.match(/\+/g) || []).length > 1 || (phone.indexOf('+') !== -1 && phone.trim()[0] !== '+'))
+                return 'The + belongs at the start of an international number.';
+            if (new Set(digits).size === 1)
+                return 'Please enter a real phone number we can reach you on.';
+            if (['0123456789', '1234567890', '012345678', '123456789'].indexOf(digits) !== -1)
+                return 'Please enter a real phone number we can reach you on.';
+            return null;
+        }
+
+        // ── ADDRESS FIELDS ──────────────────────────────────
+        // Same rules as backend/validators.py. A letter in any alphabet —
+        // Ukrainian names and Dutch tussenvoegsels both have to pass.
+        const HAS_LETTER = /\p{L}/u;
+        const NAME_BAD = /[0-9<>@{}\[\]\\/|`~^*=_+]/;
+        const URLISH = /(https?:\/\/|www\.)/i;
+        const NL_PROVINCES = ['Drenthe','Flevoland','Friesland','Gelderland','Groningen','Limburg',
+            'Noord-Brabant','Noord-Holland','Overijssel','Utrecht','Zeeland','Zuid-Holland'];
+
+        function checkName(raw, label) {
+            const name = String(raw || '').trim().replace(/\s+/g, ' ');
+            if (!name) return `Please enter your ${label}.`;
+            if (name.length > 60) return `That ${label} is too long.`;
+            if (!HAS_LETTER.test(name)) return `Please enter your real ${label}.`;
+            if (URLISH.test(name) || NAME_BAD.test(name)) return `That ${label} contains characters a name cannot have.`;
+            return null;
+        }
+        function checkPostcode(raw) {
+            const compact = String(raw || '').trim().toUpperCase().replace(/[-\s]/g, '');
+            if (!compact) return 'Please enter your postcode.';
+            const m = /^([1-9][0-9]{3})([A-Z]{2})$/.exec(compact);
+            if (!m) return 'A Dutch postcode looks like 5223 AP — four digits then two letters.';
+            if (['SA','SD','SS'].indexOf(m[2]) !== -1) return 'That postcode does not exist — please check it.';
+            return null;
+        }
+        function checkHouseNumber(raw) {
+            const h = String(raw || '').trim().replace(/\s+/g, ' ');
+            if (!h) return 'Please enter your house number.';
+            if (h.length > 12) return 'That house number is too long.';
+            if (!/\d/.test(h)) return 'A house number needs at least one digit — for example 103, or 12A.';
+            if (!/^\d{1,5}\s*[-/]?\s*[A-Za-z0-9]{0,6}$/.test(h))
+                return 'That house number does not look right — for example 103, 12A or 12-2.';
+            return null;
+        }
+        function checkStreet(raw) {
+            const v = String(raw || '').trim().replace(/\s+/g, ' ');
+            if (!v) return 'Please enter your street.';
+            if (v.length > 100) return 'That street name is too long.';
+            if (!HAS_LETTER.test(v)) return 'Please enter a street name.';
+            if (URLISH.test(v)) return 'That does not look like a street name.';
+            return null;
+        }
+        function checkCity(raw) {
+            const v = String(raw || '').trim().replace(/\s+/g, ' ');
+            if (!v) return 'Please enter your city.';
+            if (v.length > 60) return 'That city name is too long.';
+            if (!HAS_LETTER.test(v)) return 'Please enter a city name.';
+            if (URLISH.test(v)) return 'That does not look like a city name.';
+            return null;
+        }
+        function checkProvince(raw) {
+            const v = String(raw || '').trim();
+            if (!v) return 'Please choose your province.';
+            if (NL_PROVINCES.indexOf(v) === -1)
+                return `"${v}" is not a Dutch province. Please choose one from the list.`;
+            return null;
+        }
+        function checkNotes(raw) {
+            const v = String(raw || '').trim();
+            if (v.length > 1000) return 'Please keep the delivery note under 1000 characters.';
+            return null;
+        }
+
+        // Advisory only — never blocks an order. Someone really could have an
+        // address at an unusual domain.
+        const DOMAIN_TYPOS = {
+            'gmial.com':'gmail.com','gmai.com':'gmail.com','gmail.co':'gmail.com','gmail.con':'gmail.com',
+            'gnail.com':'gmail.com','gmail.cm':'gmail.com','gmailcom':'gmail.com',
+            'hotmai.com':'hotmail.com','hotmial.com':'hotmail.com','hotmail.co':'hotmail.com',
+            'hotmail.con':'hotmail.com','hotnail.com':'hotmail.com',
+            'outlok.com':'outlook.com','outloo.com':'outlook.com','outlook.con':'outlook.com',
+            'yaho.com':'yahoo.com','yahoo.co':'yahoo.com',
+            'iclould.com':'icloud.com','icloud.co':'icloud.com','live.co':'live.com','zigo.nl':'ziggo.nl',
+        };
+        function suggestEmail(raw) {
+            const email = String(raw || '').trim().toLowerCase();
+            const at = email.indexOf('@');
+            if (at === -1) return null;
+            const fixed = DOMAIN_TYPOS[email.slice(at + 1)];
+            return fixed ? email.slice(0, at) + '@' + fixed : null;
+        }
+
+        // Tell them while they are still looking at the field, not after they
+        // press the button.
+        function hintFor(el) {
+            let h = el.parentNode.querySelector('.live-hint');
+            if (!h) {
+                h = document.createElement('span');
+                h.className = 'hint live-hint';
+                el.parentNode.appendChild(h);
+            }
+            return h;
+        }
+
+        function wireField(id, check, onOk) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const run = () => {
+                const h = hintFor(el);
+                h.style.color = '#e84b22';
+                h.style.fontWeight = '500';
+                const err = el.value.trim() ? check(el.value) : null;
+                if (err) { el.classList.add('error'); h.textContent = err; return; }
+                el.classList.remove('error');
+                h.textContent = '';
+                if (onOk) onOk(el, h);
+            };
+            el.addEventListener('blur', run);
+            el.addEventListener('change', run);
+        }
+
+        function wireContactChecks() {
+            wireField('coFirst', v => checkName(v, 'first name'));
+            wireField('coLast',  v => checkName(v, 'last name'));
+            wireField('coEmail', checkEmail, (el, h) => {
+                const sug = suggestEmail(el.value);
+                if (sug) {
+                    h.style.color = 'var(--blue)';
+                    h.style.fontWeight = '500';
+                    h.textContent = `Did you mean ${sug}?`;
+                }
+            });
+            wireField('coPhone',    checkPhone);
+            wireField('mPost',      checkPostcode);
+            wireField('mHouse',     checkHouseNumber);
+            wireField('mStreet',    checkStreet);
+            wireField('mCity',      checkCity);
+            wireField('mProvince',  checkProvince);
+            wireField('coNotes',    checkNotes);
+        }
+
         // ── PLACE ORDER ─────────────────────────────────────
         async function placeOrder() {
-            const isPickup = isPickupMode();
 
             const contactFields = ['coFirst', 'coLast', 'coEmail', 'coPhone'];
             let ok = true;
@@ -559,48 +673,76 @@
                 return;
             }
 
-            // A real order arrived with an email address typed into the phone box,
-            // which left no way to call the customer about their collection.
+            // The two ways to reach this customer. Neither was ever checked:
+            // the email box is type="email", but that only validates on a native
+            // form submit and this button is an onclick handler, so a phone
+            // number typed into the email box was accepted and the confirmation
+            // went nowhere. The server checks these too — this is the polite
+            // version that happens before the round trip.
+            const emailEl = document.getElementById('coEmail');
+            const emailErr = checkEmail(emailEl.value);
+            if (emailErr) {
+                emailEl.classList.add('error');
+                emailEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showToast(emailErr, 5000);
+                return;
+            }
             const phoneEl = document.getElementById('coPhone');
-            const phoneDigits = (phoneEl.value.match(/\d/g) || []).length;
-            if (phoneDigits < 8) {
+            const phoneErr = checkPhone(phoneEl.value);
+            if (phoneErr) {
                 phoneEl.classList.add('error');
                 phoneEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                showToast('Please enter a phone number we can call — at least 8 digits.');
+                showToast(phoneErr, 5000);
                 return;
             }
 
-            // Delivery address — postcode + house number fill the rest (all editable, no Google needed).
-            if (!isPickup) {
-                const gv = id => (document.getElementById(id)?.value || '').trim();
-                const streetName = gv('mStreet'), house = gv('mHouse');
-                document.getElementById('coStreet').value   = (streetName + ' ' + house).trim();
-                document.getElementById('coPost').value     = gv('mPost');
-                document.getElementById('coCity').value     = gv('mCity');
-                document.getElementById('coProvince').value = gv('mProvince') || (document.getElementById('mArea').value === 'delivery_local' ? 'Noord-Holland' : 'Netherlands');
-                if (document.getElementById('mArea').value) { selectedDelivery = document.getElementById('mArea').value; detectedZoneType = 'regular'; }
-                const need = { mPost: gv('mPost'), mHouse: house, mStreet: streetName, mCity: gv('mCity') };
-                let addrOk = true;
-                Object.keys(need).forEach(id => { const el = document.getElementById(id); if (el) { el.classList.toggle('error', !need[id]); if (!need[id]) addrOk = false; } });
-                const _a = document.getElementById('mArea'); if (_a) { _a.classList.toggle('error', !_a.value); if (!_a.value) addrOk = false; }
-                if (!addrOk) {
-                    const box = document.getElementById('manualBox'); if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    showToast('Please fill in your postcode, house number, street, city and area — or choose pick-up below.');
-                    return;
-                }
-            } else {
-                const pt = PICKUP_POINTS[selectedDelivery] || PICKUP_POINTS.pickup_denbosch;
-                document.getElementById('coStreet').value   = pt.street;
-                document.getElementById('coPost').value     = pt.post;
-                document.getElementById('coCity').value     = pt.city;
-                document.getElementById('coProvince').value = pt.province;
+            // Delivery address — every field checked by the same rules the server
+            // uses, so the customer is told what is wrong here rather than after
+            // a round trip.
+            const gv = id => (document.getElementById(id)?.value || '').trim();
+            const addrChecks = [
+                ['mPost',     checkPostcode],
+                ['mHouse',    checkHouseNumber],
+                ['mStreet',   checkStreet],
+                ['mCity',     checkCity],
+                ['mProvince', checkProvince],
+            ];
+            let firstBadEl = null, firstBadMsg = '';
+            addrChecks.forEach(([id, fn]) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const e = fn(el.value);
+                el.classList.toggle('error', !!e);
+                if (e && !firstBadEl) { firstBadEl = el; firstBadMsg = e; }
+            });
+            const areaEl = document.getElementById('mArea');
+            if (areaEl && !areaEl.value) {
+                areaEl.classList.add('error');
+                if (!firstBadEl) { firstBadEl = areaEl; firstBadMsg = 'Please choose your delivery area.'; }
+            } else if (areaEl) { areaEl.classList.remove('error'); }
+            if (firstBadEl) {
+                firstBadEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showToast(firstBadMsg, 5000);
+                return;
             }
 
-            // A date is required for pick-up too — the kitchen has to know when
-            // someone is coming.
+            document.getElementById('coStreet').value   = (gv('mStreet') + ' ' + gv('mHouse')).trim();
+            document.getElementById('coPost').value     = gv('mPost');
+            document.getElementById('coCity').value     = gv('mCity');
+            document.getElementById('coProvince').value = gv('mProvince');
+            if (areaEl && areaEl.value) { selectedDelivery = areaEl.value; detectedZoneType = 'regular'; }
+
+            const notesErr = checkNotes(document.getElementById('coNotes').value);
+            if (notesErr) {
+                document.getElementById('coNotes').classList.add('error');
+                document.getElementById('coNotes').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showToast(notesErr, 5000);
+                return;
+            }
+
             if (detectedZoneType !== 'contact' && !selectedDate) {
                 const se = document.getElementById('slotError');
-                se.textContent = isPickup ? 'Please choose a collection date.' : 'Please choose a delivery date.';
+                se.textContent = 'Please choose a delivery date.';
                 se.style.display = 'block';
                 document.getElementById('dateBlock').scrollIntoView({ behavior: 'smooth' });
                 return;
@@ -624,7 +766,7 @@
             }));
             const _subtotalPO = cartItems.reduce((s, i) => s + i.qty * i.price, 0);
             let deliveryFee = DELIVERY_PRICES[selectedDelivery] ?? FEE_LOCAL;
-            if (!isPickup && FREE_OVER > 0 && _subtotalPO >= FREE_OVER) deliveryFee = 0;
+            if (FREE_OVER > 0 && _subtotalPO >= FREE_OVER) deliveryFee = 0;
             const customerEmail = document.getElementById('coEmail').value.trim();
 
             const btn = document.getElementById('placeOrderBtn');
@@ -641,8 +783,8 @@
                 city: document.getElementById('coCity').value.trim(),
                 province: document.getElementById('coProvince').value.trim(),
                 notes: document.getElementById('coNotes').value.trim(),
-                delivery_method: selectedDelivery,     // keeps pickup_amsterdam / pickup_denbosch
-                delivery_date: selectedDate || '',     // kept for pick-up too
+                delivery_method: selectedDelivery,
+                delivery_date: selectedDate || '',
                 items: cartItems,
             };
 
@@ -677,7 +819,7 @@
 
                 // Remember this customer's address + phone for next time
                 try {
-                    if (window.Api && typeof getToken === 'function' && getToken() && !isPickup) {
+                    if (window.Api && typeof getToken === 'function' && getToken()) {
                         Api.Auth.saveAddress(
                             document.getElementById('coStreet').value.trim(),
                             document.getElementById('coPost').value.trim(),
@@ -725,7 +867,7 @@
                     const d = new Date(selectedDate + 'T00:00:00');
                     const dateStr = d.toLocaleDateString('en-NL', { weekday: 'long', day: 'numeric', month: 'long' });
                     const dateEl = document.getElementById('orderDeliveryDate');
-                    if (dateEl) dateEl.textContent = '📅 ' + (isPickup ? 'Collection' : (t('checkout_delivery') || 'Delivery')) + ': ' + dateStr;
+                    if (dateEl) dateEl.textContent = '📅 ' + (t('checkout_delivery') || 'Delivery') + ': ' + dateStr;
                 }
                 const payBtn = document.getElementById('payOnlineBtn');
                 if (payBtn && res.data.order_ref) {
@@ -803,6 +945,7 @@
                     _setV('mProvince', user.addr_province);
                 }
             }
+            wireContactChecks();
             await loadDeliverySettings();
             toggleBlocks();
             loadSlots();
@@ -882,9 +1025,6 @@
         document.getElementById('coCity').value     = city;
         document.getElementById('coProvince').value = state;
 
-        ['radio-pickup-ams','radio-pickup-db'].forEach(function(id){var el=document.getElementById(id);if(el)el.checked=false;});
-        ['opt-pickup-ams','opt-pickup-db'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.border='1.5px solid var(--border)';});
-
         var mapWrap = document.getElementById('addrMapWrap');
         var mapDiv  = document.getElementById('addrMap');
         if (mapWrap && mapDiv) {
@@ -945,13 +1085,8 @@
 
       var orig=window.placeOrder;
       if(orig) window.placeOrder=function(){
-        var isPickup=typeof selectedDelivery!=='undefined'&&selectedDelivery.startsWith('pickup');
-        if(!isPickup&&!document.getElementById('coStreet').value){
-          if(typeof showToast==='function') showToast('Please fill in your address, or choose pick-up.');
-          return;
-        }
         var zEl=document.getElementById('zoneStatus');
-        if(!isPickup&&zEl&&zEl.dataset.zoneOk==='0'){
+        if(zEl&&zEl.dataset.zoneOk==='0'){
           if(typeof showToast==='function') showToast('We don\'t deliver to this address yet. Contact us.');
           return;
         }

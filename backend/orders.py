@@ -33,6 +33,9 @@ from auth import optional_token, token_required
 from emails import send_order_confirmation, send_order_notification, send_delivery_dispatch
 from trello import create_order_card, move_card, add_comment, get_card_by_order_ref
 from settings_store import get_float
+from validators import (validate_email, validate_phone, validate_name, validate_postcode,
+                        validate_house_number, validate_street, validate_city,
+                        validate_province, validate_notes)
 
 orders_bp = Blueprint('orders', __name__)
 
@@ -41,6 +44,12 @@ orders_bp = Blueprint('orders', __name__)
 STRICT_ITEMS = os.environ.get('STRICT_ITEMS', '') not in ('', '0', 'false', 'False')
 
 PRICE_TOLERANCE = 0.02   # euros — guards against float noise, not against tampering
+
+# Pick-up was withdrawn on 2026-09-12 (manager's decision). The switch is an
+# env var rather than deleted code so it can come back without a deploy:
+# set PICKUP_ENABLED=1 on Render and put the two options back on checkout.html.
+# Orders ALREADY placed for collection are untouched and still export normally.
+PICKUP_ENABLED = os.environ.get('PICKUP_ENABLED', '') in ('1', 'true', 'True', 'yes')
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -210,16 +219,58 @@ def make_ref():
 @optional_token
 def checkout():
     data = request.get_json()
-    delivery_method = data.get('delivery_method', 'delivery_local')
-    is_pickup = (delivery_method or '').strip().startswith('pickup')
+    delivery_method = (data.get('delivery_method') or 'delivery_local').strip()
+    is_pickup = delivery_method.startswith('pickup')
 
-    # Address is required for DELIVERY only — pick-up orders have no delivery address.
-    required = ['first_name', 'last_name', 'email', 'phone', 'items']
-    if not is_pickup:
-        required += ['street', 'postcode', 'city', 'province']
-    for field in required:
-        if not data.get(field):
-            return jsonify({'error': f'Missing required field: {field}'}), 400
+    # Pick-up is withdrawn. A stale cached copy of the site can still offer it,
+    # so refuse it here rather than saving an order nobody will collect.
+    if is_pickup and not PICKUP_ENABLED:
+        return jsonify({'error': 'Collection in person is no longer available — '
+                                 'please enter a delivery address.'}), 400
+
+    if not data.get('items'):
+        return jsonify({'error': 'Cart is empty.'}), 400
+
+    # ── Every field the kitchen and the driver rely on ──────────────────
+    # All of these used to be checked only for "is it non-empty". An address
+    # that cannot be delivered to is as useless as an email that bounces, and
+    # the driver finds out on the day. The page checks the same things first;
+    # this is the copy that a stale cached page or a direct POST cannot skip.
+    first, err = validate_name(data.get('first_name'), 'first name')
+    if err:
+        return jsonify({'error': err}), 400
+    last, err = validate_name(data.get('last_name'), 'last name')
+    if err:
+        return jsonify({'error': err}), 400
+    email, err = validate_email(data.get('email'))
+    if err:
+        return jsonify({'error': err}), 400
+    phone, err = validate_phone(data.get('phone'))
+    if err:
+        return jsonify({'error': err}), 400
+    notes, err = validate_notes(data.get('notes'))
+    if err:
+        return jsonify({'error': err}), 400
+
+    if is_pickup:
+        # Only reachable with PICKUP_ENABLED=1.
+        street   = str(data.get('street') or '').strip()
+        postcode = str(data.get('postcode') or '').strip()
+        city     = str(data.get('city') or '').strip()
+        province = str(data.get('province') or '').strip()
+    else:
+        street, err = validate_street(data.get('street'))
+        if err:
+            return jsonify({'error': err}), 400
+        postcode, err = validate_postcode(data.get('postcode'))
+        if err:
+            return jsonify({'error': err}), 400
+        city, err = validate_city(data.get('city'))
+        if err:
+            return jsonify({'error': err}), 400
+        province, err = validate_province(data.get('province'))
+        if err:
+            return jsonify({'error': err}), 400
 
     # ── Every line must name a real product and a real choice ───────────
     items, err = _validate_items(data.get('items'))
@@ -250,10 +301,9 @@ def checkout():
            delivery_method, delivery_date, items_json, subtotal, delivery_cost, total, status)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending_payment')
     """, (
-        order_ref, user_id, f"{data['first_name']} {data['last_name']}",
-        data['email'], data['phone'], data.get('street', ''), data.get('postcode', ''),
-        data.get('city', ''), data.get('province', ''),
-        data.get('notes', ''), delivery_method, delivery_date,
+        order_ref, user_id, f"{first} {last}",
+        email, phone, street, postcode, city, province,
+        notes, delivery_method, delivery_date,
         json.dumps(items), subtotal, delivery_cost, total))
     conn.commit()
     conn.close()
