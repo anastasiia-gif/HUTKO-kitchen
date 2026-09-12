@@ -1,18 +1,32 @@
 """
 HUTKO — orders.py
-Token-based auth via Authorization header.
+
+v2.0 (2026-09-12) — ORDER LINES ARE NOW VALIDATED SERVER-SIDE.
+  Every item must name the product/bundle it refers to (`id`) and the exact option
+  the customer chose (`variant` for products, `choice` for bundles). The server
+  looks each one up in the live catalogue and REFUSES the order if the choice is
+  missing or isn't a real option. The number of options a product has is
+  irrelevant — 1, 2 or 50, the rule is identical: if the catalogue offers options,
+  the order must name one. That is what stops a flavour being silently lost.
+
+  Prices are re-derived from the catalogue, not trusted from the browser.
+
+  ROLL-OUT SAFETY: an item with no `id` at all is treated as a legacy line from an
+  older cached copy of the website and is allowed through with a log warning, so
+  deploying this backend BEFORE the new frontend cannot break live checkout.
+  Once the frontend is deployed everywhere, set STRICT_ITEMS=1 on Render to
+  reject legacy lines too.
 
 v1.1:
-  • Delivery pricing is area/zone based (fee_local / fee_regional) with free delivery
-    over free_delivery_over — the same settings the checkout page reads, so the recorded
-    fee matches what the customer is charged.
-  • Fixed the admin guard on PUT /orders/<ref>/status (was a dead stub).
+  • Area/zone delivery pricing (fee_local / fee_regional, free over threshold).
+  • Fixed the admin guard on PUT /orders/<ref>/status.
 """
 
 import json
 import os
 import random
 import string
+import time
 from flask import Blueprint, request, jsonify, g, redirect
 from database import get_db
 from auth import optional_token, token_required
@@ -21,6 +35,155 @@ from trello import create_order_card, move_card, add_comment, get_card_by_order_
 from settings_store import get_float
 
 orders_bp = Blueprint('orders', __name__)
+
+# Reject order lines that don't identify their product. Leave off until the new
+# frontend is live everywhere, then set STRICT_ITEMS=1.
+STRICT_ITEMS = os.environ.get('STRICT_ITEMS', '') not in ('', '0', 'false', 'False')
+
+PRICE_TOLERANCE = 0.02   # euros — guards against float noise, not against tampering
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  Catalogue index — what the customer is allowed to have chosen
+# ──────────────────────────────────────────────────────────────────────────
+_cat_cache = {'at': 0.0, 'data': None}
+_CAT_TTL = 30.0     # seconds; admin edits show up within half a minute
+
+
+def _catalogue():
+    """{'products': {id: product}, 'bundles': {id: bundle}} from the live catalogue."""
+    now = time.time()
+    if _cat_cache['data'] is not None and (now - _cat_cache['at']) < _CAT_TTL:
+        return _cat_cache['data']
+    from shop_data import get_products, get_bundles, choice_options
+    prods = {p['id']: p for p in get_products(active_only=False)}
+    bundles = {}
+    for b in get_bundles(active_only=False):
+        b = dict(b)
+        b['_options'] = b.get('choice_options') or choice_options(b)
+        bundles[b['id']] = b
+    data = {'products': prods, 'bundles': bundles}
+    _cat_cache['data'] = data
+    _cat_cache['at'] = now
+    return data
+
+
+def invalidate_catalogue_cache():
+    _cat_cache['data'] = None
+
+
+def _variant_labels(product):
+    return [str(v.get('label') or '') for v in (product.get('variants') or [])]
+
+
+def _variant_price(product, label):
+    for v in (product.get('variants') or []):
+        if str(v.get('label') or '') == label:
+            return float(v.get('price') or 0)
+    return None
+
+
+def _clean(s):
+    return str(s if s is not None else '').strip()
+
+
+def _validate_items(items):
+    """Returns (clean_items, error_message).
+
+    clean_items have server-derived prices and a rebuilt display name, so what is
+    stored on the order can no longer disagree with what the customer chose.
+    """
+    if not isinstance(items, list) or not items:
+        return None, 'Cart is empty.'
+
+    cat = _catalogue()
+    out = []
+
+    for raw in items:
+        if not isinstance(raw, dict):
+            return None, 'Malformed cart item.'
+
+        item_id = _clean(raw.get('id'))
+        kind = _clean(raw.get('kind')).lower()
+        variant = _clean(raw.get('variant'))
+        choice = _clean(raw.get('choice'))
+        name = _clean(raw.get('name'))
+
+        try:
+            qty = int(raw.get('qty') or 0)
+        except (TypeError, ValueError):
+            qty = 0
+        if qty < 1:
+            return None, f'Invalid quantity for "{name or item_id}".'
+
+        # ── Legacy line from an older cached frontend ────────────────────
+        if not item_id:
+            if STRICT_ITEMS:
+                return None, ('Your saved basket is out of date. Please refresh the page '
+                              'and add your items again.')
+            print(f'[CHECKOUT] legacy item with no id: {name!r} — passed through unvalidated')
+            out.append({'name': name, 'qty': qty, 'price': float(raw.get('price') or 0),
+                        'legacy': True})
+            continue
+
+        # ── Work out what this line actually is ─────────────────────────
+        if not kind:
+            kind = 'bundle' if item_id in cat['bundles'] else 'product'
+
+        if kind == 'bundle':
+            bundle = cat['bundles'].get(item_id)
+            if not bundle:
+                return None, f'"{name or item_id}" is no longer available. Please remove it from your basket.'
+            options = bundle.get('_options') or []
+            # THE RULE: if the catalogue offers options at all, one must be named.
+            # No special case for "only one option" — that is how flavours got lost.
+            if options and not choice:
+                return None, (f'Please choose an option for "{name or bundle.get("name_en") or item_id}" '
+                              'before ordering.')
+            if options and choice not in options:
+                return None, (f'"{choice}" is not an available option for '
+                              f'"{name or bundle.get("name_en") or item_id}". Please choose again.')
+            price = float(bundle.get('discount_price') or 0)
+            display = _clean(name) or _clean(bundle.get('name_en')) or item_id
+            if choice and choice not in display:
+                display = f'{display} — {choice}'
+            out.append({'id': item_id, 'kind': 'bundle', 'name': display,
+                        'choice': choice, 'size': _clean(bundle.get('size_label')),
+                        'qty': qty, 'price': price})
+
+        else:
+            product = cat['products'].get(item_id)
+            if not product:
+                return None, f'"{name or item_id}" is no longer available. Please remove it from your basket.'
+            labels = _variant_labels(product)
+            if labels and not variant:
+                return None, (f'Please choose an option for "{name or product.get("name_en") or item_id}" '
+                              'before ordering.')
+            if labels and variant not in labels:
+                return None, (f'"{variant}" is not an available option for '
+                              f'"{name or product.get("name_en") or item_id}". Please choose again.')
+            price = _variant_price(product, variant) if variant else float(product.get('base_price') or 0)
+            if price is None:
+                price = float(product.get('base_price') or 0)
+            display = _clean(name) or _clean(product.get('name_en')) or item_id
+            if variant and variant not in display:
+                display = f'{display} — {variant}'
+            out.append({'id': item_id, 'kind': 'product', 'name': display,
+                        'variant': variant, 'qty': qty, 'price': price})
+
+        # Tell the customer if the price moved under them rather than silently
+        # charging the new one.
+        submitted = raw.get('price')
+        if submitted is not None and not out[-1].get('legacy'):
+            try:
+                if abs(float(submitted) - out[-1]['price']) > PRICE_TOLERANCE:
+                    return None, ('Some prices have changed since you added them. '
+                                  'Please refresh the page and check your basket.')
+            except (TypeError, ValueError):
+                pass
+
+    return out, None
+
 
 def compute_delivery_cost(subtotal, method):
     """Area/zone delivery fee, matching the checkout page.
@@ -58,9 +221,10 @@ def checkout():
         if not data.get(field):
             return jsonify({'error': f'Missing required field: {field}'}), 400
 
-    items = data['items']
-    if not items:
-        return jsonify({'error': 'Cart is empty.'}), 400
+    # ── Every line must name a real product and a real choice ───────────
+    items, err = _validate_items(data.get('items'))
+    if err:
+        return jsonify({'error': err}), 400
 
     subtotal        = sum(i['price'] * i['qty'] for i in items)
     delivery_cost   = compute_delivery_cost(subtotal, delivery_method)
@@ -75,6 +239,8 @@ def checkout():
     while conn.execute(f"SELECT id FROM orders WHERE order_ref={p}", (order_ref,)).fetchone():
         order_ref = make_ref()
 
+    # Pick-up orders keep their chosen date too — the customer is shown a date
+    # picker for pick-up, so throwing the answer away made the slot meaningless.
     delivery_date = data.get('delivery_date', '')
 
     conn.execute("""
@@ -92,9 +258,10 @@ def checkout():
     conn.commit()
     conn.close()
 
-    print(f"[ORDER] Created {order_ref} — awaiting payment")
-    return jsonify({'order_ref': order_ref, 'total': total,
-                    'subtotal': subtotal, 'delivery_cost': delivery_cost, 'status': 'confirmed'}), 201
+    print(f"[ORDER] Created {order_ref} — awaiting payment — {len(items)} line(s)")
+    return jsonify({'order_ref': order_ref, 'total': total, 'items': items,
+                    'subtotal': subtotal, 'delivery_cost': delivery_cost,
+                    'status': 'pending_payment'}), 201
 
 
 @orders_bp.route('/api/orders', methods=['GET'])
@@ -245,8 +412,10 @@ def slots_availability():
     from database import _use_postgres
     p = '%s' if _use_postgres() else '?'
     for date in dates:
+        # Unpaid, abandoned checkouts must not eat a delivery slot forever.
         row = conn.execute(
-            f"SELECT COUNT(*) as cnt FROM orders WHERE delivery_date = {p} AND status != 'cancelled'",
+            f"SELECT COUNT(*) as cnt FROM orders WHERE delivery_date = {p} "
+            f"AND status NOT IN ('cancelled', 'pending_payment')",
             (date,)).fetchone()
         result[date] = row['cnt'] if row else 0
     conn.close()

@@ -5,7 +5,7 @@
     <link rel="icon" type="image/png" href="assets/logos/logo_nav.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout — HUTKO</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=3">
     <style>
         .field { display: flex; flex-direction: column; gap: 5px; }
         .field label { font-size: 13px; font-weight: 600; color: var(--ink); }
@@ -70,7 +70,7 @@
                         </div>
                         <div class="field">
                             <label for="coPhone" data-i18n="checkout_phone">Phone number</label>
-                            <input type="tel" id="coPhone" placeholder="+31 6 00 00 00 00" autocomplete="tel">
+                            <input type="tel" id="coPhone" placeholder="+31 6 00 00 00 00" autocomplete="tel" inputmode="tel">
                             <span class="hint" data-i18n="checkout_hint_phone">So we can reach you if there's a delivery question.</span>
                         </div>
                     </div>
@@ -161,7 +161,7 @@
                 <div class="checkout-block" id="dateBlock">
                     <div class="checkout-block-head">
                         <div class="checkout-block-num">3</div>
-                        <h3 data-i18n="checkout_date_title">Choose delivery date</h3>
+                        <h3 id="dateBlockTitle" data-i18n="checkout_date_title">Choose delivery date</h3>
                     </div>
                     <div class="checkout-block-body">
                         <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;" data-i18n="checkout_date_sub">
@@ -230,11 +230,11 @@
     </div>
 
     <div id="footer-placeholder"></div>
-    <script src="js/api.js"></script>
-    <script src="js/i18n.js"></script>
-    <script src="js/search.js"></script>
-    <script src="js/components.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/api.js?v=3"></script>
+    <script src="js/i18n.js?v=3"></script>
+    <script src="js/search.js?v=3"></script>
+    <script src="js/components.js?v=3"></script>
+    <script src="js/main.js?v=3"></script>
     <!-- Delivery-day text fix: Tuesday & Thursday (corrects legacy "Thursday & Saturday" copy on checkout, all languages) -->
     <script>
       (function () {
@@ -250,6 +250,25 @@
       })();
     </script>
     <script>
+        /* ── HUTKO checkout v2.0 (2026-09-12) ──────────────────────────────
+           1. The order payload now carries each line's product id, kind and the
+              customer's actual choice as separate fields. It used to send only
+              {name, qty, price} with the choice glued into the name by a rule
+              that guessed "product or pack?" from whether the label contained
+              a "·" — and the mlyntsi/zrazy option names contain one in the
+              opposite order, so the FLAVOUR was the half that got thrown away.
+              Nothing is parsed out of a display string any more.
+           2. Pick-up keeps its real location. pickup_amsterdam and
+              pickup_denbosch both used to collapse to "pickup" with the Den
+              Bosch address hardcoded, so an Amsterdam collection was recorded
+              as Den Bosch.
+           3. Pick-up customers are now asked WHICH DAY they are collecting.
+              The date block was hidden for pick-up entirely, so those orders
+              reached the kitchen with no date at all.
+           4. The phone field is checked for actual digits. A real order came in
+              with an email address typed into it, leaving no way to call.
+           ------------------------------------------------------------------ */
+
         // Zone config
         const ZONE_INNER = [{name:'Amsterdam',lat:52.3676,lng:4.9041,km:10},{name:'Den Bosch',lat:51.6978,lng:5.3037,km:10}];
         const ZONE_REGULAR = ['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
@@ -260,6 +279,13 @@
         let detectedZoneType = 'regular'; // 'inner'|'regular'|'contact'|'outside'
         let selectedDelivery = 'delivery_local';
         let selectedDate = null;
+
+        // The two collection points, in one place. Previously the Den Bosch
+        // address was hardcoded into the payload for BOTH of them.
+        const PICKUP_POINTS = {
+            pickup_amsterdam: { street: 'PICKUP: Overtoom 239',    post: '1054 HV', city: 'Amsterdam',          province: 'Noord-Holland'  },
+            pickup_denbosch:  { street: 'PICKUP: Graafseweg 194B', post: '5223 AP', city: "'s-Hertogenbosch",   province: 'Noord-Brabant' },
+        };
 
         async function loadDeliverySettings() {
             try {
@@ -283,11 +309,27 @@
             } catch (e) { /* keep defaults */ }
         }
 
+        function isPickupMode() {
+            return !!(selectedDelivery && selectedDelivery.startsWith('pickup'));
+        }
+
         function toggleBlocks() {
-            const isPickup = selectedDelivery && selectedDelivery.startsWith('pickup');
+            const isPickup = isPickupMode();
             const isContact = detectedZoneType === 'contact';
             const db = document.getElementById('dateBlock');
-            if (db) db.style.display = (isPickup || isContact) ? 'none' : 'block';
+            // Pick-up customers now choose a collection day too. Hiding this block
+            // for pick-up is why those orders arrived with no date on them.
+            if (db) db.style.display = isContact ? 'none' : 'block';
+            const title = document.getElementById('dateBlockTitle');
+            if (title) title.textContent = isPickup ? 'Choose collection date' : (t('checkout_date_title') || 'Choose delivery date');
+            const sub = document.getElementById('dateBlockSub');
+            if (sub) {
+                sub.innerHTML = isPickup
+                    ? (selectedDelivery === 'pickup_amsterdam'
+                        ? 'Collect from <strong>Amsterdam — Overtoom 239</strong>, daily 10:00–22:00.'
+                        : 'Collect from <strong>Den Bosch — Graafseweg 194B</strong>, Mon–Fri during working hours.')
+                    : 'We deliver on <strong>Tuesdays and Thursdays</strong>, 16:00–20:00.';
+            }
         }
 
         // ── DELIVERY DATE SLOTS ─────────────────────────────
@@ -322,14 +364,16 @@
 
         async function loadSlots() {
             const grid = document.getElementById('slotGrid');
-            const mode = selectedDelivery.startsWith('pickup') ? selectedDelivery : 'delivery';
+            const mode = isPickupMode() ? selectedDelivery : 'delivery';
             const upcoming = getUpcomingSlots(mode);
+            selectedDate = null;   // the day list just changed — force a fresh pick
 
             let bookedMap = {};
             try {
                 const ctrl = new AbortController();
                 const tid = setTimeout(() => ctrl.abort(), 4000);
-                const res = await fetch(`${window.Api ? '' : 'https://hutko-kitchen.onrender.com'}/api/slots/availability?dates=${upcoming.map(isoDate).join(',')}`, {signal: ctrl.signal});
+                const API = (window.API_BASE) || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:5000' : 'https://hutko-kitchen.onrender.com');
+                const res = await fetch(`${API}/api/slots/availability?dates=${upcoming.map(isoDate).join(',')}`, {signal: ctrl.signal});
                 clearTimeout(tid);
                 if (res.ok) bookedMap = await res.json();
             } catch (e) { /* timeout or error — show all as available */ }
@@ -360,13 +404,14 @@
         // ── DELIVERY METHOD ─────────────────────────────────
         function selectPickup(location) {
             selectedDelivery = 'pickup_' + location;
+            const pt = PICKUP_POINTS[selectedDelivery];
             document.getElementById('zoneStatus').style.display = 'none';
             document.getElementById('zoneContactNote').style.display = 'none';
             document.getElementById('addrMapWrap').style.display = 'none';
-            document.getElementById('coStreet').value   = location === 'amsterdam' ? 'Overtoom 239' : 'Graafseweg 194B';
-            document.getElementById('coPost').value     = location === 'amsterdam' ? '1054 HV' : '5223 AP';
-            document.getElementById('coCity').value     = location === 'amsterdam' ? 'Amsterdam' : 'Den Bosch';
-            document.getElementById('coProvince').value = location === 'amsterdam' ? 'Noord-Holland' : 'Noord-Brabant';
+            document.getElementById('coStreet').value   = pt.street;
+            document.getElementById('coPost').value     = pt.post;
+            document.getElementById('coCity').value     = pt.city;
+            document.getElementById('coProvince').value = pt.province;
             ['opt-pickup-ams','opt-pickup-db'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.style.border = '1.5px solid var(--border)';
@@ -392,12 +437,14 @@
             document.getElementById('coCity').value     = city;
             document.getElementById('coProvince').value = prov || (area === 'delivery_local' ? 'Noord-Holland' : (area ? 'Netherlands' : ''));
             if (area) {
+                const wasPickup = isPickupMode();
                 selectedDelivery = area;                 // delivery_local | delivery_other
                 detectedZoneType = 'regular';
                 ['radio-pickup-ams', 'radio-pickup-db'].forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
                 ['opt-pickup-ams', 'opt-pickup-db'].forEach(id => { const el = document.getElementById(id); if (el) el.style.border = '1.5px solid var(--border)'; });
                 const z = document.getElementById('zoneStatus'); if (z) z.dataset.zoneOk = '1';
-                toggleBlocks(); loadSlots();
+                toggleBlocks();
+                if (wasPickup) loadSlots();   // pick-up days differ from delivery days
             }
             renderSummary();
         }
@@ -463,20 +510,18 @@
 
             const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
             let delivery = DELIVERY_PRICES[selectedDelivery] ?? FEE_LOCAL;
-            if (!selectedDelivery.startsWith('pickup') && FREE_OVER > 0 && subtotal >= FREE_OVER) delivery = 0;
+            if (!isPickupMode() && FREE_OVER > 0 && subtotal >= FREE_OVER) delivery = 0;
             const total = subtotal + delivery;
 
+            // The chosen option is its own field now — no splitting, no guessing.
             si.innerHTML = items.map(i => {
-              // Show the customer's pack choice / product size under the name
-              const extra = (i.label && i.label !== i.name)
-                ? (i.label.indexOf(' · ') !== -1 ? i.label.split(' · ').slice(1).join(' · ').trim() : i.label.trim())
-                : '';
-              const choiceLine = (extra && i.name.indexOf(extra) === -1)
-                ? `<span style="display:block;font-size:11px;color:#8a8a8a;font-weight:400;margin-top:2px;">↳ ${extra}</span>` : '';
+              const extra = i.kind === 'bundle' ? (i.choice || '') : (i.variant || '');
+              const choiceLine = extra
+                ? `<span style="display:block;font-size:11px;color:#8a8a8a;font-weight:400;margin-top:2px;">↳ ${escapeHtml(extra)}</span>` : '';
               return `
             <div class="summary-item">
-              <span class="summary-item-emoji">${i.emoji || '🍽️'}</span>
-              <span class="summary-item-name">${i.name}${choiceLine}</span>
+              <span class="summary-item-emoji">${escapeHtml(i.emoji || '🍽️')}</span>
+              <span class="summary-item-name">${escapeHtml(i.name)}${choiceLine}</span>
               <span class="summary-item-qty">×${i.qty}</span>
               <span class="summary-item-price">€${(i.qty * i.price).toFixed(2)}</span>
             </div>`;
@@ -490,9 +535,15 @@
             btn.disabled = false;
         }
 
+        function escapeHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
         // ── PLACE ORDER ─────────────────────────────────────
         async function placeOrder() {
-            const isPickup = selectedDelivery && selectedDelivery.startsWith('pickup');
+            const isPickup = isPickupMode();
 
             const contactFields = ['coFirst', 'coLast', 'coEmail', 'coPhone'];
             let ok = true;
@@ -505,6 +556,17 @@
                 showToast('Please fill in your name, email and phone number.');
                 const firstBad = contactFields.find(id => !document.getElementById(id).value.trim());
                 if (firstBad) document.getElementById(firstBad).scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            // A real order arrived with an email address typed into the phone box,
+            // which left no way to call the customer about their collection.
+            const phoneEl = document.getElementById('coPhone');
+            const phoneDigits = (phoneEl.value.match(/\d/g) || []).length;
+            if (phoneDigits < 8) {
+                phoneEl.classList.add('error');
+                phoneEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showToast('Please enter a phone number we can call — at least 8 digits.');
                 return;
             }
 
@@ -526,11 +588,20 @@
                     showToast('Please fill in your postcode, house number, street, city and area — or choose pick-up below.');
                     return;
                 }
+            } else {
+                const pt = PICKUP_POINTS[selectedDelivery] || PICKUP_POINTS.pickup_denbosch;
+                document.getElementById('coStreet').value   = pt.street;
+                document.getElementById('coPost').value     = pt.post;
+                document.getElementById('coCity').value     = pt.city;
+                document.getElementById('coProvince').value = pt.province;
             }
 
-            if (!isPickup && !selectedDate) {
-                document.getElementById('slotError').textContent = t('checkout_date_title') ? 'Please choose a delivery date.' : 'Please choose a delivery date.';
-                document.getElementById('slotError').style.display = 'block';
+            // A date is required for pick-up too — the kitchen has to know when
+            // someone is coming.
+            if (detectedZoneType !== 'contact' && !selectedDate) {
+                const se = document.getElementById('slotError');
+                se.textContent = isPickup ? 'Please choose a collection date.' : 'Please choose a delivery date.';
+                se.style.display = 'block';
                 document.getElementById('dateBlock').scrollIntoView({ behavior: 'smooth' });
                 return;
             }
@@ -539,18 +610,18 @@
             const items = Object.values(cart);
             if (!items.length) return;
 
-            const cartItems = items.map(i => {
-                // Keep the customer's pack choice / product size (stored in the cart "label")
-                // in the item name, so it appears on the order, Trello card, emails and export.
-                let nm = i.name;
-                if (i.label && i.label !== i.name) {
-                    const extra = i.label.indexOf(' · ') !== -1
-                        ? i.label.split(' · ').slice(1).join(' · ').trim()   // bundle: the chosen option
-                        : i.label.trim();                                    // product: the size / variant
-                    if (extra && nm.indexOf(extra) === -1) nm = nm + ' — ' + extra;
-                }
-                return { name: nm, qty: i.qty, price: i.price };
-            });
+            // The customer's choice travels as DATA. `name` is only a label for
+            // humans; the server re-derives it and checks `variant` / `choice`
+            // against the live catalogue before accepting the order.
+            const cartItems = items.map(i => ({
+                id:      i.id,
+                kind:    i.kind || 'product',
+                variant: i.variant || '',
+                choice:  i.choice  || '',
+                name:    (typeof hutkoLineTitle === 'function') ? hutkoLineTitle(i) : i.name,
+                qty:     i.qty,
+                price:   i.price,
+            }));
             const _subtotalPO = cartItems.reduce((s, i) => s + i.qty * i.price, 0);
             let deliveryFee = DELIVERY_PRICES[selectedDelivery] ?? FEE_LOCAL;
             if (!isPickup && FREE_OVER > 0 && _subtotalPO >= FREE_OVER) deliveryFee = 0;
@@ -565,45 +636,56 @@
                 last_name: document.getElementById('coLast').value.trim(),
                 email: customerEmail,
                 phone: document.getElementById('coPhone').value.trim(),
-                street: isPickup ? 'PICKUP: Graafseweg 194B, \'s-Hertogenbosch' : document.getElementById('coStreet').value.trim(),
-                postcode: isPickup ? '' : document.getElementById('coPost').value.trim(),
-                city: isPickup ? '\'s-Hertogenbosch' : document.getElementById('coCity').value.trim(),
-                province: isPickup ? 'Noord-Brabant' : document.getElementById('coProvince').value.trim(),
+                street: document.getElementById('coStreet').value.trim(),
+                postcode: document.getElementById('coPost').value.trim(),
+                city: document.getElementById('coCity').value.trim(),
+                province: document.getElementById('coProvince').value.trim(),
                 notes: document.getElementById('coNotes').value.trim(),
-                delivery_method: selectedDelivery.startsWith('pickup') ? 'pickup' : selectedDelivery,
-                delivery_date: isPickup ? '' : selectedDate,
+                delivery_method: selectedDelivery,     // keeps pickup_amsterdam / pickup_denbosch
+                delivery_date: selectedDate || '',     // kept for pick-up too
                 items: cartItems,
             };
 
             try {
                 const res = await window.Api.Orders.checkout(payload);
                 if (!res.ok) {
-                    showToast(res.data.error || 'Order failed. Please try again.');
+                    // The server refuses a line whose option is missing or unknown.
+                    // Show it — this is the message that stops a lost flavour.
+                    showToast(res.data.error || 'Order failed. Please try again.', 6000);
                     btn.textContent = t('checkout_place') || 'Pay & Order →';
                     btn.disabled = false;
                     return;
                 }
 
+                // Charge exactly what the server validated, not what the browser
+                // thinks the prices are.
+                const serverItems = (res.data.items && res.data.items.length) ? res.data.items : cartItems;
+                const serverFee   = (res.data.delivery_cost != null) ? res.data.delivery_cost : deliveryFee;
+
+                localStorage.removeItem('hutko_cart_v2');
                 localStorage.removeItem('hutko_cart');
+                if (typeof updateCartUI === 'function') updateCartUI();
 
                 // GA4 — purchase (order placed)
                 if (window.gtag) window.gtag('event', 'purchase', {
                     transaction_id: res.data.order_ref || '',
                     currency: 'EUR',
-                    value: _subtotalPO + deliveryFee,
-                    shipping: deliveryFee,
-                    items: cartItems.map(i => ({ item_name: i.name, price: i.price, quantity: i.qty }))
+                    value: (res.data.total != null) ? res.data.total : (_subtotalPO + deliveryFee),
+                    shipping: serverFee,
+                    items: cartItems.map(i => ({ item_name: i.name, item_variant: i.variant || i.choice || '', price: i.price, quantity: i.qty }))
                 });
 
                 // Remember this customer's address + phone for next time
                 try {
-                    if (window.Api && typeof getToken === 'function' && getToken()) {
+                    if (window.Api && typeof getToken === 'function' && getToken() && !isPickup) {
                         Api.Auth.saveAddress(
                             document.getElementById('coStreet').value.trim(),
                             document.getElementById('coPost').value.trim(),
                             document.getElementById('coCity').value.trim(),
                             document.getElementById('coProvince').value.trim()
                         );
+                    }
+                    if (window.Api && typeof getToken === 'function' && getToken()) {
                         Api.Auth.updateProfile(
                             (document.getElementById('coFirst').value.trim() + ' ' + document.getElementById('coLast').value.trim()).trim(),
                             document.getElementById('coPhone').value.trim()
@@ -622,8 +704,8 @@
                         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
                         body: JSON.stringify({
                             order_ref: res.data.order_ref,
-                            items: cartItems,
-                            delivery_fee: deliveryFee,
+                            items: serverItems,
+                            delivery_fee: serverFee,
                             customer_email: customerEmail,
                         }),
                     });
@@ -643,7 +725,7 @@
                     const d = new Date(selectedDate + 'T00:00:00');
                     const dateStr = d.toLocaleDateString('en-NL', { weekday: 'long', day: 'numeric', month: 'long' });
                     const dateEl = document.getElementById('orderDeliveryDate');
-                    if (dateEl) dateEl.textContent = '📅 ' + (t('checkout_delivery') || 'Delivery') + ': ' + dateStr;
+                    if (dateEl) dateEl.textContent = '📅 ' + (isPickup ? 'Collection' : (t('checkout_delivery') || 'Delivery')) + ': ' + dateStr;
                 }
                 const payBtn = document.getElementById('payOnlineBtn');
                 if (payBtn && res.data.order_ref) {
@@ -658,8 +740,8 @@
                                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
                                 body: JSON.stringify({
                                     order_ref: res.data.order_ref,
-                                    items: cartItems,
-                                    delivery_fee: deliveryFee,
+                                    items: serverItems,
+                                    delivery_fee: serverFee,
                                     customer_email: customerEmail,
                                 }),
                             });
@@ -738,7 +820,7 @@
                 if (window.gtag && _c.length) window.gtag('event', 'begin_checkout', {
                     currency: 'EUR',
                     value: _c.reduce((s, i) => s + i.qty * i.price, 0),
-                    items: _c.map(i => ({ item_name: i.name, price: i.price, quantity: i.qty }))
+                    items: _c.map(i => ({ item_name: i.name, item_variant: i.variant || i.choice || '', price: i.price, quantity: i.qty }))
                 });
             } catch (e) {}
         });
@@ -760,6 +842,7 @@
     async function initNominatim(inputId, _unused) {
       var inputEl = document.getElementById(inputId);
       if (!inputEl) return;
+      if (!(window.google && google.maps && google.maps.importLibrary)) return;
 
       var { PlaceAutocompleteElement } = await google.maps.importLibrary('places');
       var { Map, marker: { AdvancedMarkerElement } } = await Promise.all([
@@ -858,13 +941,13 @@
     }
 
     document.addEventListener('DOMContentLoaded', async function(){
-      await initNominatim('addressSearchInput');
+      try { await initNominatim('addressSearchInput'); } catch (e) { /* Google key not authorised — the manual box covers it */ }
 
       var orig=window.placeOrder;
       if(orig) window.placeOrder=function(){
         var isPickup=typeof selectedDelivery!=='undefined'&&selectedDelivery.startsWith('pickup');
         if(!isPickup&&!document.getElementById('coStreet').value){
-          if(typeof showToast==='function') showToast('Please select your address from the dropdown.');
+          if(typeof showToast==='function') showToast('Please fill in your address, or choose pick-up.');
           return;
         }
         var zEl=document.getElementById('zoneStatus');

@@ -1,9 +1,27 @@
 """
 HUTKO — auth.py
 Token-based auth. Works with both SQLite and PostgreSQL.
+
+v2.0 (2026-09-12) — CUSTOMER LOGINS NOW EXPIRE.
+  Previously auth_tokens had no expiry column, get_user_from_token did a plain
+  token->user join with no time check, and nothing ever deleted a row. Every
+  login added another permanent key to the account; a token copied off a shared
+  or stolen laptop worked forever, and logging out only killed the one token.
+
+  Now: 30 days, SLIDING — every authenticated request pushes the expiry back, so
+  a customer who keeps shopping is never logged out, and one who disappears
+  stops being able to authenticate a month later.
+
+  NOBODY IS LOGGED OUT BY THIS DEPLOY. The column is new, so every existing row
+  has expires_at = NULL, and NULL is accepted as "still valid" (and then given a
+  real expiry on first use). Backfill the stragglers when you're ready:
+      UPDATE auth_tokens SET expires_at = datetime(created_at, '+30 days')
+      WHERE expires_at IS NULL;
 """
 
+import os
 import bcrypt
+import random
 import secrets
 from flask import Blueprint, request, jsonify, g
 from database import get_db, _placeholder, _use_postgres
@@ -11,6 +29,8 @@ from functools import wraps
 from emails import send_welcome
 
 auth_bp = Blueprint('auth', __name__)
+
+TOKEN_TTL_DAYS = int(os.environ.get('AUTH_TOKEN_TTL_DAYS', '30'))
 
 
 def _exec(conn, sql, params=()):
@@ -27,6 +47,17 @@ def _p():
     return _placeholder()
 
 
+def _expiry_sql():
+    """Portable 'now + TTL' expression."""
+    if _use_postgres():
+        return f"(NOW() + INTERVAL '{TOKEN_TTL_DAYS} days')"
+    return f"datetime('now', '+{TOKEN_TTL_DAYS} days')"
+
+
+def _now_sql():
+    return "NOW()" if _use_postgres() else "datetime('now')"
+
+
 def hash_password(plain: str) -> str:
     return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
 
@@ -38,7 +69,15 @@ def check_password(plain: str, hashed: str) -> bool:
 def make_token(user_id: int) -> str:
     token = secrets.token_hex(32)
     conn = get_db()
-    _exec(conn, f"INSERT INTO auth_tokens (token, user_id) VALUES ({_p()}, {_p()})", (token, user_id))
+    _exec(conn,
+          f"INSERT INTO auth_tokens (token, user_id, expires_at) "
+          f"VALUES ({_p()}, {_p()}, {_expiry_sql()})",
+          (token, user_id))
+    # Housekeeping, occasionally — not on every login, and never on every
+    # request: this table is written by every visitor.
+    if random.random() < 0.05:
+        _exec(conn, f"DELETE FROM auth_tokens WHERE expires_at IS NOT NULL "
+                    f"AND expires_at <= {_now_sql()}")
     conn.commit()
     conn.close()
     return token
@@ -49,9 +88,21 @@ def get_user_from_token(token: str):
         return None
     conn = get_db()
     row = _exec(conn,
-        f"SELECT u.* FROM users u JOIN auth_tokens t ON t.user_id = u.id WHERE t.token = {_p()}",
+        f"SELECT u.* FROM users u JOIN auth_tokens t ON t.user_id = u.id "
+        f"WHERE t.token = {_p()} "
+        f"AND (t.expires_at IS NULL OR t.expires_at > {_now_sql()})",
         (token,)
     ).fetchone()
+    if row is not None:
+        # Sliding window: an active customer never gets logged out mid-shop.
+        # This also gives pre-v2 tokens (expires_at NULL) a real expiry the
+        # first time they are used.
+        try:
+            _exec(conn, f"UPDATE auth_tokens SET expires_at = {_expiry_sql()} "
+                        f"WHERE token = {_p()}", (token,))
+            conn.commit()
+        except Exception as e:
+            print(f"[AUTH] could not extend token: {e}")
     conn.close()
     return row
 
@@ -176,6 +227,19 @@ def logout():
     return jsonify({'message': 'Logged out.'}), 200
 
 
+# ── LOG OUT EVERYWHERE ───────────────────────────────────
+@auth_bp.route('/api/logout-all', methods=['POST'])
+@token_required
+def logout_all():
+    """Kills every session for this account — the thing to use if a customer
+       thinks someone else has been on their account."""
+    conn = get_db()
+    _exec(conn, f"DELETE FROM auth_tokens WHERE user_id = {_p()}", (g.user['id'],))
+    conn.commit()
+    conn.close()
+    return jsonify({'message': 'Logged out on all devices.'}), 200
+
+
 # ── GET CURRENT USER ─────────────────────────────────────
 @auth_bp.route('/api/me', methods=['GET'])
 @token_required
@@ -203,6 +267,10 @@ def update_profile():
             f"UPDATE users SET name={_p()}, phone={_p()}, password_hash={_p()} WHERE id={_p()}",
             (name, phone, hash_password(pw), g.user['id'])
         )
+        # Changing the password ends every OTHER session, which is what a
+        # password change is usually for.
+        _exec(conn, f"DELETE FROM auth_tokens WHERE user_id={_p()} AND token != {_p()}",
+              (g.user['id'], g.token))
     else:
         _exec(conn,
             f"UPDATE users SET name={_p()}, phone={_p()} WHERE id={_p()}",

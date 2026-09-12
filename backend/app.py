@@ -1,10 +1,15 @@
 """
 HUTKO — app.py
 Token-based auth. No session dependency.
+
+v2.1 (2026-09-12): the nightly backup spreadsheet now includes the customer's
+delivery note and the payment status (both were stored but never exported), and
+writes each item's chosen variant/flavour rather than the raw JSON blob.
 """
 
 import os
 import io
+import json
 import datetime
 import threading
 import time
@@ -18,8 +23,8 @@ from auth             import auth_bp
 from orders           import orders_bp
 from contact          import contact_bp
 from admin            import admin_bp
-from admin_catalog    import catalog_bp      # NEW: products/bundles CRUD, media, import/export
-from admin_settings   import settings_bp     # NEW: delivery rules + site settings
+from admin_catalog    import catalog_bp      # products/bundles CRUD, media, import/export
+from admin_settings   import settings_bp     # delivery rules + site settings
 from trello_webhook   import webhook_bp
 from shop_data        import shop_bp
 from payments         import payments_bp
@@ -58,8 +63,8 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(orders_bp)
 app.register_blueprint(contact_bp)
 app.register_blueprint(admin_bp)
-app.register_blueprint(catalog_bp)     # NEW
-app.register_blueprint(settings_bp)    # NEW
+app.register_blueprint(catalog_bp)
+app.register_blueprint(settings_bp)
 app.register_blueprint(webhook_bp)
 app.register_blueprint(shop_bp)
 app.register_blueprint(payments_bp)
@@ -76,6 +81,22 @@ def not_found(e):
 @app.errorhandler(500)
 def server_error(e):
     return jsonify({'error': 'Internal server error.'}), 500
+
+
+def _items_text(items_json):
+    """Readable item list that always carries the chosen variant/flavour."""
+    try:
+        items = json.loads(items_json)
+    except Exception:
+        return items_json or ''
+    out = []
+    for i in items:
+        name = i.get('name', '')
+        extra = i.get('choice') or i.get('variant') or ''
+        if extra and extra not in name:
+            name = f"{name} — {extra}"
+        out.append(f"{name} x{i.get('qty', 1)}")
+    return " | ".join(out)
 
 
 def _run_backup():
@@ -99,13 +120,16 @@ def _run_backup():
 
         ws1 = wb.active; ws1.title = 'Orders'
         header(ws1, ['ID','Ref','Date','Customer','Email','Phone','Street','Post','City','Province',
-                     'Method','Delivery Date','Items','Subtotal','Delivery','Total','Status'])
+                     'Method','Delivery Date','Items','Notes','Subtotal','Delivery','Total',
+                     'Status','Paid'])
         for r in conn.execute("SELECT * FROM orders ORDER BY created_at DESC").fetchall():
             r = dict(r)
             ws1.append([r['id'], r['order_ref'], r['created_at'], r['customer_name'], r['customer_email'],
                         r['customer_phone'], r['addr_street'], r['addr_postcode'], r['addr_city'], r['addr_province'],
-                        r['delivery_method'], r.get('delivery_date',''), r['items_json'], r['subtotal'],
-                        r['delivery_cost'], r['total'], r['status']])
+                        r['delivery_method'], r.get('delivery_date',''),
+                        _items_text(r.get('items_json')), r.get('delivery_notes',''),
+                        r['subtotal'], r['delivery_cost'], r['total'], r['status'],
+                        r.get('payment_status','')])
         ws2 = wb.create_sheet('Users')
         header(ws2, ['ID','Name','Email','Phone','Street','Post','City','Province','Joined'], '0F6E56')
         for r in conn.execute("SELECT * FROM users ORDER BY created_at DESC").fetchall():
@@ -166,6 +190,14 @@ try:
     _db_ready = True
 except Exception as _e:
     print(f"[STARTUP] DB init error: {_e}")
+
+# Config warnings, printed once at boot so they are visible in Render's log.
+if not os.environ.get('STRIPE_WEBHOOK_SECRET'):
+    print("[STARTUP] ⚠️  STRIPE_WEBHOOK_SECRET is not set — the webhook accepts "
+          "UNSIGNED events, so anyone who finds the URL can mark an order paid.")
+if not os.environ.get('MEDIA_PATH'):
+    print("[STARTUP] ⚠️  MEDIA_PATH is not set — uploaded product photos are on the "
+          "ephemeral disk and will be lost on the next deploy. Set MEDIA_PATH=/data/media")
 
 if os.environ.get('FLASK_ENV') != 'development' or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     threading.Thread(target=_backup_scheduler, daemon=True).start()

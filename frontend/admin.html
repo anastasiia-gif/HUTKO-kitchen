@@ -6,8 +6,8 @@
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/png" href="assets/logos/logo_nav.png">
   <title>HUTKO — Admin</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="css/style.css?v=3">
+  <link rel="stylesheet" href="css/admin.css?v=3">
 </head>
 <body class="admin">
 
@@ -65,7 +65,7 @@
           </div>
           <div class="admin-table-wrap">
             <table class="admin-table">
-              <thead><tr><th style="width:56px;"></th><th>Name</th><th>Category</th><th>Price</th><th>Visible</th><th style="width:120px;"></th></tr></thead>
+              <thead><tr><th style="width:56px;"></th><th>Name</th><th>Category</th><th>Price</th><th>Options</th><th>Visible</th><th style="width:120px;"></th></tr></thead>
               <tbody id="productRows"></tbody>
             </table>
           </div>
@@ -101,7 +101,7 @@
               <div class="field"><label>Local fee (€) — Amsterdam / Den Bosch / Den Haag</label><input class="form-control" id="s_local" type="number" step="0.5"></div>
               <div class="field"><label>Regional fee (€) — rest of the Netherlands</label><input class="form-control" id="s_reg" type="number" step="0.5"></div>
               <div class="field"><label>Free delivery over (€) — all areas</label><input class="form-control" id="s_free" type="number" step="1"></div>
-              <div class="field"><label>Delivery days (text)</label><input class="form-control" id="s_days" placeholder="Tuesday & Thursday"></div>
+              <div class="field"><label>Delivery days (text)</label><input class="form-control" id="s_days" placeholder="Tuesday &amp; Thursday"></div>
               <div class="field"><label>Orders per delivery day</label><input class="form-control" id="s_cap" type="number" step="1"></div>
             </div>
             <button class="btn btn-dark" style="margin-top:14px;" onclick="Admin.saveRules()">Save delivery fees</button>
@@ -121,7 +121,7 @@
 
           <div class="settings-card">
             <h4>Change admin password</h4>
-            <div class="card-sub">At least 8 characters. You'll stay logged in.</div>
+            <div class="card-sub">At least 8 characters. You stay logged in here; every other admin session is ended.</div>
             <div id="pwErr" class="inline-err"></div>
             <div class="field-grid">
               <div class="field"><label>Current password</label><input class="form-control" id="pwCur" type="password"></div>
@@ -154,15 +154,27 @@
           <div class="field"><label>Name (English)</label><input class="form-control" id="bmNameEn"></div>
           <div class="field"><label>Name (Українська)</label><input class="form-control" id="bmNameUa"></div>
           <div class="field"><label>Name (Nederlands)</label><input class="form-control" id="bmNameNl"></div>
-          <div class="field"><label>Size label</label><input class="form-control" id="bmSize" placeholder="Serves 4"></div>
+          <div class="field"><label>Size label</label><input class="form-control" id="bmSize" placeholder="Pack M"></div>
           <div class="field"><label>Original price (€)</label><input class="form-control" id="bmOrig" type="number" step="0.5"></div>
           <div class="field"><label>Discount price (€)</label><input class="form-control" id="bmDisc" type="number" step="0.5"></div>
-          <div class="field"><label>Badge (optional)</label><input class="form-control" id="bmBadge" placeholder="Save €5"></div>
+          <div class="field"><label>Badge (optional)</label><input class="form-control" id="bmBadge" placeholder="Most popular"></div>
         </div>
         <div>
           <label style="font-size:12px;font-weight:600;opacity:.7;">Items in this bundle</label>
           <div id="bmItems" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;"></div>
           <span class="add-link" onclick="Admin.addBundleItem()">＋ add item</span>
+        </div>
+        <div style="margin-top:16px;">
+          <label style="font-size:12px;font-weight:600;opacity:.7;">Customer's choice inside this pack</label>
+          <div class="hint" style="font-size:12px;opacity:.7;margin:4px 0 8px;">
+            Separate the options with <strong>OR</strong> (English), <strong>АБО</strong> (Ukrainian)
+            or <strong>OF</strong> (Dutch). The customer must pick one before the pack can go in the
+            basket, and their pick is written onto the order exactly as typed here.
+            Leave blank if this pack has no choice.
+          </div>
+          <div class="field"><label>Options (English)</label><input class="form-control" id="bmChoiceEn" placeholder="Zrazy 12 pcs OR Chicken balls 16 pcs OR Mlyntsi Sweet (Cottage Cheese) 12 pcs"></div>
+          <div class="field" style="margin-top:8px;"><label>Options (Українська)</label><input class="form-control" id="bmChoiceUa" placeholder="Зрази 12 шт АБО Курячі кульки 16 шт"></div>
+          <div class="field" style="margin-top:8px;"><label>Options (Nederlands)</label><input class="form-control" id="bmChoiceNl" placeholder="Zrazy 12 st OF Chicken balls 16 st"></div>
         </div>
       </div>
       <div class="modal-foot">
@@ -173,6 +185,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script src="js/admin.js"></script>
+  <script src="js/admin.js?v=3"></script>
 </body>
 </html>

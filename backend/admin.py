@@ -1,12 +1,20 @@
 """
-HUTKO — admin.py  (v2)  Token-based admin auth, hardened.
-  • Admin tokens expire (default 12h, ADMIN_TOKEN_TTL_HOURS).
+HUTKO — admin.py  (v3)  Token-based admin auth, hardened.
+  • Admin tokens expire after 12h of INACTIVITY (ADMIN_TOKEN_TTL_HOURS), not 12h
+    of wall-clock. v2 used a hard absolute expiry with no renewal, so a working
+    session was guaranteed to die mid-edit — and admin.js reacted to the 403 by
+    swapping to the login view, which destroyed whatever was typed in the open
+    product panel. That is a large part of "the panel stopped saving variants".
+  • Expired-token cleanup no longer runs a write + commit on EVERY request.
+    On SQLite that serialised all admin traffic and invited "database is locked".
   • Login lockout after repeated wrong passwords.
   • Password changeable from the UI (bcrypt hash in settings; env fallback).
   • Audit log. admin_required exported for other admin blueprints.
+  • Order export now includes the delivery note the customer typed and the
+    payment status — both were stored but missing from the spreadsheet.
 """
 
-import os, io, json, time, secrets
+import os, io, json, time, random, secrets
 from functools import wraps
 from datetime import datetime
 
@@ -72,8 +80,17 @@ def _admin_token_valid(token):
     row = conn.execute(
         f"SELECT token FROM admin_tokens WHERE token={_p} AND (expires_at IS NULL OR expires_at > datetime('now'))",
         (token,)).fetchone()
-    conn.execute("DELETE FROM admin_tokens WHERE expires_at IS NOT NULL AND expires_at <= datetime('now')")
-    conn.commit()
+    if row is not None:
+        # Sliding expiry: 12h of inactivity, not 12h from login. Someone editing
+        # the catalogue all afternoon is not thrown out halfway through.
+        conn.execute(
+            f"UPDATE admin_tokens SET expires_at=datetime('now', '+{TOKEN_TTL_HOURS} hours') WHERE token={_p}",
+            (token,))
+        conn.commit()
+    # Housekeeping roughly 1 request in 50 instead of every single one.
+    if random.random() < 0.02:
+        conn.execute("DELETE FROM admin_tokens WHERE expires_at IS NOT NULL AND expires_at <= datetime('now')")
+        conn.commit()
     conn.close()
     return row is not None
 
@@ -152,6 +169,8 @@ def admin_change_password():
         f"INSERT INTO settings (key, value, updated_at) VALUES ('admin_password_hash', {_p}, datetime('now')) "
         f"ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=datetime('now')",
         (_hash_pw(new),))
+    # Every other admin session ends — that is what changing a password is for.
+    conn.execute(f"DELETE FROM admin_tokens WHERE token != {_p}", (g.admin_token,))
     conn.commit()
     conn.close()
     audit('password_changed')
@@ -168,17 +187,38 @@ def stats():
         return list(row)[0] if row else 0
 
     data = {
-        'total_orders':    count("SELECT COUNT(*) FROM orders"),
-        'total_revenue':   count("SELECT COALESCE(SUM(total),0) FROM orders WHERE status != 'cancelled'"),
+        'total_orders':    count("SELECT COUNT(*) FROM orders WHERE status != 'pending_payment'"),
+        'total_revenue':   count("SELECT COALESCE(SUM(total),0) FROM orders "
+                                 "WHERE status NOT IN ('cancelled','pending_payment')"),
         'total_users':     count("SELECT COUNT(*) FROM users"),
         'newsletter_subs': count("SELECT COUNT(*) FROM newsletter"),
         'unread_messages': count("SELECT COUNT(*) FROM messages"),
-        'pending_orders':  count("SELECT COUNT(*) FROM orders WHERE status='confirmed'"),
+        # "Awaiting action" previously counted only status='confirmed', so paid
+        # orders sitting in any other state were invisible on the dashboard.
+        'pending_orders':  count("SELECT COUNT(*) FROM orders "
+                                 "WHERE status IN ('confirmed','cooking','storage','delivery')"),
+        'unpaid_orders':   count("SELECT COUNT(*) FROM orders WHERE status = 'pending_payment'"),
         'active_products': count("SELECT COUNT(*) FROM products WHERE active=1"),
         'active_bundles':  count("SELECT COUNT(*) FROM bundles WHERE active=1"),
     }
     conn.close()
     return jsonify(data), 200
+
+
+def _items_text(items_json):
+    """One line per item, always carrying the chosen variant/flavour."""
+    try:
+        items = json.loads(items_json)
+    except Exception:
+        return items_json or ''
+    out = []
+    for i in items:
+        name = i.get('name', '')
+        extra = i.get('choice') or i.get('variant') or ''
+        if extra and extra not in name:
+            name = f"{name} — {extra}"
+        out.append(f"{name} x{i.get('qty', 1)}")
+    return " | ".join(out)
 
 
 @admin_bp.route('/api/admin/export', methods=['GET'])
@@ -197,17 +237,17 @@ def export_excel():
     ws1 = wb.active
     ws1.title = "Orders"
     header(ws1, ["Order Ref", "Date", "Customer", "Email", "Phone", "Address", "City",
-                 "Province", "Method", "Delivery Date", "Items", "Subtotal", "Delivery", "Total", "Status"])
+                 "Province", "Method", "Delivery Date", "Items", "Notes",
+                 "Subtotal", "Delivery", "Total", "Status", "Paid"])
     for r in conn.execute("SELECT * FROM orders ORDER BY created_at DESC").fetchall():
         r = dict(r)
-        try:
-            items_str = " | ".join(f"{i['name']} x{i['qty']}" for i in json.loads(r['items_json']))
-        except Exception:
-            items_str = r.get('items_json', '')
         ws1.append([r['order_ref'], str(r['created_at']), r['customer_name'], r['customer_email'],
                     r['customer_phone'], f"{r['addr_street']}, {r['addr_postcode']}", r['addr_city'],
-                    r['addr_province'], r['delivery_method'], r.get('delivery_date', ''), items_str,
-                    r['subtotal'], r['delivery_cost'], r['total'], r['status']])
+                    r['addr_province'], r['delivery_method'], r.get('delivery_date', ''),
+                    _items_text(r.get('items_json')),
+                    r.get('delivery_notes', ''),     # the customer's own instructions
+                    r['subtotal'], r['delivery_cost'], r['total'], r['status'],
+                    r.get('payment_status', '')])
 
     ws2 = wb.create_sheet("Users")
     header(ws2, ["ID", "Name", "Email", "Phone", "Street", "Postcode", "City", "Province", "Registered"], "E8622A")

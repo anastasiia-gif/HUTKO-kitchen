@@ -4,10 +4,18 @@ HUTKO — shop_data.py  (database-backed, with Excel safety fallback)
 Public shop endpoints read products/bundles/settings from the DB with the
 identical JSON shape the site already expects. Until the migration populates the
 DB, it falls back to reading hutko_shop.xlsx so the shop is never empty.
+
+v2.0 (2026-09-12): bundles now publish `choice_options` — the pack's choices
+already split into a list. The browser renders that list and the checkout
+endpoint validates against that same list, so the two can never disagree about
+what a valid choice is. Splitting is first-separator-wins (OR, then АБО, then
+OF) instead of applying all three, which used to tear apart any option
+containing the ordinary English word "of".
 """
 
 import os
 import json
+import re
 from flask import Blueprint, jsonify, request
 from database import get_db
 
@@ -15,6 +23,34 @@ shop_bp = Blueprint('shop', __name__)
 
 EXCEL_PATH = os.environ.get('SHOP_EXCEL_PATH', 'hutko_shop.xlsx')
 _excel_cache = {}
+
+# Separators, in priority order. The FIRST one that actually splits the string
+# wins — applying them all is what broke "Pack of 4 …".
+_CHOICE_SEPARATORS = [r'\s+OR\s+', r'\s+АБО\s+', r'\s+OF\s+']
+
+
+def choice_options(bundle, lang=None):
+    """Return a bundle's selectable options as a list.
+
+    One option is still a list of one — callers must never special-case the
+    count, because "only one option so we can skip recording it" is exactly how
+    a customer's choice disappears.
+    """
+    raw = ''
+    if lang:
+        raw = (bundle.get(f'choice_{lang}') or '').strip()
+    if not raw:
+        for key in ('choice_en', 'choice_ua', 'choice_nl'):
+            raw = (bundle.get(key) or '').strip()
+            if raw:
+                break
+    if not raw:
+        return []
+    for sep in _CHOICE_SEPARATORS:
+        parts = [p.strip() for p in re.split(sep, raw, flags=re.IGNORECASE) if p.strip()]
+        if len(parts) > 1:
+            return parts
+    return [raw]
 
 
 def _db_count(table):
@@ -91,7 +127,7 @@ def _product_to_dict(row, variants_by_id):
 
 def _bundle_to_dict(row):
     d = dict(row)
-    return {
+    out = {
         'id': d['id'], 'name_en': d.get('name_en') or '', 'name_ua': d.get('name_ua') or '',
         'name_nl': d.get('name_nl') or '', 'size_label': d.get('size_label') or '',
         'items': _json_list(d.get('items')), 'original_price': d.get('original_price') or 0,
@@ -99,6 +135,8 @@ def _bundle_to_dict(row):
         'badge': d.get('badge') or '', 'choice_en': d.get('choice_en') or '',
         'choice_ua': d.get('choice_ua') or '', 'choice_nl': d.get('choice_nl') or '',
     }
+    out['choice_options'] = choice_options(out)
+    return out
 
 
 def get_products(active_only=True):
@@ -129,13 +167,15 @@ def get_bundles(active_only=True):
         for b in d['bundles']:
             if active_only and not b.get('active', 1):
                 continue
-            out.append({
+            entry = {
                 'id': b['id'], 'name_en': b['name_en'], 'name_ua': b['name_ua'], 'name_nl': b['name_nl'],
                 'size_label': b['size_label'], 'items': b['items'],
                 'original_price': b['original_price'], 'discount_price': b['discount_price'],
                 'photo': b['photo'], 'badge': b['badge'],
                 'choice_en': b['choice_en'], 'choice_ua': b['choice_ua'], 'choice_nl': b['choice_nl'],
-            })
+            }
+            entry['choice_options'] = choice_options(entry)
+            out.append(entry)
         return out
 
     conn = get_db()

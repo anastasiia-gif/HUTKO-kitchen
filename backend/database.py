@@ -1,10 +1,20 @@
 """
 HUTKO — database.py
 SQLite, stored on Render persistent disk at /data/hutko.db
+(DB_PATH env var — if it is not set this falls back to a RELATIVE path on the
+container's ephemeral disk and your data is wiped on every deploy. Check it.)
 
 v2: adds catalog (products, product_variants, bundles), settings,
     admin_audit; extends delivery_slots and admin_tokens.
     The public shop now reads products from these tables instead of Excel.
+
+v2.1 (2026-09-12): auth_tokens gains expires_at so customer logins can expire.
+    Purely additive — the column is added by ALTER for existing databases and
+    is NULL on every row that already exists, which auth.py treats as "still
+    valid", so nobody who is logged in right now gets kicked out by the deploy.
+    Backfill them once from the Render shell when you're ready:
+        UPDATE auth_tokens SET expires_at = datetime(created_at, '+30 days')
+        WHERE expires_at IS NULL;
 """
 
 import os
@@ -71,7 +81,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS auth_tokens (
             token      TEXT PRIMARY KEY,
             user_id    INTEGER NOT NULL,
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TEXT DEFAULT (datetime('now')),
+            expires_at TEXT
         )
     """)
 
@@ -221,11 +232,21 @@ def init_db():
         "ALTER TABLE orders ADD COLUMN payment_id TEXT",
         "ALTER TABLE orders ADD COLUMN payment_status TEXT DEFAULT 'pending'",
         "ALTER TABLE admin_tokens ADD COLUMN expires_at TEXT",
+        # v2.1 — customer logins can now expire. NULL on existing rows = still
+        # valid, so this deploy logs nobody out.
+        "ALTER TABLE auth_tokens ADD COLUMN expires_at TEXT",
         "ALTER TABLE delivery_slots ADD COLUMN is_open INTEGER NOT NULL DEFAULT 1",
         "ALTER TABLE delivery_slots ADD COLUMN note TEXT",
     ]:
         _safe_alter(conn, sql)
 
+    # Expiry is checked on every authenticated request — worth an index.
+    _safe_alter(conn, "CREATE INDEX IF NOT EXISTS idx_auth_tokens_expires ON auth_tokens(expires_at)")
+    _safe_alter(conn, "CREATE INDEX IF NOT EXISTS idx_orders_delivery_date ON orders(delivery_date)")
+
     conn.commit()
     conn.close()
     print(f"[DB] Initialised (SQLite) at {DB_PATH}")
+    if not os.environ.get('DB_PATH'):
+        print("[DB] ⚠️  DB_PATH is not set — this database is on the container's "
+              "ephemeral disk and WILL be wiped on the next deploy. Set DB_PATH=/data/hutko.db")

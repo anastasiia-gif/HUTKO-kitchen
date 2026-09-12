@@ -1,7 +1,13 @@
 /* ── HUTKO — api.js ──────────────────────────────────────
    Single source of truth for all backend API calls.
-   Token-based auth: saves JWT to localStorage, sends as
+   Token-based auth: saves the token to localStorage, sends as
    Authorization: Bearer <token> on every request.
+
+   v2.0 (2026-09-12): customer logins now expire server-side (30 days, sliding).
+   apiCall therefore treats a 401 as "this session is over" and clears the stale
+   token + cached user, so the site can't sit in a half-logged-in state showing
+   a name it can no longer authenticate. A network error (status 0 — Render
+   cold start, CORS, flaky wifi) is NOT treated as a logout.
    ─────────────────────────────────────────────────────── */
 
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
@@ -27,6 +33,9 @@ function getUser() {
 window.getToken = getToken;
 window.getUser = getUser;
 
+/* Endpoints where a 401 means "wrong password", not "your session ended". */
+const NO_LOGOUT_ON_401 = ['/api/login', '/api/register', '/api/admin/login'];
+
 /* ── CORE FETCH ──────────────────────────────────────── */
 async function apiCall(method, path, body = null) {
     const headers = { 'Content-Type': 'application/json' };
@@ -39,6 +48,12 @@ async function apiCall(method, path, body = null) {
     try {
         const res = await fetch(API_BASE + path, opts);
         const data = await res.json();
+        if (res.status === 401 && token && !NO_LOGOUT_ON_401.some(p => path.startsWith(p))) {
+            clearToken();
+            if (typeof window.onSessionExpired === 'function') {
+                try { window.onSessionExpired(); } catch (e) { /* never block the caller */ }
+            }
+        }
         return { ok: res.ok, status: res.status, data };
     } catch (err) {
         console.error(`API error [${method} ${path}]:`, err);
@@ -70,6 +85,11 @@ const Auth = {
     },
     async logout() {
         const res = await apiCall('POST', '/api/logout');
+        clearToken();
+        return res;
+    },
+    async logoutEverywhere() {
+        const res = await apiCall('POST', '/api/logout-all');
         clearToken();
         return res;
     },
@@ -161,11 +181,9 @@ async function syncSession() {
             fill('coCity', user.addr_city);
             fill('coProvince', user.addr_province);
         }
-    } else if (res.status === 401) {
-        // Only clear on a real rejected-token response.
-        // status 0 = network error / CORS / cold-start — keep the user logged in.
-        clearToken();
     }
+    // A 401 has already cleared the token inside apiCall.
+    // status 0 = network error / CORS / cold-start — the user stays logged in.
 }
 
 window.Api = { Auth, Orders, Contact, Shop, Admin };

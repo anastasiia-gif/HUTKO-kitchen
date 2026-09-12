@@ -1,6 +1,23 @@
-/* ── HUTKO — admin.js (v1.1) ──────────────────────────────────
+/* ── HUTKO — admin.js (v2.0) ──────────────────────────────────
    Self-contained admin client. Products are edited INLINE (expand
    in place); bundles use a modal. Uses its own admin token.
+
+   v2.0 (2026-09-12) — two fixes that between them explain "the panel
+   stopped saving variants":
+
+   1. A 403 no longer destroys what you were typing. The old handler called
+      showLogin(), which hides #appView — and the expanded product panel lives
+      inside it. Everything typed was thrown away, and the error message was
+      written into an element that had just been hidden, so all you saw was a
+      toast. Now, if an editor is open, the panel stays exactly as it is and a
+      re-login bar appears above it: type the password, press Save again, done.
+      (The backend now also slides the session on every request, so a 12h
+      session means 12h idle rather than 12h from login.)
+
+   2. A variant row with a price but no label is no longer silently dropped.
+      fillPanel() seeds a product that has no variants with {label: p.unit},
+      so for any product with no `unit` set that seeded row was blank — you
+      typed a price into a visible row, pressed Save, and it vanished.
    ───────────────────────────────────────────────────────────── */
 const Admin = (() => {
   const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
@@ -22,6 +39,42 @@ const Admin = (() => {
   function toast(msg) { const el = $('toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2600); }
   function err(id, msg) { const el = $(id); if (!el) return; if (!msg) { el.classList.remove('show'); return; } el.textContent = msg; el.classList.add('show'); }
 
+  /* Is there unsaved work on screen right now? */
+  function editorOpen() {
+    return !!(document.querySelector('tr.expand-row') ||
+              document.querySelector('.modal-overlay.show'));
+  }
+
+  /* Re-login WITHOUT tearing down the open editor. */
+  function showReauthBar() {
+    if ($('reauthBar')) return;
+    const bar = document.createElement('div');
+    bar.id = 'reauthBar';
+    bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;padding:12px 16px;'
+      + 'background:#FFF3CD;color:#856404;border-bottom:1px solid #FFD761;display:flex;'
+      + 'gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:14px;';
+    bar.innerHTML =
+      '<span>Your admin session expired. <strong>Nothing you typed has been lost</strong> — '
+      + 'log back in here, then press Save again.</span>'
+      + '<input id="reauthPass" type="password" placeholder="Admin password" '
+      + 'style="padding:8px 12px;border:1.5px solid #E0C97F;border-radius:8px;font-size:14px;">'
+      + '<button id="reauthBtn" style="padding:8px 16px;border:none;border-radius:8px;'
+      + 'background:#1B3FCE;color:#fff;font-weight:600;cursor:pointer;">Log back in</button>';
+    document.body.appendChild(bar);
+    const go = async () => {
+      const pass = $('reauthPass').value;
+      if (!pass) return;
+      const r = await api('POST', '/api/admin/login', { password: pass });
+      if (!r.ok) { $('reauthPass').value = ''; toast(r.data.error || 'Wrong password.'); return; }
+      setToken(r.data.token);
+      bar.remove();
+      toast('Logged back in — press Save again.');
+    };
+    $('reauthBtn').onclick = go;
+    $('reauthPass').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+    $('reauthPass').focus();
+  }
+
   async function api(method, path, body, isForm) {
     const headers = {}; const t = token();
     if (t) headers['Authorization'] = 'Bearer ' + t;
@@ -31,7 +84,16 @@ const Admin = (() => {
     try { res = await fetch(API_BASE + path, opts); }
     catch (e) { return { ok: false, status: 0, data: { error: 'Network error. Is the server awake?' } }; }
     try { data = await res.json(); } catch (e) { data = {}; }
-    if (res.status === 403 && t) { clearToken(); showLogin(); toast('Session expired — please log in again.'); }
+    if (res.status === 403 && t && !path.endsWith('/api/admin/login')) {
+      clearToken();
+      if (editorOpen()) {
+        // Keep the half-finished product on screen. This is the whole point.
+        showReauthBar();
+      } else {
+        showLogin();
+        toast('Session expired — please log in again.');
+      }
+    }
     return { ok: res.ok, status: res.status, data };
   }
 
@@ -45,7 +107,7 @@ const Admin = (() => {
     const r = await api('POST', '/api/admin/login', { password: pass });
     if (!r.ok) { err('loginErr', r.data.error || 'Login failed.'); return; }
     setToken(r.data.token); $('loginPass').value = '';
-    if (r.data.expires_hours) $('tokenNote').textContent = `session ${r.data.expires_hours}h`;
+    if (r.data.expires_hours) $('tokenNote').textContent = `session ${r.data.expires_hours}h idle`;
     showApp(); boot();
   }
   async function logout() { await api('POST', '/api/admin/logout'); clearToken(); showLogin(); }
@@ -64,7 +126,8 @@ const Admin = (() => {
     const s = r.data;
     const cards = [
       ['Orders', s.total_orders, false], ['Revenue', '€' + Number(s.total_revenue || 0).toFixed(2), true],
-      ['Awaiting action', s.pending_orders, true], ['Active products', s.active_products, false],
+      ['Awaiting action', s.pending_orders, true], ['Unpaid / abandoned', s.unpaid_orders ?? 0, false],
+      ['Active products', s.active_products, false],
       ['Active bundles', s.active_bundles, false], ['Customers', s.total_users, false],
       ['Subscribers', s.newsletter_subs, false], ['Messages', s.unread_messages, false],
     ];
@@ -99,13 +162,14 @@ const Admin = (() => {
         </td>
         <td>${esc(p.category || '—')}</td>
         <td>€${Number(p.base_price || 0).toFixed(2)}</td>
+        <td>${(p.variants || []).length} option${(p.variants || []).length === 1 ? '' : 's'}</td>
         <td><label class="switch"><input type="checkbox" ${p.active ? 'checked' : ''} onchange="Admin.toggleActive('${esc(p.id)}',this.checked)"><span class="track"></span></label></td>
         <td><div class="row-actions">
           <button class="icon-btn" title="Edit" onclick="Admin.toggleProduct('${esc(p.id)}')">✏️</button>
           <button class="icon-btn danger" title="Delete" onclick="Admin.deleteProduct('${esc(p.id)}')">🗑</button>
         </div></td>
       </tr>`).join('');
-    $('productRows').innerHTML = rows || `<tr><td colspan="6"><div class="empty-state"><div class="big">🥟</div>No products yet — add your first dish.</div></td></tr>`;
+    $('productRows').innerHTML = rows || `<tr><td colspan="7"><div class="empty-state"><div class="big">🥟</div>No products yet — add your first dish.</div></td></tr>`;
   }
 
   const LANG_FIELDS = [
@@ -156,9 +220,14 @@ const Admin = (() => {
         <div id="pe-pane-nl" class="lang-pane"></div>
       </div>
       <div>
-        <label style="font-size:12px;font-weight:600;opacity:.7;">Variants (size / price options)</label>
+        <label style="font-size:12px;font-weight:600;opacity:.7;">Options (size / flavour — the customer picks one)</label>
+        <div class="hint" style="font-size:12px;opacity:.7;margin:4px 0 6px;">
+          Every option needs a <strong>name</strong>. The customer's choice is recorded on the order
+          by this exact text, so write it the way you want to read it in the kitchen —
+          e.g. “Sweet Cottage Cheese · 6 pcs”.
+        </div>
         <div id="peVariants" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;"></div>
-        <span class="add-link" onclick="Admin.addVariant()">＋ add variant</span>
+        <span class="add-link" onclick="Admin.addVariant()">＋ add option</span>
       </div>
       <div class="panel-actions">
         <button class="btn btn-outline" onclick="Admin.closePanel()">Cancel</button>
@@ -184,7 +253,14 @@ const Admin = (() => {
     if (p) {
       LANG_FIELDS.forEach(([f]) => ['en', 'ua', 'nl'].forEach(l => { const el = $(`pe_${f}_${l}`); if (el) el.value = p[`${f}_${l}`] || ''; }));
       if (p.photo) setPhoto('pe', p.photo);
-      (p.variants && p.variants.length ? p.variants : [{ label: p.unit, price: p.base_price }]).forEach(v => addVariant(v.label, v.price));
+      if (p.variants && p.variants.length) {
+        p.variants.forEach(v => addVariant(v.label, v.price));
+      } else {
+        // Seed one row from the product's own unit/price. If `unit` is empty the
+        // label is blank — which used to mean the row was silently dropped on
+        // save. It is now kept and flagged instead.
+        addVariant(p.unit || '', p.base_price ?? '');
+      }
     } else { addVariant(); }
   }
   function toggleProduct(id) {
@@ -195,22 +271,22 @@ const Admin = (() => {
     const prow = $('prow-' + id);
     if (!prow) return;
     prow.classList.add('open');
-    prow.insertAdjacentHTML('afterend', `<tr class="expand-row" data-for="${esc(id)}"><td colspan="6"><div class="expand-panel">${panelHTML()}</div></td></tr>`);
+    prow.insertAdjacentHTML('afterend', `<tr class="expand-row" data-for="${esc(id)}"><td colspan="7"><div class="expand-panel">${panelHTML()}</div></td></tr>`);
     _editPid = id;
     fillPanel(PRODUCTS.find(p => p.id === id));
   }
   function openNewProduct() {
     closePanel();
     const tb = $('productRows');
-    tb.insertAdjacentHTML('afterbegin', `<tr class="expand-row" data-for="__new"><td colspan="6"><div class="expand-panel">${panelHTML()}</div></td></tr>`);
+    tb.insertAdjacentHTML('afterbegin', `<tr class="expand-row" data-for="__new"><td colspan="7"><div class="expand-panel">${panelHTML()}</div></td></tr>`);
     _editPid = null;
     fillPanel(null);
     const el = $('pe_name_en'); if (el) { el.focus(); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
   }
   function addVariant(label = '', price = '') {
     const row = document.createElement('div'); row.className = 'builder-row';
-    row.innerHTML = `<input class="form-control v-label" placeholder="Label (e.g. 10 pcs)" value="${esc(label)}">
-      <input class="form-control v-price" type="number" step="0.5" placeholder="€" value="${price}" style="max-width:110px">
+    row.innerHTML = `<input class="form-control v-label" placeholder="Option name (e.g. Sweet Cottage Cheese · 6 pcs)" value="${esc(label)}">
+      <input class="form-control v-price" type="number" step="0.5" placeholder="€" value="${esc(price)}" style="max-width:110px">
       <button class="icon-btn" onclick="this.parentElement.remove()">✕</button>`;
     $('peVariants').appendChild(row);
   }
@@ -223,16 +299,37 @@ const Admin = (() => {
       photo: $('pePhoto').value, gallery: _gallery.slice(), variants: [],
     };
     LANG_FIELDS.forEach(([f]) => ['en', 'ua', 'nl'].forEach(l => { payload[`${f}_${l}`] = ($(`pe_${f}_${l}`) || {}).value || ''; }));
+
+    let unnamed = 0;
     document.querySelectorAll('#peVariants .builder-row').forEach(r => {
       const label = r.querySelector('.v-label').value.trim();
-      const price = parseFloat(r.querySelector('.v-price').value) || 0;
-      if (label) payload.variants.push({ label, price });
+      const rawPrice = r.querySelector('.v-price').value.trim();
+      const price = parseFloat(rawPrice) || 0;
+      if (!label && !rawPrice) return;             // genuinely empty row — ignore
+      if (!label) { unnamed++; r.querySelector('.v-label').classList.add('error'); return; }
+      payload.variants.push({ label, price });
     });
+    // A row with a price but no name used to disappear without a word. Now it
+    // stops the save and points at the row, because an unnamed option is
+    // exactly how a customer's choice becomes unreadable on the order.
+    if (unnamed) {
+      err('peErr', `${unnamed} option${unnamed === 1 ? ' has' : 's have'} a price but no name. `
+        + 'Give each option a name (the customer sees it, and it is what gets recorded on the order), '
+        + 'or remove the row with ✕.');
+      return;
+    }
     if (!payload.name_en) { err('peErr', 'Please add at least an English name.'); return; }
+
     let r;
     if (_editPid) r = await api('PUT', `/api/admin/products/${_editPid}`, payload);
     else { payload.active = true; r = await api('POST', '/api/admin/products', payload); }
-    if (!r.ok) { err('peErr', r.data.error || 'Could not save.'); return; }
+    if (!r.ok) {
+      // If the session expired, the re-login bar is already up and the panel is
+      // intact — say so instead of a generic failure.
+      if (r.status === 403) { err('peErr', 'Session expired — log back in at the top of the page, then press Save again. Your text is still here.'); return; }
+      err('peErr', r.data.error || 'Could not save.');
+      return;
+    }
     toast('Product saved ✓'); loadProducts(); loadDashboard();
   }
   async function toggleActive(id, active) {
@@ -274,6 +371,7 @@ const Admin = (() => {
     $('bmNameEn').value = b?.name_en || ''; $('bmNameUa').value = b?.name_ua || ''; $('bmNameNl').value = b?.name_nl || '';
     $('bmSize').value = b?.size_label || ''; $('bmOrig').value = b ? (b.original_price || '') : '';
     $('bmDisc').value = b ? (b.discount_price || '') : ''; $('bmBadge').value = b?.badge || '';
+    if ($('bmChoiceEn')) { $('bmChoiceEn').value = b?.choice_en || ''; $('bmChoiceUa').value = b?.choice_ua || ''; $('bmChoiceNl').value = b?.choice_nl || ''; }
     if (b?.photo) setPhoto('bm', b.photo);
     if (b && b.items && b.items.length) b.items.forEach(it => addBundleItem(it.product_id, it.qty)); else addBundleItem();
     openModal('bundleModal');
@@ -282,7 +380,7 @@ const Admin = (() => {
     const opts = PRODUCTS.map(p => `<option value="${esc(p.id)}" ${p.id === pid ? 'selected' : ''}>${esc(p.name_en || p.id)}</option>`).join('');
     const row = document.createElement('div'); row.className = 'builder-row';
     row.innerHTML = `<select class="form-control bi-pid">${opts || '<option value="">(add products first)</option>'}</select>
-      <input class="form-control bi-qty" type="number" min="1" value="${qty}" style="max-width:90px">
+      <input class="form-control bi-qty" type="number" min="1" value="${esc(qty)}" style="max-width:90px">
       <button class="icon-btn" onclick="this.parentElement.remove()">✕</button>`;
     $('bmItems').appendChild(row);
   }
@@ -299,11 +397,19 @@ const Admin = (() => {
       original_price: parseFloat($('bmOrig').value) || 0, discount_price: parseFloat($('bmDisc').value) || 0,
       photo: $('bmPhoto').value, items,
     };
+    if ($('bmChoiceEn')) {
+      payload.choice_en = $('bmChoiceEn').value.trim();
+      payload.choice_ua = $('bmChoiceUa').value.trim();
+      payload.choice_nl = $('bmChoiceNl').value.trim();
+    }
     if (!payload.name_en) { err('bmErr', 'Please add an English name.'); return; }
     let r;
     if (_editBid) r = await api('PUT', `/api/admin/bundles/${_editBid}`, payload);
     else { payload.active = true; r = await api('POST', '/api/admin/bundles', payload); }
-    if (!r.ok) { err('bmErr', r.data.error || 'Could not save.'); return; }
+    if (!r.ok) {
+      if (r.status === 403) { err('bmErr', 'Session expired — log back in at the top of the page, then press Save again. Your text is still here.'); return; }
+      err('bmErr', r.data.error || 'Could not save.'); return;
+    }
     closeModal('bundleModal'); toast('Bundle saved ✓'); loadBundles(); loadDashboard();
   }
   async function toggleBundle(id, active) {

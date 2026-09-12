@@ -1,4 +1,17 @@
-/* ── HUTKO — main.js ──────────────────────────────── */
+/* ── HUTKO — main.js ────────────────────────────────
+   v2.0 (2026-09-12) — THE CART NOW CARRIES THE CUSTOMER'S CHOICE AS DATA.
+
+   Every cart line stores what was chosen in its own field — `variant` for a
+   product size/flavour, `choice` for a pack option — instead of smuggling it
+   inside a display string that later code had to guess at and re-split. Nothing
+   anywhere branches on HOW MANY options a thing has: a product with one flavour
+   records its flavour exactly like a product with eight, so adding a new flavour
+   can never quietly change behaviour.
+
+   hutkoLineTitle() is the ONLY place a human-readable line is built. The cart
+   panel, the checkout summary, the order, Stripe, the emails and the Trello card
+   all call it, so they can no longer disagree with each other.
+   ------------------------------------------------------------------------- */
 
 /* SCROLL REVEAL */
 const revealObserver = new IntersectionObserver((entries) => {
@@ -17,22 +30,93 @@ function showToast(msg, duration = 3200) {
 }
 window.showToast = showToast;
 
-/* ── CART ─────────────────────────────────────────── */
-const CART_KEY = 'hutko_cart';
-function getCart() { try { return JSON.parse(localStorage.getItem(CART_KEY)) || {}; } catch { return {}; } }
-function saveCart(cart) { localStorage.setItem(CART_KEY, JSON.stringify(cart)); updateCartUI(); }
+/* ── CART ───────────────────────────────────────────
+   Cart line shape (v2):
+     { id, kind:'product'|'bundle', name, emoji, price, qty,
+       variant: '',   // chosen product size/flavour, verbatim from the catalogue
+       choice:  '',   // chosen pack option, verbatim from the catalogue
+       size:    '' }  // pack size label, for the record
+   ------------------------------------------------------------------------- */
+const CART_KEY     = 'hutko_cart_v2';
+const CART_KEY_OLD = 'hutko_cart';
 
-function addToCart(id, name, emoji, price, label) {
+function _esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* The single source of truth for how a cart line reads to a human.
+   It never drops a choice — duplication would be ugly, losing a flavour is a
+   phone call to the customer. */
+function hutkoLineTitle(item) {
+  if (!item) return '';
+  const name = String(item.name || item.id || '');
+  const extra = item.kind === 'bundle' ? (item.choice || '') : (item.variant || '');
+  return extra ? `${name} — ${extra}` : name;
+}
+window.hutkoLineTitle = hutkoLineTitle;
+
+/* Identity of a cart line. Two different flavours of the same product are two
+   different lines, always — no matter how many flavours exist. */
+function hutkoCartKey(item) {
+  return [item.kind || 'product', item.id || '', item.variant || '', item.choice || ''].join('|');
+}
+window.hutkoCartKey = hutkoCartKey;
+
+function getCart() {
+  try {
+    const raw = localStorage.getItem(CART_KEY);
+    if (raw) return JSON.parse(raw) || {};
+  } catch (e) { return {}; }
+  /* A basket saved by the old website stored the choice as an ambiguous string
+     that can no longer be interpreted safely. Rather than guess (and risk
+     cooking the wrong thing) we drop it — an abandoned basket is worth far less
+     than a correct order. */
+  try {
+    if (localStorage.getItem(CART_KEY_OLD)) localStorage.removeItem(CART_KEY_OLD);
+  } catch (e) { /* ignore */ }
+  return {};
+}
+
+function saveCart(cart) {
+  try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) { /* private mode */ }
+  updateCartUI();
+}
+
+/* addToCart({ id, kind, name, emoji, price, variant, choice, size })
+   The old positional form addToCart(id, name, emoji, price, label) still works,
+   so a page that hasn't been updated yet keeps functioning instead of throwing. */
+function addToCart(a, name, emoji, price, label) {
+  const item = (a && typeof a === 'object')
+    ? a
+    : { id: a, kind: 'product', name: name, emoji: emoji, price: price, variant: label || '' };
+
+  const line = {
+    id:      String(item.id || ''),
+    kind:    item.kind === 'bundle' ? 'bundle' : 'product',
+    name:    String(item.name || ''),
+    emoji:   item.emoji || '🍽️',
+    price:   Number(item.price) || 0,
+    variant: String(item.variant || ''),
+    choice:  String(item.choice || ''),
+    size:    String(item.size || ''),
+    qty:     1,
+  };
+
   const cart = getCart();
-  const key  = `${id}_${label}`;
-  if (cart[key]) { cart[key].qty++; } else { cart[key] = { id, name, emoji, price, label, qty:1 }; }
+  const key  = hutkoCartKey(line);
+  if (cart[key]) cart[key].qty++; else cart[key] = line;
   saveCart(cart);
+
   if (window.gtag) window.gtag('event', 'add_to_cart', {
-    currency: 'EUR', value: Number(price) || 0,
-    items: [{ item_id: id, item_name: name, item_variant: label, price: Number(price) || 0, quantity: 1 }]
+    currency: 'EUR', value: line.price,
+    items: [{ item_id: line.id, item_name: line.name,
+              item_variant: line.variant || line.choice || '',
+              price: line.price, quantity: 1 }]
   });
   const tr = (typeof window.t === 'function') ? window.t : (k) => k;
-  showToast(`✓ ${name} ${tr('shop_added') || 'added'}`);
+  showToast(`✓ ${hutkoLineTitle(line)} ${tr('shop_added') || 'added'}`);
 }
 
 function changeQty(key, delta) {
@@ -45,7 +129,8 @@ function changeQty(key, delta) {
 
 function updateCartUI() {
   const cart  = getCart();
-  const items = Object.values(cart);
+  const keys  = Object.keys(cart);
+  const items = keys.map(k => cart[k]);
   const count = items.reduce((s,i) => s+i.qty, 0);
   const total = items.reduce((s,i) => s+i.qty*i.price, 0);
 
@@ -62,22 +147,26 @@ function updateCartUI() {
     listEl.innerHTML = '<div class="cart-empty">Your cart is empty.<br>Add some delicious food!</div>';
     return;
   }
-  listEl.innerHTML = items.map(item => `
+  listEl.innerHTML = keys.map(key => {
+    const item  = cart[key];
+    const extra = item.kind === 'bundle' ? (item.choice || item.size || '') : (item.variant || '');
+    return `
     <div class="cart-item">
-      <div class="ci-icon">${item.emoji}</div>
+      <div class="ci-icon">${_esc(item.emoji)}</div>
       <div class="ci-info">
-        <div class="ci-name">${item.name}</div>
-        <div class="ci-variant">${item.label}</div>
+        <div class="ci-name">${_esc(item.name)}</div>
+        <div class="ci-variant">${_esc(extra)}</div>
         <div class="ci-row">
           <span class="ci-price">€${(item.qty * item.price).toFixed(2)}</span>
           <div class="ci-qty">
-            <button class="ci-qbtn" onclick="changeQty('${item.id}_${item.label}',-1);updateCartUI()">−</button>
+            <button class="ci-qbtn" data-key="${_esc(key)}" data-delta="-1">−</button>
             <span class="ci-qnum">${item.qty}</span>
-            <button class="ci-qbtn" onclick="changeQty('${item.id}_${item.label}',1);updateCartUI()">+</button>
+            <button class="ci-qbtn" data-key="${_esc(key)}" data-delta="1">+</button>
           </div>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function toggleCart() {
@@ -89,7 +178,9 @@ function toggleCart() {
     const items = Object.values(getCart());
     window.gtag('event', 'view_cart', {
       currency: 'EUR', value: items.reduce((s, i) => s + i.qty * i.price, 0),
-      items: items.map(i => ({ item_id: i.id, item_name: i.name, price: i.price, quantity: i.qty }))
+      items: items.map(i => ({ item_id: i.id, item_name: hutkoLineTitle(i),
+                               item_variant: i.variant || i.choice || '',
+                               price: i.price, quantity: i.qty }))
     });
   }
 }
@@ -100,7 +191,15 @@ window.changeQty    = changeQty;
 window.getCart      = getCart;
 window.updateCartUI = updateCartUI;
 
+/* Quantity buttons are bound by delegation rather than inline onclick, because
+   a flavour like  Chicken, Mushrooms & Cheese · 6 pcs  cannot be safely pasted
+   into an onclick="" string. */
 document.addEventListener('click', e => {
+  const btn = e.target.closest && e.target.closest('.ci-qbtn[data-key]');
+  if (btn) {
+    changeQty(btn.getAttribute('data-key'), parseInt(btn.getAttribute('data-delta'), 10) || 0);
+    return;
+  }
   if (e.target.id === 'cartOverlay' || e.target.id === 'cartClose') toggleCart();
 });
 
