@@ -153,8 +153,6 @@
                         <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">
                             <span id="dateBlockSub">Delivery between 16:00 and 20:00. The dates you can pick depend on your address · max. 15 orders per day.</span>
                         </p>
-                        <!-- Zone, its rule and the nearest date — filled in by loadSlots() -->
-                        <div id="dateRule" style="display:none;font-size:13.5px;line-height:1.5;color:var(--blue);background:var(--cream);border-radius:10px;padding:10px 14px;margin:0 0 12px;"></div>
                         <div id="slotGrid" class="slot-grid">
                             <div class="slot-loading">Enter your postcode and house number above to see your delivery dates.</div>
                         </div>
@@ -299,18 +297,21 @@
                   enter: 'Enter your postcode and house number above to see your delivery dates.',
                   outside: 'No fixed delivery dates for this address — contact us and we will arrange it.',
                   next: 'Next delivery', none: 'No dates available right now — please contact us.',
+                  hours: '16:00–20:00 · max. 15 orders per day',
                   spots: 'spots left', full: 'Full',
                   days: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] },
             ua: { sub: 'Доставка з 16:00 до 20:00. Доступні дати залежать від вашої адреси · макс. 15 замовлень на день.',
                   enter: 'Введіть індекс і номер будинку вище, щоб побачити дати доставки.',
                   outside: 'Для цієї адреси немає фіксованих дат — зв\'яжіться з нами, і ми домовимося.',
                   next: 'Найближча доставка', none: 'Зараз немає доступних дат — зв\'яжіться з нами.',
+                  hours: '16:00–20:00 · макс. 15 замовлень на день',
                   spots: 'місць', full: 'Зайнято',
                   days: ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'] },
             nl: { sub: 'Bezorging tussen 16:00 en 20:00. Welke data u kunt kiezen hangt af van uw adres · max. 15 bestellingen per dag.',
                   enter: 'Vul hierboven uw postcode en huisnummer in om uw bezorgdata te zien.',
                   outside: 'Geen vaste bezorgdata voor dit adres — neem contact op, dan spreken we iets af.',
                   next: 'Eerstvolgende bezorging', none: 'Op dit moment geen data beschikbaar — neem contact op.',
+                  hours: '16:00–20:00 · max. 15 bestellingen per dag',
                   spots: 'plekken vrij', full: 'Vol',
                   days: ['Zo','Ma','Di','Wo','Do','Vr','Za'] },
         };
@@ -318,10 +319,18 @@
         function dateLocale() { const l = addrLang(); return l === 'ua' ? 'uk-UA' : l === 'nl' ? 'nl-NL' : 'en-GB'; }
 
         function toggleBlocks() {
+            // Outside every zone the yellow "by arrangement" note says it all —
+            // there are no dates to pick, so the date block goes away.
             const db = document.getElementById('dateBlock');
-            if (db) db.style.display = 'block';
+            if (db) db.style.display = detectedZoneType === 'outside' ? 'none' : 'block';
             const sub = document.getElementById('dateBlockSub');
-            if (sub) sub.textContent = dateText().sub;
+            if (!sub) return;
+            if (currentZoneId && typeof zoneRuleText === 'function') {
+                const rule = zoneRuleText(currentZoneId);
+                sub.textContent = rule.charAt(0).toUpperCase() + rule.slice(1) + ' · ' + dateText().hours;
+            } else {
+                sub.textContent = dateText().sub;
+            }
         }
 
         // ── DELIVERY DATE SLOTS ─────────────────────────────
@@ -349,7 +358,6 @@
 
         async function loadSlots() {
             const grid = document.getElementById('slotGrid');
-            const ruleEl = document.getElementById('dateRule');
             const T = dateText();
             const upcoming = getUpcomingSlots();
             selectedDate = null;   // the day list just changed — force a fresh pick
@@ -357,18 +365,8 @@
             // No zone yet, or an address we have no run for: say so instead of
             // showing dates the customer cannot actually get.
             if (!currentZoneId) {
-                if (ruleEl) ruleEl.style.display = 'none';
                 grid.innerHTML = `<div class="slot-loading">${detectedZoneType === 'outside' ? T.outside : T.enter}</div>`;
                 return;
-            }
-            if (ruleEl) {
-                const rule = zoneRuleText(currentZoneId);
-                const first = upcoming[0];
-                const nextTxt = first
-                    ? ` · ${T.next}: <strong>${first.toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}</strong>`
-                    : '';
-                ruleEl.innerHTML = `📅 <strong>${escapeHtml(zoneLabel(currentZoneId))}</strong> — ${escapeHtml(rule)}${nextTxt}`;
-                ruleEl.style.display = 'block';
             }
             if (!upcoming.length) {
                 grid.innerHTML = `<div class="slot-loading">${T.none}</div>`;
@@ -514,7 +512,6 @@
                     let lat = null, lng = null;
                     const m = /POINT\(([-0-9.]+)\s+([-0-9.]+)\)/.exec(doc.centroide_ll || '');
                     if (m) { lng = parseFloat(m[1]); lat = parseFloat(m[2]); }
-                    let feeTxt = '';
                     if (lat != null && typeof detectZone === 'function') {
                         const zone = detectZone(lat, lng, doc.provincienaam || '', doc.woonplaatsnaam || '');
                         zoneFromCoords = true;
@@ -525,9 +522,8 @@
                             return;
                         }
                         applyZone(zone);            // sets the fee band and shows it
-                        feeTxt = ' · delivery €' + zone.fee;
                     }
-                    if (status) { status.textContent = '✓ ' + (doc.straatnaam || '') + ' ' + house + ', ' + (doc.woonplaatsnaam || '') + feeTxt; status.style.color = '#3B6D11'; }
+                    if (status) { status.textContent = '✓ ' + (doc.straatnaam || '') + ' ' + house + ', ' + (doc.woonplaatsnaam || ''); status.style.color = '#3B6D11'; }
                     applyManual();
                 } catch (e) {
                     if (status) { status.textContent = 'Could not look up automatically — type your street & city below.'; status.style.color = 'var(--ink-soft)'; }
@@ -1259,12 +1255,14 @@
         el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#FFF3CD;color:#856404;border:1.5px solid #FFD761';
         el.innerHTML='&#128222; '+O.html+' <a href="contact.html" style="color:#856404;font-weight:600">'+O.link+'</a>';
         if(typeof showDetectedArea==='function') showDetectedArea(zone);
+        if(typeof toggleBlocks==='function') toggleBlocks();
         if(typeof loadSlots==='function') loadSlots();
         var btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=true;btn.style.opacity='.45';}
         return;
       }
-      el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#EAF3DE;color:#3B6D11;border:1.5px solid #97C459';
-      el.innerHTML='&#10003; <strong>'+zone.hub+'</strong> &nbsp;&middot;&nbsp; '+zoneRuleText(zone.id)+' &nbsp;&middot;&nbsp; <strong>&euro;'+zone.fee+'</strong>';
+      // In a zone: no box — the address box already says "Delivery: <zone> — €fee"
+      // and the date block gives the rule. Saying it a third time was noise.
+      el.style.display='none'; el.innerHTML='';
       if(typeof selectedDelivery!=='undefined') selectedDelivery='delivery_'+zone.id;
       if(typeof showDetectedArea==='function') showDetectedArea(zone);
       if(typeof renderSummary==='function') renderSummary();
