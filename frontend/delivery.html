@@ -45,18 +45,17 @@
                 <h2 class="choose-title reveal delay-1" data-i18n="delivery_coverage_title">Where we deliver</h2>
                 <div class="coverage-nl reveal delay-2">
                     <div class="delivery-time-cards">
-                        <div class="dt-card"><div class="dt-icon">⚡</div><div class="dt-label" data-i18n="delivery_thu_sat">Thu &amp; Sat</div><div class="dt-sub" data-i18n="delivery_time_slot">16:00–21:00</div></div>
+                        <div class="dt-card"><div class="dt-icon">⚡</div><div class="dt-label" data-i18n="delivery_fixed_days">Fixed delivery days</div><div class="dt-sub" data-i18n="delivery_time_slot">16:00–21:00</div></div>
                         <div class="dt-card"><div class="dt-icon">📦</div><div class="dt-label" data-i18n="delivery_insulated">Insulated</div><div class="dt-sub" data-i18n="delivery_frozen_route">Stays frozen en route</div></div>
                         <div class="dt-card"><div class="dt-icon">🏠</div><div class="dt-label" data-i18n="delivery_door">Door to door</div><div class="dt-sub" data-i18n="delivery_no_pickup">No pickup needed</div></div>
                     </div>
                 </div>
                 <div class="info-cards reveal delay-3">
-                    <div class="info-card"><div class="info-icon">🏠</div><div><div class="ic-title" data-i18n="delivery_pickup_title">Pickup</div><div class="ic-text" data-i18n="delivery_pickup_text"><strong>Amsterdam</strong> — Overtoom 239, 1054 HV · Daily 10:00–22:00<br><strong>Den Bosch</strong> — Graafseweg 194B · Mon–Fri working hours</div></div></div>
-                    <div class="info-card"><div class="info-icon">📅</div><div><div class="ic-title" data-i18n="delivery_days_label">Delivery days</div><div class="ic-text" data-i18n="delivery_days_badge_text">Thursday &amp; Saturday · 16:00–21:00</div></div></div>
-                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title" data-i18n="delivery_ams_db_card_title">Amsterdam &amp; Den Bosch</div><div class="ic-text" data-i18n="delivery_ams_db_card_text">City centre — <strong>€10</strong> &nbsp;·&nbsp; Up to 10 km — €15 &nbsp;·&nbsp; Thu &amp; Sat 16:00–21:00</div></div></div>
-                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title" data-i18n="delivery_provinces_title">Noord-Holland · Zuid-Holland · Noord-Brabant · Utrecht · Flevoland</div><div class="ic-text" data-i18n="delivery_provinces_text">€15 &nbsp;·&nbsp; Thu &amp; Sat 16:00–21:00</div></div></div>
-                    <div class="info-card" style="border:1.5px solid #FFD761;background:#FFFBEA;"><div class="info-icon">📞</div><div><div class="ic-title" style="color:#856404;" data-i18n="delivery_other_nl_title">Other Netherlands regions</div><div class="ic-text" data-i18n="delivery_other_nl_text">Gelderland, Overijssel, Limburg, etc.<br>€15 — we'll contact you to confirm date &amp; time</div></div></div>
-                    <div class="info-card"><div class="info-icon">🎉</div><div><div class="ic-title" data-i18n="delivery_free_title">Free delivery</div><div class="ic-text" data-i18n="delivery_free_text">On orders over €100 — valid within Amsterdam &amp; nearby areas</div></div></div>
+                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title" data-i18n="dz_ams_title">Amsterdam</div><div class="ic-text" data-i18n="dz_ams_text">Every <strong>Tuesday &amp; Thursday</strong> · €10 · free from €150</div></div></div>
+                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title" data-i18n="dz_utr_title">Utrecht &amp; surroundings (up to 20 km)</div><div class="ic-text" data-i18n="dz_utr_text"><strong>First Tuesday</strong> of every month · €15 · free from €150</div></div></div>
+                    <div class="info-card"><div class="info-icon">🚚</div><div><div class="ic-title" data-i18n="dz_west_title">The Hague, Rotterdam (up to 15 km) &amp; Gouda</div><div class="ic-text" data-i18n="dz_west_text"><strong>Third Thursday</strong> of every month · €15 · free from €150</div></div></div>
+                    <div class="info-card" style="border:1.5px solid #FFD761;background:#FFFBEA;"><div class="info-icon">📞</div><div><div class="ic-title" style="color:#856404;" data-i18n="dz_other_title">Other addresses</div><div class="ic-text" data-i18n="dz_other_text">Delivery by arrangement — <a href="contact.html" style="color:#856404;font-weight:600;">contact us</a></div></div></div>
+                    <div class="info-card"><div class="info-icon">📅</div><div><div class="ic-title" data-i18n="dz_dates_title">Your delivery date</div><div class="ic-text" data-i18n="dz_dates_text">Enter your address at checkout to see the nearest available delivery dates.</div></div></div>
                     <div class="info-card"><div class="info-icon">📦</div><div><div class="ic-title" data-i18n="delivery_how_it_arrives_title">How it arrives</div><div class="ic-text" data-i18n="delivery_how_it_arrives_text">Delivered frozen · Packed in insulated boxes</div></div></div>
                 </div>
             </div>
@@ -78,10 +77,15 @@
                     <path d="M80 45L100 60L100 100L80 110L55 95L50 65L65 45Z" fill="#E8622A" opacity="1" stroke="var(--blue)" stroke-width="1.4" />
                     <circle cx="82" cy="98" r="5" fill="#fff" stroke="#E8622A" stroke-width="2" />
                     <text x="90" y="102" font-size="9" fill="var(--blue)" font-family="DM Sans,sans-serif" font-weight="600">Amsterdam</text>
-                    <!-- Den Bosch — highlighted -->
-                    <path d="M140 110L155 130L190 125L195 160L155 170L125 160L120 135L135 130Z" fill="#E8622A" opacity="1" stroke="var(--blue)" stroke-width="1.4" />
-                    <circle cx="158" cy="148" r="4.5" fill="#fff" stroke="#E8622A" stroke-width="2" />
-                    <text x="118" y="165" font-size="8" fill="var(--blue)" font-family="DM Sans,sans-serif" font-weight="600">Den Bosch</text>
+                    <!-- Regional runs — Utrecht (1st Tue) and The Hague / Rotterdam / Gouda (3rd Thu) -->
+                    <circle cx="122" cy="122" r="5" fill="#fff" stroke="#E8622A" stroke-width="2" />
+                    <text x="130" y="126" font-size="9" fill="var(--blue)" font-family="DM Sans,sans-serif" font-weight="600">Utrecht</text>
+                    <circle cx="62" cy="124" r="4.5" fill="#fff" stroke="#E8622A" stroke-width="2" />
+                    <text x="14" y="121" font-size="8" fill="var(--blue)" font-family="DM Sans,sans-serif" font-weight="600">Den Haag</text>
+                    <circle cx="76" cy="142" r="4.5" fill="#fff" stroke="#E8622A" stroke-width="2" />
+                    <text x="26" y="153" font-size="8" fill="var(--blue)" font-family="DM Sans,sans-serif" font-weight="600">Rotterdam</text>
+                    <circle cx="96" cy="132" r="4" fill="#fff" stroke="#E8622A" stroke-width="2" />
+                    <text x="88" y="146" font-size="8" fill="var(--blue)" font-family="DM Sans,sans-serif" font-weight="600">Gouda</text>
                 </svg>
             </div>
         </div>
@@ -239,9 +243,9 @@
             </div>
             <div id="deliveryMap" style="width:100%;height:450px;border-radius:20px;border:1px solid var(--border);overflow:hidden;"></div>
             <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:1rem;font-size:13px;color:var(--ink-soft);">
-                <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#E84B22;margin-right:5px;"></span><span data-i18n="delivery_zone_legend_ams">Amsterdam &amp; Den Bosch (€10)</span></span>
-                <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f4a261;margin-right:5px;"></span><span data-i18n="delivery_zone_legend_nl">Holland &amp; Noord-Brabant (€15)</span></span>
-                <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FFD761;margin-right:5px;"></span><span data-i18n="delivery_zone_legend_other">Other regions (€15, contact for date)</span></span>
+                <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#E84B22;margin-right:5px;"></span><span data-i18n="dz_legend_ams">Amsterdam — Tue &amp; Thu (€10)</span></span>
+                <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f4a261;margin-right:5px;"></span><span data-i18n="dz_legend_regional">Utrecht · Den Haag · Rotterdam · Gouda — monthly (€15)</span></span>
+                <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FFD761;margin-right:5px;"></span><span data-i18n="dz_legend_other">Other addresses — by arrangement</span></span>
             </div>
         </div>
     </section>
@@ -249,66 +253,63 @@
     <script>
     function initDeliveryPage(){
       var mapEl=document.getElementById('deliveryMap');
+      // Same zones and rules as checkout.html (HUTKO_ZONES) and backend/delivery_zones.py.
       var HUBS=[
-        {n:'Amsterdam', lat:52.3676, lng:4.9041, r:10000, fee:10},
-        {n:'Den Bosch',  lat:51.6978, lng:5.3037, r:10000, fee:10},
-        {n:'Den Haag',   lat:52.0705, lng:4.3007, r:15000, fee:15}
+        {n:'Amsterdam', z:'ams',  lat:52.3676, lng:4.9041, r:10000, fee:10},
+        {n:'Utrecht',   z:'utr',  lat:52.0907, lng:5.1214, r:20000, fee:15},
+        {n:'Den Haag',  z:'west', lat:52.0705, lng:4.3007, r:15000, fee:15},
+        {n:'Rotterdam', z:'west', lat:51.9244, lng:4.4777, r:15000, fee:15},
+        {n:'Gouda',     z:'west', lat:52.0116, lng:4.7105, r:4000,  fee:15}
       ];
-      var ZR=['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
-      var ZC=['Gelderland','Overijssel','Limburg','Groningen','Friesland','Drenthe','Zeeland'];
+      var ZT={
+        en:{ams:['Amsterdam','every Tuesday & Thursday'],utr:['Utrecht & surroundings','first Tuesday of every month'],west:['The Hague, Rotterdam & Gouda','third Thursday of every month'],
+            yes:'We deliver here',out:'Delivery to this address is by arrangement.',contact:'Contact us',order:'Order now'},
+        ua:{ams:['Амстердам','щовівторка і щочетверга'],utr:['Утрехт і околиці','перший вівторок кожного місяця'],west:['Гаага, Роттердам і Гауда','третій четвер кожного місяця'],
+            yes:'Доставляємо сюди',out:'Доставка за цією адресою — за домовленістю.',contact:'Зв&#39;яжіться з нами',order:'Замовити'},
+        nl:{ams:['Amsterdam','elke dinsdag en donderdag'],utr:['Utrecht en omgeving','eerste dinsdag van elke maand'],west:['Den Haag, Rotterdam en Gouda','derde donderdag van elke maand'],
+            yes:'Wij bezorgen hier',out:'Bezorging op dit adres gaat in overleg.',contact:'Neem contact op',order:'Bestel nu'}
+      };
+      function L(){var l='en';try{l=localStorage.getItem('hutko_lang')||'en';}catch(e){}return ZT[l]||ZT.en;}
       function _r(d){return d*Math.PI/180;}
       function km(a,b,cc,d){var R=6371,dL=_r(cc-a),dG=_r(d-b),x=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(_r(a))*Math.cos(_r(cc))*Math.sin(dG/2)*Math.sin(dG/2);return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
-      function getZone(lat,lng,prov){
-        var pn=(prov||'').toLowerCase();
-        for(var i=0;i<HUBS.length;i++){if(km(lat,lng,HUBS[i].lat,HUBS[i].lng)<=HUBS[i].r/1000)return{t:'i',fee:HUBS[i].fee,hub:HUBS[i].n};}
-        if(ZR.some(function(p){return pn.indexOf(p.toLowerCase())>-1}))return{t:'r',fee:15,hub:prov};
-        if(ZC.some(function(p){return pn.indexOf(p.toLowerCase())>-1}))return{t:'c',fee:15,hub:prov};
+      function getZone(lat,lng,prov,city){
+        var c=(city||'').toLowerCase();
+        if(c==='amsterdam')return{t:'i',z:'ams',fee:10};
+        if(c==='gouda')return{t:'i',z:'west',fee:15};
+        for(var i=0;i<HUBS.length;i++){if(km(lat,lng,HUBS[i].lat,HUBS[i].lng)<=HUBS[i].r/1000)return{t:'i',z:HUBS[i].z,fee:HUBS[i].fee};}
         return{t:'o'};
       }
       function showResult(z){
         var el=document.getElementById('deliveryZoneResult');
         if(!el)return;
+        var T=L();
         el.style.display='block';
         if(z.t==='o'){
-          el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#FCEBEB;color:#A32D2D;border:1.5px solid #F09595';
-          el.innerHTML='&#10007; <strong>'+(typeof t==='function'?t('zone_no_delivery'):"We don't deliver here yet.")+'</strong> <a href="contact.html" style="color:#A32D2D">'+(typeof t==='function'?t('zone_contact_link'):'Contact us')+' &#8594;</a>';
-        }else if(z.t==='c'){
           el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#FFFBEA;color:#856404;border:1.5px solid #FFD761';
-          el.innerHTML='&#9432; <strong>'+z.hub+'</strong> &mdash; &euro;'+z.fee+'. '+(typeof t==='function'?t('zone_confirm_needed'):"We'll contact you to confirm date & time")+'. <a href="shop.html" style="color:#856404">'+(typeof t==='function'?t('zone_order_link'):'Order')+' &#8594;</a>';
+          el.innerHTML='&#128222; <strong>'+T.out+'</strong> <a href="contact.html" style="color:#856404;font-weight:600">'+T.contact+' &#8594;</a>';
         }else{
           el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;background:#EAF3DE;color:#3B6D11;border:1.5px solid #97C459';
-          el.innerHTML='&#10003; <strong>'+(typeof t==='function'?t('zone_delivers_to'):'We deliver to')+' '+z.hub+'</strong> &mdash; '+(typeof t==='function'?t('zone_fee'):'Fee:')+' <strong>&euro;'+z.fee+'</strong> &nbsp;<a href="shop.html" style="color:#3B6D11">'+(typeof t==='function'?t('zone_order_link'):'Order now')+' &#8594;</a>';
+          el.innerHTML='&#10003; <strong>'+T.yes+': '+T[z.z][0]+'</strong> &mdash; '+T[z.z][1]+' &middot; <strong>&euro;'+z.fee+'</strong> &nbsp;<a href="shop.html" style="color:#3B6D11">'+T.order+' &#8594;</a>';
         }
       }
 
       // Draw map with circles and markers
       if(mapEl && typeof google!=='undefined'){
         var dMap=new google.maps.Map(mapEl,{
-          zoom:7, center:{lat:52.1,lng:5.1},
+          zoom:9, center:{lat:52.15,lng:4.75},
           mapTypeControl:false, streetViewControl:false, fullscreenControl:false,
           styles:[{featureType:'poi',stylers:[{visibility:'off'}]}]
         });
         HUBS.forEach(function(h){
+          var col=(h.z==='ams')?'#E84B22':'#f4a261';
           new google.maps.Circle({map:dMap,center:{lat:h.lat,lng:h.lng},radius:h.r,
-            strokeColor:'#E84B22',strokeOpacity:.7,strokeWeight:2,
-            fillColor:'#E84B22',fillOpacity:.2});
+            strokeColor:col,strokeOpacity:.7,strokeWeight:2,
+            fillColor:col,fillOpacity:.2});
           new google.maps.Marker({map:dMap,position:{lat:h.lat,lng:h.lng},
             label:{text:h.n+' €'+h.fee,color:'#fff',fontSize:'11px',fontWeight:'600'},
             icon:{path:google.maps.SymbolPath.CIRCLE,scale:6,
-              fillColor:'#E84B22',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}
+              fillColor:(h.z==='ams')?'#E84B22':'#f4a261',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}
           });
-        });
-        var POLYS=[
-          {c:'#f0a070',p:[[52.92,4.72],[52.90,5.09],[52.77,5.18],[52.62,5.22],[52.44,5.07],[52.38,5.17],[52.35,5.02],[52.28,4.97],[52.22,4.85],[52.18,4.55],[52.35,4.49],[52.55,4.52],[52.68,4.62],[52.83,4.68]]},
-          {c:'#f4a261',p:[[52.22,4.85],[52.14,4.88],[52.12,5.02],[52.04,5.10],[51.92,5.12],[51.85,4.93],[51.88,4.55],[51.82,4.38],[51.76,4.18],[51.75,4.00],[51.85,3.99],[51.96,4.12],[52.04,4.32],[52.12,4.48],[52.18,4.55]]},
-          {c:'#2a9d8f',p:[[51.80,4.00],[51.82,4.38],[51.88,4.55],[51.85,4.93],[51.92,5.12],[51.95,5.38],[51.90,5.60],[51.88,5.88],[51.85,6.00],[51.55,6.08],[51.42,6.05],[51.38,5.88],[51.30,5.45],[51.26,5.05],[51.28,4.55],[51.38,4.20],[51.50,3.86],[51.65,3.86]]},
-          {c:'#FFD761',p:[[51.85,6.00],[51.95,5.65],[52.04,5.10],[52.12,5.18],[51.98,5.40],[51.88,5.90],[51.60,6.20],[51.42,6.12],[51.10,6.15],[50.75,5.92],[50.75,5.68],[50.85,5.57],[51.20,5.72],[51.42,5.72],[51.55,5.80],[51.68,5.95]]}
-        ];
-        POLYS.forEach(function(x){
-          new google.maps.Polygon({map:dMap,
-            paths:x.p.map(function(pt){return{lat:pt[0],lng:pt[1]};}),
-            strokeColor:x.c,strokeOpacity:.4,strokeWeight:1.5,
-            fillColor:x.c,fillOpacity:.13});
         });
       }
 
@@ -345,7 +346,7 @@
             var road=r.address.road||'', num=r.address.house_number||'';
             input.value=num?(road+' '+num).trim():road||r.display_name.split(',')[0];
             hide();
-            showResult(getZone(parseFloat(r.lat),parseFloat(r.lon),r.address.state||''));
+            showResult(getZone(parseFloat(r.lat),parseFloat(r.lon),r.address.state||'',r.address.city||r.address.town||r.address.village||''));
           });
         });
       }

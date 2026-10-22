@@ -33,6 +33,7 @@ from auth import optional_token, token_required
 from emails import send_order_confirmation, send_order_notification, send_delivery_dispatch
 from trello import create_order_card, move_card, add_comment, get_card_by_order_ref
 from settings_store import get_float
+import delivery_zones
 from validators import (validate_email, validate_phone, validate_name, validate_postcode,
                         validate_house_number, validate_street, validate_city,
                         validate_province, validate_notes)
@@ -195,19 +196,40 @@ def _validate_items(items):
 
 
 def compute_delivery_cost(subtotal, method):
-    """Area/zone delivery fee, matching the checkout page.
-       local (Amsterdam/Den Bosch/Den Haag) → fee_local; other provinces → fee_regional;
+    """Zone delivery fee, matching the checkout page.
+       delivery_amsterdam (and legacy delivery_local) → fee_local;
+       delivery_utrecht / delivery_west → fee_regional;
        pickup → free; free over the configured threshold (all zones)."""
     method = (method or '').strip()
     if method.startswith('pickup'):
         return 0.0
-    free_over = get_float('free_delivery_over', 100.0)
+    free_over = get_float('free_delivery_over', 150.0)
     if free_over > 0 and subtotal >= free_over:
         return 0.0
-    if method == 'delivery_local':
+    if method in ('delivery_amsterdam', 'delivery_local'):
         return get_float('fee_local', 10.0)
-    # delivery_other / delivery_contact / fallback → regional
     return get_float('fee_regional', 15.0)
+
+
+def resolve_zone(data, postcode, street):
+    """Work out the delivery zone from the address itself (PDOK lookup).
+    Falls back to the zone the page sent only if PDOK can't be reached.
+    Returns (zone_id or None, error message or None)."""
+    house = str(data.get('house_number') or '').strip() or delivery_zones.house_number_from(street)
+    found = delivery_zones.lookup_address(postcode, house)
+    if found:
+        lat, lng, city = found
+        zone = delivery_zones.zone_for(lat, lng, city)
+    else:
+        # PDOK down or address not in PDOK: trust the page's zone if it is a
+        # real one, else try the city name. Never block an order just because
+        # the lookup service is slow.
+        sent = str(data.get('delivery_zone') or '').strip()
+        zone = sent if sent in delivery_zones.ZONES else delivery_zones.zone_for(None, None, data.get('city'))
+    if not zone:
+        return None, ('Delivery to this address is by arrangement — please contact us '
+                      'and we will find a date together.')
+    return zone, None
 
 
 def make_ref():
@@ -272,6 +294,19 @@ def checkout():
         if err:
             return jsonify({'error': err}), 400
 
+    # ── Delivery zone + date: the address decides, not the browser ──────
+    delivery_date = str(data.get('delivery_date') or '').strip()
+    if not is_pickup:
+        zone, err = resolve_zone(data, postcode, street)
+        if err:
+            return jsonify({'error': err}), 400
+        if not delivery_zones.is_delivery_date(zone, delivery_date):
+            nxt = delivery_zones.next_dates(zone, 1)
+            hint = f' The next delivery for your area is {nxt[0]}.' if nxt else ''
+            return jsonify({'error': 'That date is not available for your address — '
+                                     'please refresh the page and pick one of the dates shown.' + hint}), 400
+        delivery_method = 'delivery_' + zone
+
     # ── Every line must name a real product and a real choice ───────────
     items, err = _validate_items(data.get('items'))
     if err:
@@ -289,10 +324,6 @@ def checkout():
     conn = get_db()
     while conn.execute(f"SELECT id FROM orders WHERE order_ref={p}", (order_ref,)).fetchone():
         order_ref = make_ref()
-
-    # Pick-up orders keep their chosen date too — the customer is shown a date
-    # picker for pick-up, so throwing the answer away made the slot meaningless.
-    delivery_date = data.get('delivery_date', '')
 
     conn.execute("""
         INSERT INTO orders

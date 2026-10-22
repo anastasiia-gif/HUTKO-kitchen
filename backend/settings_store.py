@@ -27,13 +27,13 @@ DEFAULTS = {
     # ── Delivery (area/zone model — checkout + backend read these) ──
     "fee_local":          "10",   # € — Amsterdam / Den Bosch / Den Haag inner zone
     "fee_regional":       "15",   # € — other NL provinces (+ contact zones)
-    "free_delivery_over": "100",  # € — free delivery at/above this subtotal (all zones)
+    "free_delivery_over": "150",  # € — free delivery at/above this subtotal (all zones)
     "delivery_days":      "Tuesday & Thursday",  # display text
     "max_per_day":        "15",   # delivery slots per day (display)
     # legacy mirror keys — keep the delivery-page description text consistent
     # (i18n loadSettingsIntoPage reads delivery_cost / free_delivery_at)
     "delivery_cost":      "10",
-    "free_delivery_at":   "100",
+    "free_delivery_at":   "150",
     "min_order":          "0",
 
     # ── Notification recipients (wired to emails in a later increment) ──

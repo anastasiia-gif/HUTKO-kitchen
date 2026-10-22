@@ -150,12 +150,13 @@
                         <h3 data-i18n="checkout_date_title">Choose delivery date</h3>
                     </div>
                     <div class="checkout-block-body">
-                        <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;" data-i18n="checkout_date_sub">
-                            <span id="dateBlockSub">We deliver on <strong>Tuesdays and Thursdays</strong>, 16:00–20:00. Pick-up available any day 10:00–22:00.</span>
-                            Each day has a maximum of 15 orders.
+                        <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">
+                            <span id="dateBlockSub">Delivery between 16:00 and 20:00. The dates you can pick depend on your address · max. 15 orders per day.</span>
                         </p>
+                        <!-- Zone, its rule and the nearest date — filled in by loadSlots() -->
+                        <div id="dateRule" style="display:none;font-size:13.5px;line-height:1.5;color:var(--blue);background:var(--cream);border-radius:10px;padding:10px 14px;margin:0 0 12px;"></div>
                         <div id="slotGrid" class="slot-grid">
-                            <div class="slot-loading" data-i18n="checkout_slot_loading">Loading available dates…</div>
+                            <div class="slot-loading">Enter your postcode and house number above to see your delivery dates.</div>
                         </div>
                         <div id="slotError" style="display:none;font-size:13px;color:#e84b22;margin-top:8px;"></div>
                     </div>
@@ -254,14 +255,16 @@
            ------------------------------------------------------------------ */
 
         // Zone config
-        const ZONE_INNER = [{name:'Amsterdam',lat:52.3676,lng:4.9041,km:10},{name:'Den Bosch',lat:51.6978,lng:5.3037,km:10}];
-        const ZONE_REGULAR = ['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
-        const ZONE_CONTACT  = ['Gelderland','Overijssel','Limburg','Groningen','Friesland','Drenthe','Zeeland'];
-        const DELIVERY_PRICES = { delivery_local:10, delivery_other:15, delivery_contact:15 };
+        // The zones themselves (HUTKO_ZONES) and the date rules live in the
+        // last <script> on this page, next to detectZone(). Keep them in sync
+        // with backend/delivery_zones.py, which re-checks every order.
+        const DELIVERY_PRICES = { delivery_amsterdam:10, delivery_utrecht:15, delivery_west:15,
+                                  delivery_local:10, delivery_other:15 };
         // Editable fees (loaded from /api/shop/settings — admin can change them)
-        let FEE_LOCAL = 10, FEE_REGIONAL = 15, FREE_OVER = 100;
-        let detectedZoneType = 'regular'; // 'inner'|'regular'|'contact'|'outside'
-        let selectedDelivery = 'delivery_local';
+        let FEE_LOCAL = 10, FEE_REGIONAL = 15, FREE_OVER = 150;
+        let detectedZoneType = 'none';   // 'inner' (Amsterdam) | 'regular' (regional run) | 'outside' | 'none' (address not checked yet)
+        let currentZoneId = null;        // 'amsterdam' | 'utrecht' | 'west' | null
+        let selectedDelivery = 'delivery_amsterdam';
         let selectedDate = null;
 
         // Collection in person was withdrawn on 2026-09-12. Every order is now a
@@ -280,35 +283,56 @@
                 if (settings.fee_local)          FEE_LOCAL    = parseFloat(settings.fee_local)    || FEE_LOCAL;
                 if (settings.fee_regional)       FEE_REGIONAL = parseFloat(settings.fee_regional) || FEE_REGIONAL;
                 if (settings.free_delivery_over) FREE_OVER    = parseFloat(settings.free_delivery_over) || FREE_OVER;
-                DELIVERY_PRICES.delivery_local   = FEE_LOCAL;
-                DELIVERY_PRICES.delivery_other   = FEE_REGIONAL;
-                DELIVERY_PRICES.delivery_contact = FEE_REGIONAL;
-                if (typeof Z_INNER !== 'undefined') Z_INNER.forEach(z => z.fee = FEE_LOCAL);
+                DELIVERY_PRICES.delivery_amsterdam = FEE_LOCAL;
+                DELIVERY_PRICES.delivery_local     = FEE_LOCAL;
+                DELIVERY_PRICES.delivery_utrecht   = FEE_REGIONAL;
+                DELIVERY_PRICES.delivery_west      = FEE_REGIONAL;
+                DELIVERY_PRICES.delivery_other     = FEE_REGIONAL;
                 localiseAddressBox();       // the hint quotes the free-delivery amount
+                if (typeof renderSummary === 'function') renderSummary();
             } catch (e) { /* keep defaults */ }
         }
 
+        // ── DATE BLOCK TEXT (three languages) ───────────────
+        const DATE_TEXT = {
+            en: { sub: 'Delivery between 16:00 and 20:00. The dates you can pick depend on your address · max. 15 orders per day.',
+                  enter: 'Enter your postcode and house number above to see your delivery dates.',
+                  outside: 'No fixed delivery dates for this address — contact us and we will arrange it.',
+                  next: 'Next delivery', none: 'No dates available right now — please contact us.',
+                  spots: 'spots left', full: 'Full',
+                  days: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] },
+            ua: { sub: 'Доставка з 16:00 до 20:00. Доступні дати залежать від вашої адреси · макс. 15 замовлень на день.',
+                  enter: 'Введіть індекс і номер будинку вище, щоб побачити дати доставки.',
+                  outside: 'Для цієї адреси немає фіксованих дат — зв\'яжіться з нами, і ми домовимося.',
+                  next: 'Найближча доставка', none: 'Зараз немає доступних дат — зв\'яжіться з нами.',
+                  spots: 'місць', full: 'Зайнято',
+                  days: ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'] },
+            nl: { sub: 'Bezorging tussen 16:00 en 20:00. Welke data u kunt kiezen hangt af van uw adres · max. 15 bestellingen per dag.',
+                  enter: 'Vul hierboven uw postcode en huisnummer in om uw bezorgdata te zien.',
+                  outside: 'Geen vaste bezorgdata voor dit adres — neem contact op, dan spreken we iets af.',
+                  next: 'Eerstvolgende bezorging', none: 'Op dit moment geen data beschikbaar — neem contact op.',
+                  spots: 'plekken vrij', full: 'Vol',
+                  days: ['Zo','Ma','Di','Wo','Do','Vr','Za'] },
+        };
+        function dateText() { return DATE_TEXT[addrLang()] || DATE_TEXT.en; }
+        function dateLocale() { const l = addrLang(); return l === 'ua' ? 'uk-UA' : l === 'nl' ? 'nl-NL' : 'en-GB'; }
+
         function toggleBlocks() {
-            const isContact = detectedZoneType === 'contact';
             const db = document.getElementById('dateBlock');
-            if (db) db.style.display = isContact ? 'none' : 'block';
+            if (db) db.style.display = 'block';
             const sub = document.getElementById('dateBlockSub');
-            if (sub) sub.innerHTML = 'We deliver on <strong>Tuesdays and Thursdays</strong>, 16:00–20:00.';
+            if (sub) sub.textContent = dateText().sub;
         }
 
         // ── DELIVERY DATE SLOTS ─────────────────────────────
         const MAX_PER_DAY = 15;
 
+        // Dates for the zone the address falls in. Amsterdam: the next 10
+        // Tue/Thu. Regional runs: the next 3 run days (they are a month apart).
+        // Never today; past dates never appear.
         function getUpcomingSlots() {
-            const slots = [];
-            const today = new Date(); today.setHours(0,0,0,0);
-            const cutoff = new Date(today); cutoff.setDate(today.getDate() + 1);
-            for (let d = 1; d <= 28; d++) {
-                const date = new Date(today); date.setDate(today.getDate() + d);
-                const dow = date.getDay();
-                if ((dow === 2 || dow === 4) && date >= cutoff) slots.push(date);
-            }
-            return slots.slice(0, 10);
+            if (!currentZoneId || typeof zoneDates !== 'function') return [];
+            return zoneDates(currentZoneId, currentZoneId === 'amsterdam' ? 10 : 3);
         }
 
         function formatDate(d) {
@@ -325,8 +349,31 @@
 
         async function loadSlots() {
             const grid = document.getElementById('slotGrid');
+            const ruleEl = document.getElementById('dateRule');
+            const T = dateText();
             const upcoming = getUpcomingSlots();
             selectedDate = null;   // the day list just changed — force a fresh pick
+
+            // No zone yet, or an address we have no run for: say so instead of
+            // showing dates the customer cannot actually get.
+            if (!currentZoneId) {
+                if (ruleEl) ruleEl.style.display = 'none';
+                grid.innerHTML = `<div class="slot-loading">${detectedZoneType === 'outside' ? T.outside : T.enter}</div>`;
+                return;
+            }
+            if (ruleEl) {
+                const rule = zoneRuleText(currentZoneId);
+                const first = upcoming[0];
+                const nextTxt = first
+                    ? ` · ${T.next}: <strong>${first.toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}</strong>`
+                    : '';
+                ruleEl.innerHTML = `📅 <strong>${escapeHtml(zoneLabel(currentZoneId))}</strong> — ${escapeHtml(rule)}${nextTxt}`;
+                ruleEl.style.display = 'block';
+            }
+            if (!upcoming.length) {
+                grid.innerHTML = `<div class="slot-loading">${T.none}</div>`;
+                return;
+            }
 
             let bookedMap = {};
             try {
@@ -343,12 +390,12 @@
                 const booked = bookedMap[iso] || 0;
                 const spots = MAX_PER_DAY - booked;
                 const full = spots <= 0;
-                const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][date.getDay()];
+                const dow = T.days[date.getDay()];
                 return `<button class="slot-btn" data-date="${iso}" onclick="selectSlot(this,'${iso}')"
                       ${full ? 'disabled' : ''}>
               <div class="slot-day">${dow}</div>
-              <div class="slot-date">${date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}</div>
-              <div class="slot-cap ${full ? 'full' : ''}">${full ? 'Full' : spots + ' spots left'}</div>
+              <div class="slot-date">${date.toLocaleDateString(dateLocale(), { day: 'numeric', month: 'short' })}</div>
+              <div class="slot-cap ${full ? 'full' : ''}">${full ? T.full : spots + ' ' + T.spots}</div>
             </button>`;
             }).join('');
         }
@@ -373,8 +420,8 @@
             document.getElementById('coCity').value     = city;
             document.getElementById('coProvince').value = prov;
             // No coordinates yet (the lookup has not run, or could not reach
-            // PDOK) — the province is enough to know the fee band.
-            if (prov && !zoneFromCoords) zoneFromProvince(prov);
+            // PDOK) — fall back to the city name for the five core cities.
+            if (city && !zoneFromCoords) zoneFromCity(city);
             renderSummary();
         }
         window.applyManual = applyManual;
@@ -423,14 +470,13 @@
         // ── DELIVERY AREA — worked out, never asked ──────────
         let zoneFromCoords = false;   // true once PDOK has given us a location
 
-        function zoneFromProvince(prov) {
-            const pn = (prov || '').toLowerCase();
-            if (!pn) return;
-            if (Z_REG.some(p => pn.indexOf(p.toLowerCase()) > -1)) {
-                applyZone({ type: 'regular', fee: FEE_REGIONAL, hub: prov });
-            } else if (Z_CON.some(p => pn.indexOf(p.toLowerCase()) > -1)) {
-                applyZone({ type: 'contact', fee: FEE_REGIONAL, hub: prov });
-            }
+        // Only used when PDOK could not be reached (no coordinates). The city
+        // name is enough for the five cities the runs are built around; any
+        // other town waits for the lookup — the server re-checks it anyway.
+        function zoneFromCity(city) {
+            if (typeof zoneForCity !== 'function') return;
+            const id = zoneForCity(city);
+            if (id) applyZone(zoneObject(id));
         }
 
         function showDetectedArea(zone) {
@@ -470,11 +516,12 @@
                     if (m) { lng = parseFloat(m[1]); lat = parseFloat(m[2]); }
                     let feeTxt = '';
                     if (lat != null && typeof detectZone === 'function') {
-                        const zone = detectZone(lat, lng, doc.provincienaam || '');
+                        const zone = detectZone(lat, lng, doc.provincienaam || '', doc.woonplaatsnaam || '');
                         zoneFromCoords = true;
                         if (zone.type === 'outside') {
                             applyZone(zone);
-                            if (status) { status.textContent = "✗ Sorry, we don't deliver to this area yet."; status.style.color = '#A32D2D'; }
+                            applyManual();
+                            if (status) { status.textContent = '✓ ' + (doc.straatnaam || '') + ' ' + house + ', ' + (doc.woonplaatsnaam || ''); status.style.color = 'var(--ink-soft)'; }
                             return;
                         }
                         applyZone(zone);            // sets the fee band and shows it
@@ -528,7 +575,9 @@
             <div class="summary-row"><span>${t('checkout_delivery')}</span><span>${delivery === 0 ? t('checkout_free_label') : '€' + delivery.toFixed(2)}</span></div>
             <div class="summary-row total"><span>${t('cart_total')}</span><span>€${total.toFixed(2)}</span></div>`;
 
-            btn.disabled = false;
+            // An address outside every zone can't be ordered online — keep the button off.
+            btn.disabled = (detectedZoneType === 'outside');
+            btn.style.opacity = btn.disabled ? '.45' : '1';
         }
 
         function escapeHtml(s) {
@@ -780,9 +829,19 @@
             document.getElementById('coPost').value     = gv('mPost');
             document.getElementById('coCity').value     = gv('mCity');
             document.getElementById('coProvince').value = gv('mProvince');
-            // Last resort: if the lookup never ran, the province still tells us
-            // the band. Never leave it unset.
-            if (!zoneFromCoords) zoneFromProvince(gv('mProvince'));
+            // Last resort: if the lookup never ran, the city name may still
+            // tell us the zone.
+            if (!zoneFromCoords) zoneFromCity(gv('mCity'));
+            if (!currentZoneId) {
+                const L = addrLang();
+                showToast(detectedZoneType === 'outside'
+                    ? (OUTSIDE_TEXT[L] || OUTSIDE_TEXT.en).plain
+                    : (L === 'ua' ? 'Не вдалося перевірити адресу — перевірте індекс і номер будинку.'
+                       : L === 'nl' ? 'We konden uw adres niet controleren — controleer postcode en huisnummer.'
+                       : 'We could not check your address — please check the postcode and house number.'), 6000);
+                document.getElementById('manualBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
 
             const notesErr = checkNotes(document.getElementById('coNotes').value);
             if (notesErr) {
@@ -792,7 +851,7 @@
                 return;
             }
 
-            if (detectedZoneType !== 'contact' && !selectedDate) {
+            if (!selectedDate) {
                 const se = document.getElementById('slotError');
                 se.textContent = 'Please choose a delivery date.';
                 se.style.display = 'block';
@@ -836,6 +895,8 @@
                 province: document.getElementById('coProvince').value.trim(),
                 notes: document.getElementById('coNotes').value.trim(),
                 delivery_method: selectedDelivery,
+                delivery_zone: currentZoneId || '',
+                house_number: gv('mHouse'),
                 delivery_date: selectedDate || '',
                 items: cartItems,
             };
@@ -1098,46 +1159,117 @@
           new google.maps.marker.AdvancedMarkerElement({ position: { lat: lat, lng: lng }, map: miniMap });
         }
 
-        applyZone(detectZone(lat, lng, state));
+        applyZone(detectZone(lat, lng, state, city));
       });
     }
 
     // ── Zone detection ──────────────────────────────────────────────────
     function _r(d){return d*Math.PI/180}
     function _km(a,b,cc,d){var R=6371,dL=_r(cc-a),dG=_r(d-b),x=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(_r(a))*Math.cos(_r(cc))*Math.sin(dG/2)*Math.sin(dG/2);return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
-    var Z_INNER=[{n:'Amsterdam',lat:52.3676,lng:4.9041,km:10,fee:10},{n:'Den Bosch',lat:51.6978,lng:5.3037,km:10,fee:10},{n:'Den Haag',lat:52.0705,lng:4.3007,km:15,fee:10}];
-    var Z_REG=['Noord-Holland','South Holland','Zuid-Holland','North Holland','Noord-Brabant','North Brabant','Utrecht','Flevoland'];
-    var Z_CON=['Gelderland','Overijssel','Limburg','Groningen','Friesland','Drenthe','Zeeland'];
+    // ── DELIVERY ZONES + SCHEDULE ───────────────────────────────────────
+    // Keep in sync with backend/delivery_zones.py — the server re-checks the
+    // zone, the date and the fee on every order.
+    //   amsterdam: every Tuesday and Thursday              — fee_local (€10)
+    //   utrecht:   first Tuesday of each calendar month    — fee_regional (€15)
+    //   west:      third Thursday of each calendar month   — fee_regional (€15)
+    //              (The Hague + Rotterdam + 15 km, and Gouda by name)
+    // Anything else: delivery by arrangement — the customer contacts us.
+    var HUTKO_ZONES = {
+      amsterdam: { fee:'local',    rule:'tue_thu',
+                   hubs:[{lat:52.3676,lng:4.9041,km:10}], cities:['amsterdam'],
+                   label:{en:'Amsterdam', ua:'Амстердам', nl:'Amsterdam'} },
+      utrecht:   { fee:'regional', rule:'first_tue',
+                   hubs:[{lat:52.0907,lng:5.1214,km:20}], cities:['utrecht'],
+                   label:{en:'Utrecht & surroundings', ua:'Утрехт і околиці', nl:'Utrecht en omgeving'} },
+      west:      { fee:'regional', rule:'third_thu',
+                   hubs:[{lat:52.0705,lng:4.3007,km:15},{lat:51.9244,lng:4.4777,km:15}],
+                   cities:['den haag',"'s-gravenhage",'s-gravenhage','the hague','rotterdam','gouda'],
+                   label:{en:'The Hague, Rotterdam & Gouda', ua:'Гаага, Роттердам і Гауда', nl:'Den Haag, Rotterdam en Gouda'} },
+    };
+    var ZONE_ORDER = ['amsterdam','utrecht','west'];
+    // One-off changes to the calendar ('YYYY-MM-DD'). Empty for now.
+    var EXTRA_DATES = { amsterdam:[], utrecht:[], west:[] };  // extra run days per zone
+    var SKIP_DATES  = [];                                      // no delivery anywhere (e.g. holidays)
 
-    function detectZone(lat,lng,prov){
-      for(var i=0;i<Z_INNER.length;i++) if(_km(lat,lng,Z_INNER[i].lat,Z_INNER[i].lng)<=Z_INNER[i].km) return{type:'inner',fee:Z_INNER[i].fee,hub:Z_INNER[i].n};
-      var pn=(prov||'').toLowerCase();
-      if(Z_REG.some(function(p){return pn.indexOf(p.toLowerCase())>-1})) return{type:'regular',fee:FEE_REGIONAL,hub:prov};
-      if(Z_CON.some(function(p){return pn.indexOf(p.toLowerCase())>-1})) return{type:'contact',fee:FEE_REGIONAL,hub:prov};
-      return{type:'outside',fee:null};
+    var RULE_TEXT = {
+      tue_thu:   {en:'every Tuesday and Thursday', ua:'щовівторка і щочетверга', nl:'elke dinsdag en donderdag'},
+      first_tue: {en:'first Tuesday of every month', ua:'перший вівторок кожного місяця', nl:'eerste dinsdag van elke maand'},
+      third_thu: {en:'third Thursday of every month', ua:'третій четвер кожного місяця', nl:'derde donderdag van elke maand'},
+    };
+    var OUTSIDE_TEXT = {
+      en:{html:'Delivery to your address is <strong>by arrangement</strong>.', link:'Contact us &#8594;', plain:'Delivery to your address is by arrangement — please contact us.'},
+      ua:{html:'Доставка за вашою адресою — <strong>за домовленістю</strong>.', link:'Зв&#39;яжіться з нами &#8594;', plain:'Доставка за вашою адресою — за домовленістю. Зв\'яжіться з нами.'},
+      nl:{html:'Bezorging op uw adres gaat <strong>in overleg</strong>.', link:'Neem contact op &#8594;', plain:'Bezorging op uw adres gaat in overleg — neem contact met ons op.'},
+    };
+    function _lang(){ try { return (typeof addrLang==='function') ? addrLang() : 'en'; } catch(e){ return 'en'; } }
+    function zoneLabel(id){ var z=HUTKO_ZONES[id]; return z ? (z.label[_lang()]||z.label.en) : ''; }
+    function zoneRuleText(id){ var z=HUTKO_ZONES[id]; if(!z) return ''; var r=RULE_TEXT[z.rule]; return r[_lang()]||r.en; }
+    function zoneFee(id){ var z=HUTKO_ZONES[id]; return z && z.fee==='local' ? FEE_LOCAL : FEE_REGIONAL; }
+    function zoneObject(id){ return { type: id==='amsterdam'?'inner':'regular', id:id, fee:zoneFee(id), hub:zoneLabel(id) }; }
+
+    function _iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+    // Calendar rules — "first Tuesday" means days 1–7 of the month, "third
+    // Thursday" days 15–21. Counted per calendar month, never "every 4 weeks".
+    function ruleMatches(rule, d){
+      var dow=d.getDay(), dom=d.getDate();
+      if(rule==='tue_thu')   return dow===2 || dow===4;
+      if(rule==='first_tue') return dow===2 && dom<=7;
+      if(rule==='third_thu') return dow===4 && dom>=15 && dom<=21;
+      return false;
+    }
+    // Next `count` delivery dates for a zone, starting tomorrow.
+    function zoneDates(id, count){
+      var z=HUTKO_ZONES[id]; if(!z) return [];
+      var out=[], extra=EXTRA_DATES[id]||[];
+      var d=new Date(); d.setHours(0,0,0,0);
+      for(var i=1;i<=120 && out.length<count;i++){
+        var day=new Date(d); day.setDate(d.getDate()+i);
+        var iso=_iso(day);
+        if(SKIP_DATES.indexOf(iso)>-1) continue;
+        if(ruleMatches(z.rule, day) || extra.indexOf(iso)>-1) out.push(day);
+      }
+      return out;
+    }
+    function zoneForCity(city){
+      var c=String(city||'').trim().toLowerCase();
+      if(!c) return null;
+      for(var i=0;i<ZONE_ORDER.length;i++) if(HUTKO_ZONES[ZONE_ORDER[i]].cities.indexOf(c)>-1) return ZONE_ORDER[i];
+      return null;
+    }
+    // Amsterdam first, then a named city (Gouda), then the radius around each hub.
+    function detectZone(lat,lng,prov,city){
+      var byCity=zoneForCity(city);
+      if(byCity==='amsterdam' || byCity==='west' && String(city).toLowerCase()==='gouda') return zoneObject(byCity);
+      for(var i=0;i<ZONE_ORDER.length;i++){
+        var id=ZONE_ORDER[i], hubs=HUTKO_ZONES[id].hubs;
+        for(var j=0;j<hubs.length;j++) if(_km(lat,lng,hubs[j].lat,hubs[j].lng)<=hubs[j].km) return zoneObject(id);
+      }
+      if(byCity) return zoneObject(byCity);
+      return {type:'outside', id:null, fee:null};
     }
 
     function applyZone(zone){
       var el=document.getElementById('zoneStatus'); if(!el) return;
-      var note=document.getElementById('zoneContactNote');
+      var note=document.getElementById('zoneContactNote'); if(note) note.style.display='none';
       el.style.display='block'; el.dataset.zoneOk=(zone.type==='outside'?'0':'1');
+      if(typeof detectedZoneType!=='undefined') detectedZoneType=zone.type;
+      if(typeof currentZoneId!=='undefined') currentZoneId=zone.id||null;
       if(zone.type==='outside'){
-        el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#FCEBEB;color:#A32D2D;border:1.5px solid #F09595';
-        el.innerHTML='&#10007; <strong>We don&#39;t deliver here yet.</strong> <a href="contact.html" style="color:#A32D2D;font-weight:600">Contact us &#8594;</a>';
-        if(note) note.style.display='none';
+        var O=OUTSIDE_TEXT[_lang()]||OUTSIDE_TEXT.en;
+        el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#FFF3CD;color:#856404;border:1.5px solid #FFD761';
+        el.innerHTML='&#128222; '+O.html+' <a href="contact.html" style="color:#856404;font-weight:600">'+O.link+'</a>';
         if(typeof showDetectedArea==='function') showDetectedArea(zone);
+        if(typeof loadSlots==='function') loadSlots();
         var btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=true;btn.style.opacity='.45';}
         return;
       }
       el.style.cssText='display:block;padding:12px 16px;border-radius:12px;font-size:14px;margin:8px 0;background:#EAF3DE;color:#3B6D11;border:1.5px solid #97C459';
-      el.innerHTML='&#10003; <strong>We deliver here!</strong> '+zone.hub+' &nbsp;&middot;&nbsp; Fee: <strong>&euro;'+zone.fee+'</strong>';
-      if(note) note.style.display=(zone.type==='contact'?'block':'none');
-      if(typeof detectedZoneType!=='undefined') detectedZoneType=zone.type;
-      if(typeof selectedDelivery!=='undefined') selectedDelivery=(zone.type==='inner'?'delivery_local':'delivery_other');
+      el.innerHTML='&#10003; <strong>'+zone.hub+'</strong> &nbsp;&middot;&nbsp; '+zoneRuleText(zone.id)+' &nbsp;&middot;&nbsp; <strong>&euro;'+zone.fee+'</strong>';
+      if(typeof selectedDelivery!=='undefined') selectedDelivery='delivery_'+zone.id;
       if(typeof showDetectedArea==='function') showDetectedArea(zone);
       if(typeof renderSummary==='function') renderSummary();
       if(typeof toggleBlocks==='function') toggleBlocks();
-      if(zone.type!=='contact'&&typeof loadSlots==='function') loadSlots();
+      if(typeof loadSlots==='function') loadSlots();
       var btn=document.getElementById('placeOrderBtn'); if(btn){btn.disabled=false;btn.style.opacity='1';}
     }
 
@@ -1148,7 +1280,7 @@
       if(orig) window.placeOrder=function(){
         var zEl=document.getElementById('zoneStatus');
         if(zEl&&zEl.dataset.zoneOk==='0'){
-          if(typeof showToast==='function') showToast('We don\'t deliver to this address yet. Contact us.');
+          if(typeof showToast==='function') showToast((OUTSIDE_TEXT[_lang()]||OUTSIDE_TEXT.en).plain, 6000);
           return;
         }
         orig();
